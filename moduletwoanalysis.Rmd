@@ -1,7 +1,6 @@
 ---
 title: "module2_eco_pol_factors"
 output:
-  output: 
   html_document:
     fig_width: 7
     fig_height: 6
@@ -23,7 +22,7 @@ suppressPackageStartupMessages(library(ggplot2))
 
 
 
-```{r cars}
+```{r}
 moduletwo <- read_excel( "~/Desktop/thesis_surveydata/political_factors_complete.xlsx")
 module2 <- data.frame(moduletwo)
 module2 %>%
@@ -95,7 +94,10 @@ codedmodule2
 
 ```
 
-```{r}
+```{r, eval=TRUE}
+
+# summary statistics for risks from different energy sources
+
 codedmodule2 %>%
   summarize_at(vars(starts_with(c("RISKY"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
   #add row index so later spreading indexed correctly
@@ -111,5 +113,69 @@ codedmodule2 %>%
   #clean up
   select(-rowname, -Risky) %>%
   arrange(mean)
+```
+
+```{r}
+
+# summary statistics for benefits from different energy sources
+
+codedmodule2 %>%
+  summarize_at(vars(starts_with(c("Ben"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
+  #add row index so later spreading indexed correctly
+  add_rownames()%>%
+  #melt to long format
+  gather(technology, value, -rowname) %>%
+  # separate Ben from variable suffix
+  separate(technology, c("Ben", "var"), extra = "merge", fill = "left") %>%
+  #separate mean from variable prefix
+  separate(var, c("technology", "summary")) %>%
+  # spread summary values back to wide form
+  spread(summary,value) %>%
+  #clean up
+  select(-rowname, -Ben) %>%
+  arrange(mean)
+
+#round off to two decimal places
+```
+
+```{r}
+#summary statistics for nuclear energy accept, reject and reluctantly accept scale
+codedmodule2 %>%
+  summarize_at(vars(N_accept,N_reject,N_reluctantlyaccept), list(~mean(., na.rm = TRUE),~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE),~n())) %>%
+  add_rownames() %>%
+  gather(acceptance, value, -rowname) %>%
+  separate(acceptance, c("N_accept", "var") ,  extra = "merge", fill = "left") %>%
+  separate(var, c("Acceptance", "summary")) %>%
+  spread(summary, value) %>%
+  select(-rowname, -N_accept)%>%
+  arrange(mean)
+
+```
+
+```{r}
+
+# chi square test for risk perception from nuclear energy and gender, race 
+
+# first combine gender and caste variables
+
+chitest <- codedmodule2 %>%
+  select(Risky_Nuclear,Risky_Hydro, Risky_Hydro, Risky_Solar,Urban_Rural, Gender, Caste) %>%
+  na.omit() %>%
+  filter(!Caste=="Rather not say/Don't know")%>%
+  unite(gendercaste, Gender, Caste, sep = "_", remove = FALSE)
+
+chitest
+
+```
+
+
+```{r}
+
+chisq.test(chitest$Risky_Nuclear, chitest$Urban_Rural)
+```
+
+```{r}
+
+
 ```
 
