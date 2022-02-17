@@ -90,6 +90,7 @@ codedmodule2 <- module2 %>%
                                                                                                          . == "Somewhat agree" ~ 2,
                                                                                                          . == "Strongly agree" ~ 1)))
 
+codedmodule2
 
 
 ```
