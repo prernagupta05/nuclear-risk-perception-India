@@ -10,20 +10,71 @@ output:
     df_print: paged
 ---
 
-```{r setup, include=FALSE}
+```{r load packages, warning = FALSE, message = FALSE}
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(readxl))
+suppressPackageStartupMessages(library(hablar))
+suppressPackageStartupMessages(library(tsibble))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(DT))
+suppressPackageStartupMessages(library(ggplot2))
 
 ```
 
 
+
+```{r, eval=TRUE}
+
+moduleone <- read_excel( "~/Desktop/thesis_surveydata/livelihood_insecurity_complete.xlsx")
+module1 <- data.frame(moduleone)
+module1 %>%
+  filter(!row_number() %in% c(1,2))
+
+# loaded data set for module 2 eco -pol variables and removes the rows with question number and question text
+```
+
+
+
+```{r, eval =TRUE}
+#This chunk contains the coding schemes of various scales used in survey one: eco-political factors, kahan scale and acceptance scale
+codedmodule1 <- module1 %>%
+  
+#remove row 1
+  filter(!row_number() %in% c(1,2)) %>% 
+  
+# replace risky likert scale with numbers
+  mutate_at(vars(starts_with("Risky")), funs(case_when(. =="Not at all risky" ~ 1, 
+                                                       . =="Slightly risky" ~ 2, 
+                                                       . =="Moderately risky" ~ 3, 
+                                                       . =="Very risky" ~ 4, 
+                                                       . =="Extremely risky" ~ 5))) %>%
+
+# replace beneficial likert scale with numbers  
+  mutate_at(vars(starts_with("Ben")), funs(case_when(. =="Not at all beneficial" ~ 1,
+                                                     . =="Slightly beneficial" ~ 2,
+                                                     . =="Moderately beneficial" ~ 3,
+                                                     . =="Very beneficial" ~ 4,
+                                                     . =="Extremely beneficial" ~ 5 ))) %>%
+
+# replace nuclear acceptance likert scale with numbers
+  mutate_at(vars(N_accept,N_reluctantlyaccept,N_reject), funs(case_when(. == "Strongly disagree" ~ 1, 
+                                                                        . == "Somewhat disagree" ~ 2,
+                                                                        . == "Neither agree nor disagree" ~3,
+                                                                        . == "Somewhat agree" ~ 4,
+                                                                        . == "Strongly agree" ~ 5)))
+
+codedmodule1
+  
+#coded dependent variables for module 1 livelihood and income security survey
+
+
+```
 
 ```{r}
+# normalize quantitative livelihood-income security variables 
+
+
+
 
 ```
-
-
-
-```{r}
-
-```
-
 
