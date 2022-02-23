@@ -24,6 +24,7 @@ suppressPackageStartupMessages(library(ggplot2))
 
 ```{r}
 moduletwo <- read_excel( "~/Desktop/thesis_surveydata/political_factors_complete.xlsx")
+save(moduletwo, file = "moduletwo.rda")
 module2 <- data.frame(moduletwo)
 module2 %>%
   filter(!row_number() %in% c(1,2))
@@ -93,7 +94,6 @@ codedmodule2
 
 
 ```
-
 ```{r, eval=TRUE}
 
 # summary statistics for risks from different energy sources
@@ -114,6 +114,52 @@ codedmodule2 %>%
   select(-rowname, -Risky) %>%
   arrange(mean)
 ```
+```{r}
+#plotting perceived risk from different technologies
+
+module2%>%
+  filter(!row_number() %in% c(1,2)) %>% 
+  select(starts_with("RISKY"))%>%
+  gather(Technology, Perceived_Risk, Risky_Hydro:Risky_INDLPG, factor_key = TRUE)%>%
+  separate(Technology, c("Risky", "Technology"), extra = "merge", fill = "left")%>%
+  select(-Risky) %>%
+  group_by(Technology, Perceived_Risk) %>%
+  summarise(n=n())
+  
+  
+
+
+```
+```{r}
+levels(module2)
+```
+
+```{r}
+%>%
+  spread(Perceived_Risk, n)%>%
+  select("Technology", "Extremely risky", "Very risky", "Moderately risky", "Slightly risky", "Not at all risky", "Rather not say/Don't know")
+```
+
+
+```{r}
+ 
+module2%>%
+  filter(!row_number() %in% c(1,2)) %>% 
+  select(starts_with("RISKY"))%>%
+  gather(Technology, Perceived_Risk, Risky_Hydro:Risky_INDLPG, factor_key = TRUE)%>%
+  separate(Technology, c("Risky", "Technology"), extra = "merge", fill = "left")%>%
+  select(-Risky) %>%
+  group_by(Technology, Perceived_Risk) %>%
+  summarise(n=n())%>%
+ggplot(aes(fill= Perceived_Risk, y=n, x=Technology)) + 
+  geom_bar(position="fill", stat="identity")+
+  coord_flip()
+
+```
+
+
+
+
 
 ```{r}
 
@@ -176,6 +222,10 @@ chisq.test(chitest$Risky_Nuclear, chitest$Urban_Rural)
 
 ```{r}
 
+
+```
+
+```{r}
 
 ```
 

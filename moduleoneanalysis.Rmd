@@ -26,6 +26,7 @@ suppressPackageStartupMessages(library(ggplot2))
 ```{r, eval=TRUE}
 
 moduleone <- read_excel( "~/Desktop/thesis_surveydata/livelihood_insecurity_complete.xlsx")
+save(moduleone, file = "moduleone.rda")
 module1 <- data.frame(moduleone)
 module1 %>%
   filter(!row_number() %in% c(1,2))
