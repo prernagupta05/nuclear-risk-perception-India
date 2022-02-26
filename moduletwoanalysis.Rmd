@@ -126,19 +126,8 @@ module2%>%
   group_by(Technology, Perceived_Risk) %>%
   summarise(n=n())
   
-  
-
-
-```
-```{r}
-levels(module2)
 ```
 
-```{r}
-%>%
-  spread(Perceived_Risk, n)%>%
-  select("Technology", "Extremely risky", "Very risky", "Moderately risky", "Slightly risky", "Not at all risky", "Rather not say/Don't know")
-```
 
 
 ```{r}
@@ -155,8 +144,9 @@ ggplot(aes(fill= Perceived_Risk, y=n, x=Technology)) +
   geom_bar(position="fill", stat="identity")+
   coord_flip()
 
-```
+# fix ugly visual. Rearrange from extremely risky to not at all risky. Red to green, rather not say/Don't know should be grey 
 
+```
 
 
 
@@ -183,6 +173,34 @@ codedmodule2 %>%
 
 #round off to two decimal places
 ```
+
+
+```{r}
+
+module2%>%
+  filter(!row_number() %in% c(1,2)) %>% 
+  select(starts_with("Ben"))%>%
+  gather(Technology, Perceived_Benefit, Ben_Hydro:Ben_INDLPG, factor_key = TRUE)%>%
+  separate(Technology, c("Ben", "Technology"), extra = "merge", fill = "left")%>%
+  select(-Ben) %>%
+  group_by(Technology, Perceived_Benefit) %>%
+  summarise(n=n())%>%
+ggplot(aes(fill= Perceived_Benefit, y=n, x=Technology)) + 
+  geom_bar(position="fill", stat="identity")+
+  coord_flip()
+
+# fix ugly visual. Rearrange from extremely beneficial to not at all beneficial. Green to red, rather not say/Don't know should be grey. Also facet wrap by INDividually owned and centrally owned technology. 
+
+```
+
+
+```{r}
+
+```
+
+
+
+
 
 ```{r}
 #summary statistics for nuclear energy accept, reject and reluctantly accept scale
@@ -215,17 +233,16 @@ chitest
 ```
 
 
+
+
+
+
+
+
 ```{r}
 
 chisq.test(chitest$Risky_Nuclear, chitest$Urban_Rural)
 ```
 
-```{r}
 
-
-```
-
-```{r}
-
-```
 
