@@ -98,7 +98,7 @@ codedmodule2
 
 # summary statistics for risks from different energy sources
 
-codedmodule2 %>%
+risksummary <- codedmodule2 %>%
   summarize_at(vars(starts_with(c("RISKY"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
   #add row index so later spreading indexed correctly
   add_rownames()%>%
@@ -112,8 +112,15 @@ codedmodule2 %>%
   spread(summary,value) %>%
   #clean up
   select(-rowname, -Risky) %>%
-  arrange(mean)
+  arrange(mean)%>%
+  setNames(paste0('perceivedrisk.', names(.)))%>%
+  rename(technology = perceivedrisk.technology)
+
+risksummary
+
 ```
+
+
 ```{r}
 #plotting perceived risk from different technologies
 
@@ -125,6 +132,7 @@ module2%>%
   select(-Risky) %>%
   group_by(Technology, Perceived_Risk) %>%
   summarise(n=n())
+
   
 ```
 
@@ -132,19 +140,26 @@ module2%>%
 
 ```{r}
  
-module2%>%
+
+colorsequence<- c("#8C4646","#D9695F","#F2A679","#F2D091","#5D8C7B","#808080")
+df_barplot<-module2%>%
   filter(!row_number() %in% c(1,2)) %>% 
   select(starts_with("RISKY"))%>%
   gather(Technology, Perceived_Risk, Risky_Hydro:Risky_INDLPG, factor_key = TRUE)%>%
   separate(Technology, c("Risky", "Technology"), extra = "merge", fill = "left")%>%
   select(-Risky) %>%
   group_by(Technology, Perceived_Risk) %>%
-  summarise(n=n())%>%
-ggplot(aes(fill= Perceived_Risk, y=n, x=Technology)) + 
-  geom_bar(position="fill", stat="identity")+
-  coord_flip()
+  summarise(n=n())
 
-# fix ugly visual. Rearrange from extremely risky to not at all risky. Red to green, rather not say/Don't know should be grey 
+
+
+df_barplot %>% ggplot(aes(fill= fct_rev(factor(Perceived_Risk, levels=c("Extremely risky", "Very risky","Moderately risky","Slightly risky","Not at all risky","Rather not say/Don't know"))), y=n , x=Technology)) + 
+  geom_bar(position="fill",stat="identity")+
+  scale_fill_manual("legend", values = c("Extremely risky" = "#8C4646", "Very risky" = "#D9695F", "Moderately risky" = "#F2A679", "Slightly risky" = "#F2D091","Not at all risky" = "#5D8C7B", "Rather not say/Don't know" = "#808080"))+
+  coord_flip()+
+  theme_classic()
+
+# fix ugly visual. Rearrange from extremely risky to not at all risky. Red to green, rather not say/Don't know should be grey. Also facet wrap by INDividually owned and centrally owned technology.
 
 ```
 
@@ -155,7 +170,7 @@ ggplot(aes(fill= Perceived_Risk, y=n, x=Technology)) +
 
 # summary statistics for benefits from different energy sources
 
-codedmodule2 %>%
+benefitsummary <- codedmodule2 %>%
   summarize_at(vars(starts_with(c("Ben"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
   #add row index so later spreading indexed correctly
   add_rownames()%>%
@@ -169,7 +184,10 @@ codedmodule2 %>%
   spread(summary,value) %>%
   #clean up
   select(-rowname, -Ben) %>%
-  arrange(mean)
+  arrange(mean)%>%
+  setNames(paste0('perceivedbenefit.', names(.))) %>%
+  rename(technology = perceivedbenefit.technology)
+benefitsummary
 
 #round off to two decimal places
 ```
@@ -189,12 +207,7 @@ ggplot(aes(fill= Perceived_Benefit, y=n, x=Technology)) +
   geom_bar(position="fill", stat="identity")+
   coord_flip()
 
-# fix ugly visual. Rearrange from extremely beneficial to not at all beneficial. Green to red, rather not say/Don't know should be grey. Also facet wrap by INDividually owned and centrally owned technology. 
-
-```
-
-
-```{r}
+# fix ugly visual. Rearrange from extremely beneficial to not at all beneficial. Green to red, rather not say/Don't know should be grey. Also facet wrap by INDividually owned and centrally owned technology. Also arrange descending from most beneficial to least beneficial. 
 
 ```
 
@@ -234,7 +247,33 @@ chitest
 
 
 
+```{r}
+full_join(risksummary,benefitsummary, by = NULL, copy = FALSE, keep = FALSE) %>%
+  select(technology, perceivedrisk.mean, perceivedbenefit.mean) %>%
+   gather(key = "level", value = "mean",
+       perceivedrisk.mean, perceivedbenefit.mean) %>%
+  ggplot(aes(x=technology, y= mean, fill = level))+
+  geom_bar(stat="identity", position=position_dodge())+
+  coord_flip()
+  
+# arrange descending and facet wrap by IND prefix 
 
+
+```
+
+
+```{r}
+full_join(risksummary,benefitsummary, by = NULL, copy = FALSE, keep = FALSE) %>%
+  select(technology, perceivedrisk.median, perceivedbenefit.median) %>%
+   gather(key = "level", value = "median",
+       perceivedrisk.median, perceivedbenefit.median) %>%
+  ggplot(aes(x=technology, y= median, fill = level))+
+  geom_bar(stat="identity", position=position_dodge())+
+  coord_flip()
+
+# arrange descending and facet wrap by IND prefix 
+
+```
 
 
 
