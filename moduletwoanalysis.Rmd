@@ -147,7 +147,7 @@ df_barplot<-module2%>%
   select(starts_with("RISKY"))%>%
   gather(Technology, Perceived_Risk, Risky_Hydro:Risky_INDLPG, factor_key = TRUE)%>%
   separate(Technology, c("Risky", "Technology"), extra = "merge", fill = "left")%>%
-  select(-Risky) %>%
+  select(-Risky) %>% 
   group_by(Technology, Perceived_Risk) %>%
   summarise(n=n())
 
@@ -164,6 +164,28 @@ df_barplot %>% ggplot(aes(fill= fct_rev(factor(Perceived_Risk, levels=c("Extreme
 ```
 
 
+```{r}
+
+likertstack <- module2%>%
+  filter(!row_number() %in% c(1,2)) %>% 
+  select(starts_with("RISKY"))%>%
+  gather(Technology, Perceived_Risk, Risky_Hydro:Risky_INDLPG, factor_key = TRUE)%>%
+  separate(Technology, c("Risky", "Technology"), extra = "merge", fill = "left")%>%
+  select(-Risky) %>% 
+  group_by(Technology, Perceived_Risk) %>%
+  summarise(n=n()) %>%
+  pivot_wider(names_from = "Perceived_Risk", values_from = "n")
+
+
+likert(Measure ~ ., data=likertstack, ylab=NULL,
+       ReferenceZero=3, as.percent=TRUE,
+       positive.order=TRUE, 
+       main = list("Pereived risk from energy technologies in India",x=unit(.55, "npc")), 
+       sub= list("Perceived risk",x=unit(.57, "npc")), 
+       xlim=c(-40,-20,0,20,40,60,80,100),
+       strip=FALSE, 
+       par.strip.text=list(cex=.7))
+```
 
 
 ```{r}
@@ -195,17 +217,22 @@ benefitsummary
 
 ```{r}
 
-module2%>%
+colorsequence<- c("#8C4646","#D9695F","#F2A679","#F2D091","#5D8C7B","#808080")
+df_barplotben <- module2%>%
   filter(!row_number() %in% c(1,2)) %>% 
   select(starts_with("Ben"))%>%
   gather(Technology, Perceived_Benefit, Ben_Hydro:Ben_INDLPG, factor_key = TRUE)%>%
   separate(Technology, c("Ben", "Technology"), extra = "merge", fill = "left")%>%
-  select(-Ben) %>%
+  select(-Ben) %>% 
   group_by(Technology, Perceived_Benefit) %>%
-  summarise(n=n())%>%
-ggplot(aes(fill= Perceived_Benefit, y=n, x=Technology)) + 
-  geom_bar(position="fill", stat="identity")+
-  coord_flip()
+  summarise(n=n())
+
+
+df_barplotben %>% ggplot(aes(fill= factor(Perceived_Benefit, levels=c("Extremely beneficial", "Very beneficial","Moderately beneficial","Slightly beneficial","Not at all beneficial","Rather not say/Don't know")), y=n , x=Technology)) + 
+  geom_bar(position="fill",stat="identity")+
+  scale_fill_manual("legend", values = c("Extremely beneficial" = "#5D8C7B", "Very beneficial" = "#F2D091", "Moderately beneficial" = "#F2A679", "Slightly beneficial" = "#D9695F","Not at all beneficial" = "#8C4646", "Rather not say/Don't know" = "#808080"))+
+  coord_flip()+
+  theme_classic()
 
 # fix ugly visual. Rearrange from extremely beneficial to not at all beneficial. Green to red, rather not say/Don't know should be grey. Also facet wrap by INDividually owned and centrally owned technology. Also arrange descending from most beneficial to least beneficial. 
 
