@@ -166,6 +166,8 @@ df_barplot %>% ggplot(aes(fill= fct_rev(factor(Perceived_Risk, levels=c("Extreme
 
 ```{r}
 
+#trying to work with likert packages here 
+
 likertstack <- module2%>%
   filter(!row_number() %in% c(1,2)) %>% 
   select(starts_with("RISKY"))%>%
@@ -277,27 +279,49 @@ chitest
 ```{r}
 full_join(risksummary,benefitsummary, by = NULL, copy = FALSE, keep = FALSE) %>%
   select(technology, perceivedrisk.mean, perceivedbenefit.mean) %>%
+  mutate(technology = fct_reorder(technology, perceivedrisk.mean, .desc = TRUE))%>%
    gather(key = "level", value = "mean",
        perceivedrisk.mean, perceivedbenefit.mean) %>%
-  ggplot(aes(x=technology, y= mean, fill = level))+
+  ggplot(aes(x=technology, y= mean, fill = level, ))+
   geom_bar(stat="identity", position=position_dodge())+
-  coord_flip()
+  ylim(0,4)+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  scale_fill_manual("legend", values = c("perceivedbenefit.mean" = "palegreen3", "perceivedrisk.mean" = "firebrick2"))
   
 # arrange descending and facet wrap by IND prefix 
 
 
 ```
+```{r}
+full_join(risksummary,benefitsummary, by = NULL, copy = FALSE, keep = FALSE) %>%
+  select(technology, perceivedrisk.mean, perceivedbenefit.mean) %>%
+  mutate(technology = fct_reorder(technology, perceivedbenefit.mean, .desc = TRUE))%>%
+   gather(key = "level", value = "mean",
+       perceivedrisk.mean, perceivedbenefit.mean) %>%
+  ggplot(aes(x=technology, y= mean, fill = level, ))+
+  geom_bar(stat="identity", position=position_dodge())+
+  ylim(0,4)+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  scale_fill_manual("legend", values = c("perceivedbenefit.mean" = "palegreen3", "perceivedrisk.mean" = "firebrick2"))
+```
 
 
 ```{r}
+  
 full_join(risksummary,benefitsummary, by = NULL, copy = FALSE, keep = FALSE) %>%
   select(technology, perceivedrisk.median, perceivedbenefit.median) %>%
+  mutate(technology = fct_reorder(technology, perceivedrisk.median, .desc = TRUE))%>%
    gather(key = "level", value = "median",
        perceivedrisk.median, perceivedbenefit.median) %>%
-  ggplot(aes(x=technology, y= median, fill = level))+
+  ggplot(aes(x=technology, y= median, fill = level, ))+
   geom_bar(stat="identity", position=position_dodge())+
-  coord_flip()
+  ylim(0,4)+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  scale_fill_manual("legend", values = c("perceivedbenefit.median" = "palegreen3", "perceivedrisk.median" = "firebrick2"))
+  
+# arrange descending and facet wrap by IND prefix 
 
+  
 # arrange descending and facet wrap by IND prefix 
 
 ```
