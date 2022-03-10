@@ -1,11 +1,12 @@
 ---
 title: "module2_eco_pol_factors"
 output:
+  word_document: default
   html_document:
     fig_width: 7
     fig_height: 6
-    fig_caption: true
-    keep_md: true
+    fig_caption: yes
+    keep_md: yes
     theme: paper
     df_print: paged
 ---
@@ -164,31 +165,6 @@ df_barplot %>% ggplot(aes(fill= fct_rev(factor(Perceived_Risk, levels=c("Extreme
 ```
 
 
-```{r}
-
-#trying to work with likert packages here 
-
-likertstack <- module2%>%
-  filter(!row_number() %in% c(1,2)) %>% 
-  select(starts_with("RISKY"))%>%
-  gather(Technology, Perceived_Risk, Risky_Hydro:Risky_INDLPG, factor_key = TRUE)%>%
-  separate(Technology, c("Risky", "Technology"), extra = "merge", fill = "left")%>%
-  select(-Risky) %>% 
-  group_by(Technology, Perceived_Risk) %>%
-  summarise(n=n()) %>%
-  pivot_wider(names_from = "Perceived_Risk", values_from = "n")
-
-
-likert(Measure ~ ., data=likertstack, ylab=NULL,
-       ReferenceZero=3, as.percent=TRUE,
-       positive.order=TRUE, 
-       main = list("Pereived risk from energy technologies in India",x=unit(.55, "npc")), 
-       sub= list("Perceived risk",x=unit(.57, "npc")), 
-       xlim=c(-40,-20,0,20,40,60,80,100),
-       strip=FALSE, 
-       par.strip.text=list(cex=.7))
-```
-
 
 ```{r}
 
@@ -323,6 +299,79 @@ full_join(risksummary,benefitsummary, by = NULL, copy = FALSE, keep = FALSE) %>%
 
   
 # arrange descending and facet wrap by IND prefix 
+
+```
+```{r}
+ #median score for Kahan invidualism scale 
+
+codedmodule2 %>%
+  select((starts_with(c("K_I", "K_S"))))%>%
+  gather(key = "K_I", value = "score")%>%
+  na.omit()%>%
+  summarise(median = median(c(score)))
+
+
+```
+```{r}
+
+# Kahan scale median score for Hierarchy scale
+codedmodule2 %>%
+  select((starts_with(c("K_H", "K_E"))))%>%
+  gather(key = "K_H", value = "score")%>%
+  na.omit()%>%
+  summarise(median = median(c(score)))
+```
+
+
+```{r}
+#calculating individualism score for each respondent
+
+Kscalescores <- codedmodule2 %>%
+  select(starts_with(c("Risky","K_I","K_S", "K_H", "K_E")))%>%
+  rowwise()%>%
+  na.omit()%>%
+  mutate(Individualism_score = mean(c_across(K_IINTRFER:K_SPROTECT)))%>%
+  mutate(Hierarchy_score = mean(c_across(K_HEQUAL:K_ERADEQ2)))%>%
+  select(!starts_with(c("K_I","K_S", "K_H", "K_E")))
+
+Kscalescores
+
+
+```
+
+```{r}
+
+#scatter plot of Kahan scale scores around the median scores on Individualism and Hierarchy scales. 
+
+Kscalescores %>%
+  ggplot(aes(Individualism_score, Hierarchy_score))+
+  geom_point()+
+  geom_hline(yintercept=2, colour="black", lwd=1)+
+  geom_vline(xintercept=3, colour="black", lwd=1)
+
+
+```
+
+```{r}
+# checking distribution of scores on Individualism scale 
+
+Kscalescores %>%
+  ggplot(aes(x=Individualism_score, y = ..count..), fill = "lightgray")+
+  geom_density()
+  
+```
+
+```{r}
+# checking distribution of scores on Hierarchy scale 
+Kscalescores %>%
+  ggplot(aes(x=Hierarchy_score, y = ..count..), fill = "lightgray")+
+  geom_density()
+```
+
+
+
+
+```{r}
 
 ```
 
