@@ -275,8 +275,6 @@ summary(pcaresults)
 var_explained = pcaresults$sdev^2 / sum(pcaresults$sdev^2)
 
 
-pcaresults 
-
 
 
 ```
