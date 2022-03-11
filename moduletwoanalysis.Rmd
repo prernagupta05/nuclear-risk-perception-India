@@ -1,7 +1,6 @@
 ---
 title: "module2_eco_pol_factors"
 output:
-  word_document: default
   html_document:
     fig_width: 7
     fig_height: 6
@@ -401,7 +400,7 @@ ecopolscalepca <- ecopolscalescores %>%
 
 var_explained_ecopol = ecopolscalepca$sdev^2 / sum(ecopolscalepca$sdev^2)
 
-summary(ecopolscale_pca)
+summary(ecopolscalepca)
 
 ```
 ```{r}
