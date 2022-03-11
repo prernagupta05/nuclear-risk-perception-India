@@ -79,3 +79,27 @@ codedmodule1
 
 ```
 
+```{r}
+#trying to work with likert packages here 
+
+likertstack <- module2%>%
+  filter(!row_number() %in% c(1,2)) %>% 
+  select(starts_with("RISKY"))%>%
+  gather(Technology, Perceived_Risk, Risky_Hydro:Risky_INDLPG, factor_key = TRUE)%>%
+  separate(Technology, c("Risky", "Technology"), extra = "merge", fill = "left")%>%
+  select(-Risky) %>% 
+  group_by(Technology, Perceived_Risk) %>%
+  summarise(n=n()) %>%
+  pivot_wider(names_from = "Perceived_Risk", values_from = "n")
+
+
+likert(Measure ~ ., data=likertstack, ylab=NULL,
+       ReferenceZero=3, as.percent=TRUE,
+       positive.order=TRUE, 
+       main = list("Pereived risk from energy technologies in India",x=unit(.55, "npc")), 
+       sub= list("Perceived risk",x=unit(.57, "npc")), 
+       xlim=c(-40,-20,0,20,40,60,80,100),
+       strip=FALSE, 
+       par.strip.text=list(cex=.7))
+```
+

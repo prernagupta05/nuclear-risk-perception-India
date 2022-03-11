@@ -19,9 +19,13 @@ suppressPackageStartupMessages(library(tsibble))
 suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(DT))
 suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(ggbiplot))
+
 ```
 
+The module2 of the survey on the perception of risk and benefit from energy technologies in India. 
 
+Following is the complete data set with 1099 responses. 
 
 ```{r}
 moduletwo <- read_excel( "~/Desktop/thesis_surveydata/political_factors_complete.xlsx")
@@ -34,6 +38,73 @@ module2 %>%
 ```
 
 
+Following graphs show the distribution of percerived risk and benefit on the likert scale
+
+
+
+```{r}
+ 
+#plotting perceived risk from different technologies
+
+module2%>%
+  filter(!row_number() %in% c(1,2)) %>% 
+  select(starts_with("RISKY"))%>%
+  gather(Technology, Perceived_Risk, Risky_Hydro:Risky_INDLPG, factor_key = TRUE)%>%
+  separate(Technology, c("Risky", "Technology"), extra = "merge", fill = "left")%>%
+  select(-Risky) %>%
+  group_by(Technology, Perceived_Risk) %>%
+  dplyr::summarise(n=n())
+
+colorsequence<- c("#8C4646","#D9695F","#F2A679","#F2D091","#5D8C7B","#808080")
+df_barplot<-module2%>%
+  filter(!row_number() %in% c(1,2)) %>% 
+  select(starts_with("RISKY"))%>%
+  gather(Technology, Perceived_Risk, Risky_Hydro:Risky_INDLPG, factor_key = TRUE)%>%
+  separate(Technology, c("Risky", "Technology"), extra = "merge", fill = "left")%>%
+  select(-Risky) %>% 
+  group_by(Technology, Perceived_Risk) %>%
+  dplyr::summarise(n=n())
+
+
+df_barplot %>% ggplot(aes(fill= fct_rev(factor(Perceived_Risk, levels=c("Extremely risky", "Very risky","Moderately risky","Slightly risky","Not at all risky","Rather not say/Don't know"))), y=n , x=Technology)) + 
+  geom_bar(position="fill",stat="identity")+
+  scale_x_discrete(limits = c("Solar", "INDSolar", "INDFirewoodetc" ,"Wind" , "Hydro", "INDWind", "INDHydro", "INDDiesel" , "INDBiogas","INDKerosene", "Oil", "Coal","Gas", "INDLPG","Nuclear"))+
+  scale_fill_manual("legend", values = c("Extremely risky" = "#8C4646", "Very risky" = "#D9695F", "Moderately risky" = "#F2A679", "Slightly risky" = "#F2D091","Not at all risky" = "#5D8C7B", "Rather not say/Don't know" = "#808080"))+
+  coord_flip()+
+  theme_classic()
+
+
+```
+
+
+
+```{r}
+
+colorsequence<- c("#8C4646","#D9695F","#F2A679","#F2D091","#5D8C7B","#808080")
+
+df_barplotben <- module2%>%
+  filter(!row_number() %in% c(1,2)) %>% 
+  select(starts_with("Ben"))%>%
+  gather(Technology, Perceived_Benefit, Ben_Hydro:Ben_INDKerosene, factor_key = TRUE)%>%
+  separate(Technology, c("Ben", "Technology"), extra = "merge", fill = "left")%>%
+  select(-Ben) %>% 
+  group_by(Technology, Perceived_Benefit) %>%
+  dplyr::summarise(n=n())
+
+
+df_barplotben %>% ggplot(aes(fill= factor(Perceived_Benefit, levels=c("Rather not say/Don't know","Not at all beneficial","Slightly beneficial","Moderately beneficial","Very beneficial", "Extremely beneficial")), y=n , x=Technology)) + 
+  geom_bar(position="fill",stat="identity")+
+  scale_fill_manual("legend", values = c("Rather not say/Don't know" = "grey94" ,"Not at all beneficial" = "orange","Slightly beneficial"="yellow" ,"Moderately beneficial" = "palegreen","Very beneficial"= "green3", "Extremely beneficial"= "green4"))+
+  theme_classic()+
+  coord_flip()
+
+# fix Rather not say issue.
+
+```
+
+
+
+Now I am converting the likert scale for various scales used in the survey to numeric values from 1 to 5, Rather Not Say/Don't know is printed as NA. Some variables had to be reverse coded as well. 
 
 ```{r, eval =TRUE}
 #This chunk contains the coding schemes of various scales used in survey one: eco-political factors, kahan scale and acceptance scale
@@ -92,9 +163,13 @@ codedmodule2 <- module2 %>%
                                                                                                          . == "Strongly agree" ~ 1)))
 
 codedmodule2
-
-
 ```
+
+
+
+
+Following table shows the summary statistics of perceived risk from different energy technologies. 
+
 ```{r, eval=TRUE}
 
 # summary statistics for risks from different energy sources
@@ -113,58 +188,17 @@ risksummary <- codedmodule2 %>%
   spread(summary,value) %>%
   #clean up
   select(-rowname, -Risky) %>%
-  arrange(mean)%>%
-  setNames(paste0('perceivedrisk.', names(.)))%>%
-  rename(technology = perceivedrisk.technology)
+  arrange(mean) %>%
+  setNames(paste0('perceivedrisk.', names(.))) %>%
+  dplyr::rename(technology= perceivedrisk.technology)
 
 risksummary
 
-```
-
-
-```{r}
-#plotting perceived risk from different technologies
-
-module2%>%
-  filter(!row_number() %in% c(1,2)) %>% 
-  select(starts_with("RISKY"))%>%
-  gather(Technology, Perceived_Risk, Risky_Hydro:Risky_INDLPG, factor_key = TRUE)%>%
-  separate(Technology, c("Risky", "Technology"), extra = "merge", fill = "left")%>%
-  select(-Risky) %>%
-  group_by(Technology, Perceived_Risk) %>%
-  summarise(n=n())
-
-  
-```
-
-
-
-```{r}
- 
-
-colorsequence<- c("#8C4646","#D9695F","#F2A679","#F2D091","#5D8C7B","#808080")
-df_barplot<-module2%>%
-  filter(!row_number() %in% c(1,2)) %>% 
-  select(starts_with("RISKY"))%>%
-  gather(Technology, Perceived_Risk, Risky_Hydro:Risky_INDLPG, factor_key = TRUE)%>%
-  separate(Technology, c("Risky", "Technology"), extra = "merge", fill = "left")%>%
-  select(-Risky) %>% 
-  group_by(Technology, Perceived_Risk) %>%
-  summarise(n=n())
-
-
-
-df_barplot %>% ggplot(aes(fill= fct_rev(factor(Perceived_Risk, levels=c("Extremely risky", "Very risky","Moderately risky","Slightly risky","Not at all risky","Rather not say/Don't know"))), y=n , x=Technology)) + 
-  geom_bar(position="fill",stat="identity")+
-  scale_fill_manual("legend", values = c("Extremely risky" = "#8C4646", "Very risky" = "#D9695F", "Moderately risky" = "#F2A679", "Slightly risky" = "#F2D091","Not at all risky" = "#5D8C7B", "Rather not say/Don't know" = "#808080"))+
-  coord_flip()+
-  theme_classic()
-
-# fix ugly visual. Rearrange from extremely risky to not at all risky. Red to green, rather not say/Don't know should be grey. Also facet wrap by INDividually owned and centrally owned technology.
 
 ```
 
 
+Following table shows the summary statistics of perceived benefit from different energy technologies. 
 
 ```{r}
 
@@ -186,71 +220,14 @@ benefitsummary <- codedmodule2 %>%
   select(-rowname, -Ben) %>%
   arrange(mean)%>%
   setNames(paste0('perceivedbenefit.', names(.))) %>%
-  rename(technology = perceivedbenefit.technology)
+  dplyr::rename(technology = perceivedbenefit.technology)
 benefitsummary
 
 #round off to two decimal places
 ```
 
 
-```{r}
-
-colorsequence<- c("#8C4646","#D9695F","#F2A679","#F2D091","#5D8C7B","#808080")
-df_barplotben <- module2%>%
-  filter(!row_number() %in% c(1,2)) %>% 
-  select(starts_with("Ben"))%>%
-  gather(Technology, Perceived_Benefit, Ben_Hydro:Ben_INDLPG, factor_key = TRUE)%>%
-  separate(Technology, c("Ben", "Technology"), extra = "merge", fill = "left")%>%
-  select(-Ben) %>% 
-  group_by(Technology, Perceived_Benefit) %>%
-  summarise(n=n())
-
-
-df_barplotben %>% ggplot(aes(fill= factor(Perceived_Benefit, levels=c("Extremely beneficial", "Very beneficial","Moderately beneficial","Slightly beneficial","Not at all beneficial","Rather not say/Don't know")), y=n , x=Technology)) + 
-  geom_bar(position="fill",stat="identity")+
-  scale_fill_manual("legend", values = c("Extremely beneficial" = "#5D8C7B", "Very beneficial" = "#F2D091", "Moderately beneficial" = "#F2A679", "Slightly beneficial" = "#D9695F","Not at all beneficial" = "#8C4646", "Rather not say/Don't know" = "#808080"))+
-  coord_flip()+
-  theme_classic()
-
-# fix ugly visual. Rearrange from extremely beneficial to not at all beneficial. Green to red, rather not say/Don't know should be grey. Also facet wrap by INDividually owned and centrally owned technology. Also arrange descending from most beneficial to least beneficial. 
-
-```
-
-
-
-
-
-```{r}
-#summary statistics for nuclear energy accept, reject and reluctantly accept scale
-codedmodule2 %>%
-  summarize_at(vars(N_accept,N_reject,N_reluctantlyaccept), list(~mean(., na.rm = TRUE),~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE),~n())) %>%
-  add_rownames() %>%
-  gather(acceptance, value, -rowname) %>%
-  separate(acceptance, c("N_accept", "var") ,  extra = "merge", fill = "left") %>%
-  separate(var, c("Acceptance", "summary")) %>%
-  spread(summary, value) %>%
-  select(-rowname, -N_accept)%>%
-  arrange(mean)
-
-```
-
-```{r}
-
-# chi square test for risk perception from nuclear energy and gender, race 
-
-# first combine gender and caste variables
-
-chitest <- codedmodule2 %>%
-  select(Risky_Nuclear,Risky_Hydro, Risky_Hydro, Risky_Solar,Urban_Rural, Gender, Caste) %>%
-  na.omit() %>%
-  filter(!Caste=="Rather not say/Don't know")%>%
-  unite(gendercaste, Gender, Caste, sep = "_", remove = FALSE)
-
-chitest
-
-```
-
-
+bar plots for means of perceived risk and benefit from various energy technologies
 
 ```{r}
 full_join(risksummary,benefitsummary, by = NULL, copy = FALSE, keep = FALSE) %>%
@@ -263,24 +240,10 @@ full_join(risksummary,benefitsummary, by = NULL, copy = FALSE, keep = FALSE) %>%
   ylim(0,4)+
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
   scale_fill_manual("legend", values = c("perceivedbenefit.mean" = "palegreen3", "perceivedrisk.mean" = "firebrick2"))
-  
-# arrange descending and facet wrap by IND prefix 
 
 
 ```
-```{r}
-full_join(risksummary,benefitsummary, by = NULL, copy = FALSE, keep = FALSE) %>%
-  select(technology, perceivedrisk.mean, perceivedbenefit.mean) %>%
-  mutate(technology = fct_reorder(technology, perceivedbenefit.mean, .desc = TRUE))%>%
-   gather(key = "level", value = "mean",
-       perceivedrisk.mean, perceivedbenefit.mean) %>%
-  ggplot(aes(x=technology, y= mean, fill = level, ))+
-  geom_bar(stat="identity", position=position_dodge())+
-  ylim(0,4)+
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
-  scale_fill_manual("legend", values = c("perceivedbenefit.mean" = "palegreen3", "perceivedrisk.mean" = "firebrick2"))
-```
-
+bar plots for median of perceived risk and benefit from various energy technologies
 
 ```{r}
   
@@ -295,12 +258,52 @@ full_join(risksummary,benefitsummary, by = NULL, copy = FALSE, keep = FALSE) %>%
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
   scale_fill_manual("legend", values = c("perceivedbenefit.median" = "palegreen3", "perceivedrisk.median" = "firebrick2"))
   
-# arrange descending and facet wrap by IND prefix 
-
-  
-# arrange descending and facet wrap by IND prefix 
 
 ```
+PCA on all indepdendent variables in the data set 
+
+
+```{r}
+#PCA on all variables
+
+pcaresults <- codedmodule2 %>%
+  select(!starts_with(c("Risky","BEN", "Gender","Caste","Religion","State", "Age", "Otherreligion", "Urban_Rural","Language", "Survey_Date", "N_accept", "N_reject", "N_reluctantlyaccept")))%>%
+  na.omit()%>%
+  prcomp(center = TRUE, scale. = TRUE)
+
+summary(pcaresults)
+
+var_explained = pcaresults$sdev^2 / sum(pcaresults$sdev^2)
+
+
+pcaresults 
+
+
+
+```
+
+
+Scree plot of results from PCA
+
+```{r}
+
+qplot(c(1:90), var_explained) + 
+  geom_line() + 
+  xlab("Principal Component") + 
+  ylab("Variance Explained") +
+  ggtitle("Scree Plot") +
+  ylim(0, 0.20)+
+  xlim(1,7)
+
+```
+
+
+
+
+Coding and Combining items on Kahan scale 
+
+
+
 ```{r}
  #median score for Kahan invidualism scale 
 
@@ -324,15 +327,15 @@ codedmodule2 %>%
 
 
 ```{r}
-#calculating individualism score for each respondent
+#calculating individualism score and hierarchy score for each respondent
 
 Kscalescores <- codedmodule2 %>%
   select(starts_with(c("Risky","K_I","K_S", "K_H", "K_E")))%>%
   rowwise()%>%
   na.omit()%>%
-  mutate(Individualism_score = mean(c_across(K_IINTRFER:K_SPROTECT)))%>%
-  mutate(Hierarchy_score = mean(c_across(K_HEQUAL:K_ERADEQ2)))%>%
-  select(!starts_with(c("K_I","K_S", "K_H", "K_E")))
+  dplyr::mutate(Individualism_score = mean(c_across(K_IINTRFER:K_SPROTECT)))%>%
+  dplyr::mutate(Hierarchy_score = mean(c_across(K_HEQUAL:K_ERADEQ2)))%>%
+  dplyr::select(!starts_with(c("K_I","K_S", "K_H", "K_E")))
 
 Kscalescores
 
@@ -368,20 +371,54 @@ Kscalescores %>%
   geom_density()
 ```
 
-
+Coding and combining items on the eco-political scale - characteristics of the perceiver
 
 
 ```{r}
+ecopolscalescores <- codedmodule2 %>%
+  select(starts_with(c("Risky","SYSTEMDEMO","SYSTEMRELIGION","SYSTEMTECHNO","SYSTEMTOTAL","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG", "Gender","Caste","Religion", "State")))%>%
+  rowwise()%>%
+  na.omit()%>%
+  dplyr::mutate(Pro_decentralisation = mean(c_across("DECISIONDECEN":"DECISIONCEN")))%>%
+   dplyr::mutate(Pro_largescale = mean(c_across("INDUSTRYLARGE":"INDUSTRYSMALL")))%>%
+   dplyr::mutate(Pro_global = mean(c_across("ECONOMYGLOBAL":"ECONOMYLOCAL")))%>%
+   dplyr::mutate(Pro_ecogrowth = mean(c_across("ENVOVERDEV":"DEVOVERENV")))%>%
+   dplyr::mutate(Pro_private = mean(c_across("OWNERPVT":"OWNERREG")))%>%
+  dplyr::select(!c("DECISIONDECEN","DECISIONCEN", "INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL", "ECONOMYLOCAL","ENVOVERDEV",     "DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG"))
+
+ecopolscalescores
+```
+
+PCA test on the new eco-pol scale - characteristics of the perceiver
+
+```{r}
+# PCA test on qualities of the perceiver
+
+ecopolscalepca <- ecopolscalescores %>%
+  select(!starts_with(c("Risky","Gender","Caste","Religion","State")))%>%
+  prcomp(center = TRUE,scale. = TRUE)
+
+
+var_explained_ecopol = ecopolscalepca$sdev^2 / sum(ecopolscalepca$sdev^2)
+
+summary(ecopolscale_pca)
+
+```
+```{r}
+
+qplot(c(1:11), var_explained_ecopol) + 
+  geom_line() + 
+  xlab("Principal Component") + 
+  ylab("Variance Explained") +
+  ggtitle("Scree Plot") +
+  ylim(0.05, 0.20)+
+  xlim(1,7)
 
 ```
 
 
 
 
-```{r}
-
-chisq.test(chitest$Risky_Nuclear, chitest$Urban_Rural)
-```
 
 
 
