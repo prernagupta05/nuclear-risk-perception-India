@@ -8,9 +8,12 @@ output:
     keep_md: yes
     theme: paper
     df_print: paged
+  
 ---
 
-```{r load packages, warning = FALSE, message = FALSE}
+```{r load packages, warning = FALSE, message = FALSE, echo=FALSE}
+  knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(readxl))
 suppressPackageStartupMessages(library(hablar))
@@ -26,10 +29,12 @@ The module2 of the survey on the perception of risk and benefit from energy tech
 
 Following is the complete data set with 1099 responses. 
 
-```{r}
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 moduletwo <- read_excel( "~/Desktop/thesis_surveydata/political_factors_complete.xlsx")
 save(moduletwo, file = "moduletwo.rda")
 module2 <- data.frame(moduletwo)
+module2[module2 == "Rather not say/ Don't know"] <- "Rather not say/Don't know"
 module2 %>%
   filter(!row_number() %in% c(1,2))
 
@@ -37,11 +42,12 @@ module2 %>%
 ```
 
 
-Following graphs show the distribution of percerived risk and benefit on the likert scale
+Following graph show the distribution of perceived risk on the likert scale
 
 
 
-```{r}
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
  
 #plotting perceived risk from different technologies
 
@@ -68,7 +74,7 @@ df_barplot<-module2%>%
 df_barplot %>% ggplot(aes(fill= fct_rev(factor(Perceived_Risk, levels=c("Extremely risky", "Very risky","Moderately risky","Slightly risky","Not at all risky","Rather not say/Don't know"))), y=n , x=Technology)) + 
   geom_bar(position="fill",stat="identity")+
   scale_x_discrete(limits = c("Solar", "INDSolar", "INDFirewoodetc" ,"Wind" , "Hydro", "INDWind", "INDHydro", "INDDiesel" , "INDBiogas","INDKerosene", "Oil", "Coal","Gas", "INDLPG","Nuclear"))+
-  scale_fill_manual("legend", values = c("Extremely risky" = "#8C4646", "Very risky" = "#D9695F", "Moderately risky" = "#F2A679", "Slightly risky" = "#F2D091","Not at all risky" = "#5D8C7B", "Rather not say/Don't know" = "#808080"))+
+  scale_fill_manual("legend", values = c("Extremely risky" = "#8C4646", "Very risky" = "#D9695F", "Moderately risky" = "#F2A679", "Slightly risky" = "#F2D091","Not at all risky" = "#5D8C7B", "Rather not say/Don't know" = "grey94"))+
   coord_flip()+
   theme_classic()
 
@@ -76,10 +82,13 @@ df_barplot %>% ggplot(aes(fill= fct_rev(factor(Perceived_Risk, levels=c("Extreme
 ```
 
 
+Following graph show the distribution of perceived  benefit on the likert scale
 
-```{r}
 
-colorsequence<- c("#8C4646","#D9695F","#F2A679","#F2D091","#5D8C7B","#808080")
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
 
 df_barplotben <- module2%>%
   filter(!row_number() %in% c(1,2)) %>% 
@@ -94,6 +103,7 @@ df_barplotben <- module2%>%
 df_barplotben %>% ggplot(aes(fill= factor(Perceived_Benefit, levels=c("Rather not say/Don't know","Not at all beneficial","Slightly beneficial","Moderately beneficial","Very beneficial", "Extremely beneficial")), y=n , x=Technology)) + 
   geom_bar(position="fill",stat="identity")+
   scale_fill_manual("legend", values = c("Rather not say/Don't know" = "grey94" ,"Not at all beneficial" = "orange","Slightly beneficial"="yellow" ,"Moderately beneficial" = "palegreen","Very beneficial"= "green3", "Extremely beneficial"= "green4"))+
+  scale_x_discrete(limits = c("Solar", "INDSolar", "INDFirewoodetc" , "INDLPG", "Wind" , "Hydro", "INDWind", "INDHydro", "INDDiesel" , "INDBiogas","INDKerosene", "Oil", "Coal","Gas","Nuclear"))+
   theme_classic()+
   coord_flip()
 
@@ -105,7 +115,8 @@ df_barplotben %>% ggplot(aes(fill= factor(Perceived_Benefit, levels=c("Rather no
 
 Now I am converting the likert scale for various scales used in the survey to numeric values from 1 to 5, Rather Not Say/Don't know is printed as NA. Some variables had to be reverse coded as well. 
 
-```{r, eval =TRUE}
+```{r, eval =TRUE, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 #This chunk contains the coding schemes of various scales used in survey one: eco-political factors, kahan scale and acceptance scale
 codedmodule2 <- module2 %>%
   
@@ -169,7 +180,8 @@ codedmodule2
 
 Following table shows the summary statistics of perceived risk from different energy technologies. 
 
-```{r, eval=TRUE}
+```{r, eval=TRUE, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 # summary statistics for risks from different energy sources
 
@@ -199,7 +211,8 @@ risksummary
 
 Following table shows the summary statistics of perceived benefit from different energy technologies. 
 
-```{r}
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 # summary statistics for benefits from different energy sources
 
@@ -228,7 +241,9 @@ benefitsummary
 
 bar plots for means of perceived risk and benefit from various energy technologies
 
-```{r}
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
 full_join(risksummary,benefitsummary, by = NULL, copy = FALSE, keep = FALSE) %>%
   select(technology, perceivedrisk.mean, perceivedbenefit.mean) %>%
   mutate(technology = fct_reorder(technology, perceivedrisk.mean, .desc = TRUE))%>%
@@ -237,8 +252,8 @@ full_join(risksummary,benefitsummary, by = NULL, copy = FALSE, keep = FALSE) %>%
   ggplot(aes(x=technology, y= mean, fill = level, ))+
   geom_bar(stat="identity", position=position_dodge())+
   ylim(0,4)+
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
-  scale_fill_manual("legend", values = c("perceivedbenefit.mean" = "palegreen3", "perceivedrisk.mean" = "firebrick2"))
+  scale_fill_manual("legend", values = c("perceivedbenefit.mean" = "palegreen3", "perceivedrisk.mean" = "firebrick2"))+
+  coord_flip()
 
 
 ```
@@ -247,7 +262,8 @@ full_join(risksummary,benefitsummary, by = NULL, copy = FALSE, keep = FALSE) %>%
 
 bar plots for median of perceived risk and benefit from various energy technologies
 
-```{r}
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
   
 full_join(risksummary,benefitsummary, by = NULL, copy = FALSE, keep = FALSE) %>%
   select(technology, perceivedrisk.median, perceivedbenefit.median) %>%
@@ -257,8 +273,8 @@ full_join(risksummary,benefitsummary, by = NULL, copy = FALSE, keep = FALSE) %>%
   ggplot(aes(x=technology, y= median, fill = level, ))+
   geom_bar(stat="identity", position=position_dodge())+
   ylim(0,4)+
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
-  scale_fill_manual("legend", values = c("perceivedbenefit.median" = "palegreen3", "perceivedrisk.median" = "firebrick2"))
+  scale_fill_manual("legend", values = c("perceivedbenefit.median" = "palegreen3", "perceivedrisk.median" = "firebrick2"))+
+  coord_flip()
   
 
 ```
@@ -267,10 +283,12 @@ full_join(risksummary,benefitsummary, by = NULL, copy = FALSE, keep = FALSE) %>%
 
 
 
-PCA on all indepdendent variables in the data set 
+Conducted PCA on all independent variables in the data set. The following table shows the variables that are part of the resultant principal components. 
 
 
-```{r}
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
 #PCA on all variables
 
 pcaresults <- codedmodule2 %>%
@@ -278,19 +296,32 @@ pcaresults <- codedmodule2 %>%
   na.omit()%>%
   prcomp(center = TRUE, scale. = TRUE)
 
-summary(pcaresults)
+rotations = pcaresults["rotation"]
 
-var_explained = pcaresults$sdev^2 / sum(pcaresults$sdev^2)
+#calculate total variance explained by each principal component
+var_explained <- pcaresults$sdev^2 / sum(pcaresults$sdev^2)
 
 
-
-
+rotationsDF <- do.call(rbind.data.frame, rotations)
+rotationsDF
 ```
 
 
-Scree plot of results from PCA
 
-```{r}
+
+Following tibble shows variance explained by each Principal component 
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+data.frame(var_explained, row.names=names(rotationsDF))
+  
+```
+
+Scree plot of the previous table. Including only till PC7
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 qplot(c(1:90), var_explained) + 
   geom_line() + 
@@ -307,10 +338,12 @@ qplot(c(1:90), var_explained) +
 
 Coding and Combining items on Kahan scale 
 
+Median score for Kahan on invidualism scale 
 
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
-```{r}
- #median score for Kahan invidualism scale 
+#median score for Kahan invidualism scale 
 
 codedmodule2 %>%
   select((starts_with(c("K_I", "K_S"))))%>%
@@ -320,7 +353,12 @@ codedmodule2 %>%
 
 
 ```
-```{r}
+
+Kahan scale median score for Hierarchy scale
+
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 # Kahan scale median score for Hierarchy scale
 codedmodule2 %>%
@@ -330,8 +368,11 @@ codedmodule2 %>%
   summarise(median = median(c(score)))
 ```
 
+Calculating individualism score and hierarchy score for each respondent
 
-```{r}
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 #calculating individualism score and hierarchy score for each respondent
 
 Kscalescores <- codedmodule2 %>%
@@ -347,7 +388,11 @@ Kscalescores
 
 ```
 
-```{r}
+
+scatter plot of Kahan scale scores around the median scores on Individualism and Hierarchy scales.
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 #scatter plot of Kahan scale scores around the median scores on Individualism and Hierarchy scales. 
 
@@ -360,16 +405,27 @@ Kscalescores %>%
 
 ```
 
-```{r}
+checking distribution of scores on Individualism scale
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 # checking distribution of scores on Individualism scale 
 
 Kscalescores %>%
   ggplot(aes(x=Individualism_score, y = ..count..), fill = "lightgray")+
   geom_density()
   
+
+
 ```
 
-```{r}
+
+
+
+
+checking distribution of scores on Hierarchy scale 
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 # checking distribution of scores on Hierarchy scale 
 Kscalescores %>%
   ggplot(aes(x=Hierarchy_score, y = ..count..), fill = "lightgray")+
@@ -379,7 +435,8 @@ Kscalescores %>%
 Coding and combining items on the eco-political scale - characteristics of the perceiver
 
 
-```{r}
+```{r, echo= FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 ecopolscalescores <- codedmodule2 %>%
   select(starts_with(c("Risky","SYSTEMDEMO","SYSTEMRELIGION","SYSTEMTECHNO","SYSTEMTOTAL","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG", "Gender","Caste","Religion", "State")))%>%
   rowwise()%>%
@@ -396,7 +453,8 @@ ecopolscalescores
 
 PCA test on the new eco-pol scale - characteristics of the perceiver
 
-```{r}
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 # PCA test on qualities of the perceiver
 
 ecopolscalepca <- ecopolscalescores %>%
@@ -409,7 +467,20 @@ var_explained_ecopol = ecopolscalepca$sdev^2 / sum(ecopolscalepca$sdev^2)
 summary(ecopolscalepca)
 
 ```
-```{r}
+
+
+
+
+```{r, echo=FALSE}
+
+rotationsecopol = ecopolscalepca["rotation"]
+rotationsDFecopol <- do.call(rbind.data.frame, rotationsecopol)
+rotationsDFecopol
+```
+
+
+
+```{r, echo=FALSE}
 
 qplot(c(1:11), var_explained_ecopol) + 
   geom_line() + 
