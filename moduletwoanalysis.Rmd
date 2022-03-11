@@ -242,6 +242,9 @@ full_join(risksummary,benefitsummary, by = NULL, copy = FALSE, keep = FALSE) %>%
 
 
 ```
+
+
+
 bar plots for median of perceived risk and benefit from various energy technologies
 
 ```{r}
@@ -259,6 +262,11 @@ full_join(risksummary,benefitsummary, by = NULL, copy = FALSE, keep = FALSE) %>%
   
 
 ```
+
+
+
+
+
 PCA on all indepdendent variables in the data set 
 
 
