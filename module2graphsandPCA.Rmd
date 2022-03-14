@@ -342,7 +342,7 @@ full_join(bensumIND,risksumIND, by = NULL, copy = FALSE, keep = FALSE) %>%
 ```{r, echo=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
-#PCA on all variables
+#PCA on Kahan scale
 
 pcaresultsK <- codedmodule2 %>%
   select(starts_with(c("K_")))%>%
@@ -358,6 +358,8 @@ var_explainedK <- pcaresultsK$sdev^2 / sum(pcaresultsK$sdev^2)
 rotationsK <- do.call(rbind.data.frame, rotations)
                   
 rotationsK
+
+
 ```
 
 
@@ -365,7 +367,10 @@ rotationsK
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 KPC_var <-data.frame(var_explainedK, row.names=names(rotationsK)) %>%
-  tibble::rownames_to_column("Principal Component")
+          tibble::rownames_to_column("PC")
+
+KPC_var
+
   
 ```
 
@@ -374,13 +379,14 @@ KPC_var <-data.frame(var_explainedK, row.names=names(rotationsK)) %>%
 ```{r, echo=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
- + 
+qplot(c(1:12), var_explainedK) + 
   geom_line() + 
   xlab("Principal Component") + 
   ylab("Variance Explained") +
   ggtitle("Scree Plot") +
-  ylim(0, 0.20)+
-  xlim(0,5)
+  ylim(0, 0.30)+
+  xlim(1,7)
+
 
 ```
 
@@ -403,4 +409,118 @@ ecopolscalescores <- codedmodule2 %>%
 ecopolscalescores
 ```
 
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+# PCA test on qualities of the perceiver
+
+ecopolscalepca <- ecopolscalescores %>%
+  select(!starts_with(c("Risky","Gender","Caste","Religion","State")))%>%
+  prcomp(center = TRUE,scale. = TRUE)
+
+
+var_explained_ecopol = ecopolscalepca$sdev^2 / sum(ecopolscalepca$sdev^2)
+
+summary(ecopolscalepca)
+
+```
+```{r, echo=FALSE}
+
+rotationsecopol = ecopolscalepca["rotation"]
+rotationsDFecopol <- do.call(rbind.data.frame, rotationsecopol)
+rotationsDFecopol
+```
+
+
+```{r, echo=FALSE}
+
+qplot(c(1:11), var_explained_ecopol) + 
+  geom_line() + 
+  xlab("Principal Component") + 
+  ylab("Variance Explained") +
+  ggtitle("Scree Plot") +
+  ylim(0.05, 0.20)+
+  xlim(1,7)
+
+```
+
+
+```{r}
+
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+#PCA on Kahan scale
+
+Solar <- codedmodule2 %>%
+  select("DISPLACESOLAR":"RELYSOLAR") 
+
+#%>%
+  separate(Var, c("prefix", "Var", "technology"), sep = c(0,-5), remove = T)%>%
+  select(!"prefix")
+
+ROOFS<- codedmodule2 %>%
+  select("DISPLACEROOFS":"RELYROOFS")
+
+# %>%
+  pivot_longer(cols ="DISPLACEROOFS":"RELYROOFS", names_to = "Var", values_to = "score") %>%
+  separate(Var, c("prefix", "Var", "technology"), sep = c(0,-5), remove = T)%>%
+  select(!"prefix")
+
+  
+DIESEL<- codedmodule2 %>%
+  select("DISPLACEDIESEL":"RELYDIESEL")%>%
+  pivot_longer(cols ="DISPLACEDIESEL":"RELYDIESEL", names_to = "Var", values_to = "score") %>%
+  separate(Var, c("prefix", "Var", "technology"), sep = c(0,-6), remove = T)%>%
+  select(!"prefix")
+
+
+FIREWOOD<- codedmodule2 %>%
+  select("DISPLACEFIRE":"RELYFIRE")%>%
+  pivot_longer(cols ="DISPLACEFIRE":"RELYFIRE", names_to = "Var", values_to = "score") %>%
+  separate(Var, c("prefix", "Var", "technology"), sep = c(0,-8), remove = T)%>%
+  select(!"prefix")
+
+
+COAL<- codedmodule2 %>%
+  select("DISPLACECOAL":"RELYCOAL")%>%
+  pivot_longer(cols ="DISPLACECOAL":"RELYCOAL", names_to = "Var", values_to = "score") %>%
+  separate(Var, c("prefix", "Var", "technology"), sep = c(0,-4), remove = T)%>%
+  select(!"prefix")
+
+
+NUCLEAR<- codedmodule2 %>%
+  select("DISPLACENUCLEAR":"RELYNUCLEAR")%>%
+  pivot_longer(cols ="DISPLACENUCLEAR":"RELYNUCLEAR", names_to = "Var", values_to = "score") %>%
+  separate(Var, c("prefix", "Var", "technology"), sep = c(0,-7), remove = T)%>%
+  select(!"prefix")
+
+Solar.pca <- Solar %>%
+  na.omit()%>%
+  prcomp(center = TRUE, scale. = TRUE)
+
+rotations = Solar.pca["rotation"]
+
+#calculate total variance explained by each principal component
+var_explainedSolar <- Solar.pca$sdev^2 / sum(Solar.pca$sdev^2)
+
+
+rotationsSolar <- do.call(rbind.data.frame, rotations)
+                  
+rotationsSolar
+
+
+```
+
+
+
+```{r, echo=FALSE}
+
+qplot(c(1:10), var_explainedSolar) + 
+  geom_line() + 
+  xlab("Principal Component") + 
+  ylab("Variance Explained") +
+  ggtitle("Scree Plot") +
+  ylim(0.01, 0.40)+
+  xlim(1,7)
+
+```
 
