@@ -310,12 +310,12 @@ center_barplot$level <- as.factor(center_barplot$level)
 class(center_barplot$level)
 levels(center_barplot$level)
 
- center_barplot%>% mutate(level = fct_relevel(level, 
-            "perceivedbenefit.mean", "perceivedrisk.mean"))+
-  ggplot(aes(y=technology, x= mean, fill =  level))+
+ center_barplot%>% 
+  ggplot(aes(x=technology, y= mean, fill =  center_barplot$level))+
   geom_bar(stat="identity", position=position_dodge())+
-  xlim(0,4)+
-  scale_fill_manual("legend", values = c("perceivedbenefit.mean" = "palegreen3","perceivedrisk.mean" = "firebrick2"))
+  ylim(0,4)+
+  scale_fill_manual("legend", values = c("perceivedbenefit.mean" = "palegreen3","perceivedrisk.mean" = "firebrick2"))+
+  coord_flip()
 
 
 ```
@@ -337,3 +337,70 @@ full_join(bensumIND,risksumIND, by = NULL, copy = FALSE, keep = FALSE) %>%
   coord_flip()
 
 ```
+
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+#PCA on all variables
+
+pcaresultsK <- codedmodule2 %>%
+  select(starts_with(c("K_")))%>%
+  na.omit()%>%
+  prcomp(center = TRUE, scale. = TRUE)
+
+rotations = pcaresultsK["rotation"]
+
+#calculate total variance explained by each principal component
+var_explainedK <- pcaresultsK$sdev^2 / sum(pcaresultsK$sdev^2)
+
+
+rotationsK <- do.call(rbind.data.frame, rotations)
+                  
+rotationsK
+```
+
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+KPC_var <-data.frame(var_explainedK, row.names=names(rotationsK)) %>%
+  tibble::rownames_to_column("Principal Component")
+  
+```
+
+
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+ + 
+  geom_line() + 
+  xlab("Principal Component") + 
+  ylab("Variance Explained") +
+  ggtitle("Scree Plot") +
+  ylim(0, 0.20)+
+  xlim(0,5)
+
+```
+
+
+
+
+```{r, echo= FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+ecopolscalescores <- codedmodule2 %>%
+  select(starts_with(c("Risky","SYSTEMDEMO","SYSTEMRELIGION","SYSTEMTECHNO","SYSTEMTOTAL","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG", "Gender","Caste","Religion", "State")))%>%
+  rowwise()%>%
+  na.omit()%>%
+  dplyr::mutate(Pro_decentralisation = mean(c_across("DECISIONDECEN":"DECISIONCEN")))%>%
+   dplyr::mutate(Pro_largescale = mean(c_across("INDUSTRYLARGE":"INDUSTRYSMALL")))%>%
+   dplyr::mutate(Pro_global = mean(c_across("ECONOMYGLOBAL":"ECONOMYLOCAL")))%>%
+   dplyr::mutate(Pro_ecogrowth = mean(c_across("ENVOVERDEV":"DEVOVERENV")))%>%
+   dplyr::mutate(Pro_private = mean(c_across("OWNERPVT":"OWNERREG")))%>%
+  dplyr::select(!c("DECISIONDECEN","DECISIONCEN", "INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL", "ECONOMYLOCAL","ENVOVERDEV",     "DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG"))
+
+ecopolscalescores
+```
+
+
