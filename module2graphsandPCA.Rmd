@@ -1,0 +1,339 @@
+---
+title: "module2graphsandPCA"
+output: 
+output:
+  html_document:
+    fig_width: 7
+    fig_height: 6
+    fig_caption: yes
+    keep_md: yes
+    theme: paper
+    df_print: paged
+  
+---
+
+```{r load packages, warning = FALSE, message = FALSE, echo=FALSE}
+  knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(readxl))
+suppressPackageStartupMessages(library(hablar))
+suppressPackageStartupMessages(library(tsibble))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(DT))
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(ggbiplot))
+
+```
+
+
+
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+moduletwo <- read_excel( "~/Desktop/thesis_surveydata/political_factors_complete.xlsx")
+save(moduletwo, file = "moduletwo.rda")
+module2 <- data.frame(moduletwo)
+module2[module2 == "Rather not say/ Don't know"] <- "Rather not say/Don't know"
+module2 %>%
+  filter(!row_number() %in% c(1,2))
+
+# loaded data set for module 2 eco -pol variables and removes the rows with question number and question text
+```
+
+
+
+
+
+```{r, eval =TRUE, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+#This chunk contains the coding schemes of various scales used in survey one: eco-political factors, kahan scale and acceptance scale
+codedmodule2 <- module2 %>%
+  
+#remove row 1
+  filter(!row_number() %in% c(1,2)) %>% 
+  
+# replace risky likert scale with numbers
+  mutate_at(vars(starts_with("Risky")), funs(case_when(. =="Not at all risky" ~ 1, 
+                                                       . =="Slightly risky" ~ 2, 
+                                                       . =="Moderately risky" ~ 3, 
+                                                       . =="Very risky" ~ 4, 
+                                                       . =="Extremely risky" ~ 5))) %>%
+
+# replace beneficial likert scale with numbers  
+  mutate_at(vars(starts_with("Ben")), funs(case_when(. =="Not at all beneficial" ~ 1,
+                                                     . =="Slightly beneficial" ~ 2,
+                                                     . =="Moderately beneficial" ~ 3,
+                                                     . =="Very beneficial" ~ 4,
+                                                     . =="Extremely beneficial" ~ 5 ))) %>%
+
+# replace nuclear acceptance likert scale with numbers
+  mutate_at(vars(N_accept,N_reluctantlyaccept,N_reject), funs(case_when(. == "Strongly disagree" ~ 1, 
+                                                                        . == "Somewhat disagree" ~ 2,
+                                                                        . == "Neither agree nor disagree" ~3,
+                                                                        . == "Somewhat agree" ~ 4,
+                                                                        . == "Strongly agree" ~ 5))) %>%
+  
+# code likert scale for variables for Kahan scale into numbers
+  mutate_at(vars(starts_with (c("K_I","K_H","DISPLACE", "POLLUTE", "HEALTH", "JOBS", "BEAUTY", "PRIDE", "NPRIDE", "DEV", "PROSPER", "RELY"))), funs(case_when(. == "Strongly disagree" ~ 1, 
+               . == "Somewhat disagree" ~ 2,
+               . == "Neither agree nor disagree" ~3,
+               . == "Somewhat agree" ~ 4,
+               . == "Strongly agree" ~ 5))) %>%
+  
+# reverse code for likert scale for variables for Kahan scale into numbers
+  mutate_at(vars(starts_with (c("K_S","K_E"))), funs(case_when(. == "Strongly disagree" ~ 5, 
+                                                               . == "Somewhat disagree" ~ 4,
+                                                               . == "Neither agree nor disagree" ~3,
+                                                               . == "Somewhat agree" ~ 2,
+                                                               . == "Strongly agree" ~ 1))) %>%
+
+# code eco-pol scale variables into numbers
+  mutate_at(vars(SYSTEMDEMO,SYSTEMRELIGION,SYSTEMTECHNO,SYSTEMTOTAL,WEALTHLIM,MECHANISATION,DECISIONDECEN,INDUSTRYLARGE,ECONOMYGLOBAL,OWNERPVT,OWNERNOREG), funs(case_when(. == "Strongly disagree" ~ 1, 
+                        . == "Somewhat disagree" ~ 2,
+                        . == "Neither agree nor disagree" ~3,
+                        . == "Somewhat agree" ~ 4,
+                        . == "Strongly agree" ~ 5))) %>%
+
+# reverse code eco-pol scale variables into numbers 
+ mutate_at(vars(DECISIONCEN, INDUSTRYSMALL, ECONOMYLOCAL, ENVOVERDEV,OWNERPUB, OWNERREG), funs(case_when(. == "Strongly disagree" ~ 5, 
+                                                                                                         . == "Somewhat disagree" ~ 4,
+                                                                                                         . == "Neither agree nor disagree" ~3,
+                                                                                                         . == "Somewhat agree" ~ 2,
+                                                                                                         . == "Strongly agree" ~ 1)))
+
+codedmodule2
+```
+
+
+1. Plot the  mean risk scores (Q1)as histogram ordered from high to low risk – so basically the red bars only in reverse order (aka nuclear as high risk).
+
+
+```{r, eval=TRUE, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+# summary statistics for risks from different energy sources
+
+risksumcentral <- codedmodule2 %>%
+  select(!starts_with(c("RISKY_IND")))%>%
+  summarize_at(vars(starts_with(c("RISKY"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
+  #add row index so later spreading indexed correctly
+  add_rownames()%>%
+  #melt to long format
+  gather(technology, value, -rowname) %>%
+  # separate risky from variable suffix
+  separate(technology, c("Risky", "var"), extra = "merge", fill = "left") %>%
+  #separate mean from variable prefix
+  separate(var, c("technology", "summary")) %>%
+  # spread summary values back to wide form
+  spread(summary,value) %>%
+  #clean up
+  select(-rowname, -Risky) %>%
+  arrange(mean) %>%
+  setNames(paste0('perceivedrisk.', names(.))) %>%
+  dplyr::rename(technology= perceivedrisk.technology)
+
+risksumcentral
+
+
+```
+
+
+
+
+```{r, echo=FALSE}
+
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+risksumcentral %>%
+  select(technology, perceivedrisk.mean) %>%
+  mutate(technology = fct_reorder(technology, perceivedrisk.mean, .desc = FALSE))%>%
+  ggplot(aes(x=technology, y= perceivedrisk.mean))+
+  geom_bar(stat="identity", position=position_dodge(), fill = "firebrick2")+
+  ylim(0,4)+
+  labs(y = "Mean Values of Perceived Risk", x = "Energy Technologies")+
+  ggtitle("Your Title Here")+
+  coord_flip()
+
+
+```
+
+```{r, eval=TRUE, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+# summary statistics for risks from different energy sources
+
+risksumIND <- codedmodule2 %>%
+  summarize_at(vars(starts_with(c("RISKY_IND"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
+  #add row index so later spreading indexed correctly
+  add_rownames()%>%
+  #melt to long format
+  gather(technology, value, -rowname) %>%
+  # separate risky from variable suffix
+  separate(technology, c("Risky", "var"), extra = "merge", fill = "left") %>%
+  #separate mean from variable prefix
+  separate(var, c("technology", "summary")) %>%
+  # spread summary values back to wide form
+  spread(summary,value) %>%
+  #clean up
+  select(-rowname, -Risky) %>%
+  arrange(mean) %>%
+  setNames(paste0('perceivedrisk.', names(.))) %>%
+  dplyr::rename(technology= perceivedrisk.technology)
+
+risksumIND
+
+
+```
+
+```{r, echo=FALSE}
+
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+risksumIND %>%
+  select(technology, perceivedrisk.mean) %>%
+  mutate(technology = fct_reorder(technology, perceivedrisk.mean, .desc = FALSE))%>%
+  ggplot(aes(x=technology, y= perceivedrisk.mean))+
+  geom_bar(stat="identity", position=position_dodge(), fill = "firebrick2")+
+  ylim(0,4)+
+  labs(y = "Mean Values of Perceived Risk", x = "Energy Technologies")+
+  ggtitle("Your Title Here")+
+  coord_flip()
+
+
+```
+
+
+```{r, eval=TRUE, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+# summary statistics for risks from different energy sources
+
+bensumcentral <- codedmodule2 %>%
+  select(!starts_with(c("Ben_IND")))%>%
+  summarize_at(vars(starts_with(c("Ben"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
+  #add row index so later spreading indexed correctly
+  add_rownames()%>%
+  #melt to long format
+  gather(technology, value, -rowname) %>%
+  # separate risky from variable suffix
+  separate(technology, c("Ben", "var"), extra = "merge", fill = "left") %>%
+  #separate mean from variable prefix
+  separate(var, c("technology", "summary")) %>%
+  # spread summary values back to wide form
+  spread(summary,value) %>%
+  #clean up
+  select(-rowname, -Ben) %>%
+  arrange(mean) %>%
+  setNames(paste0('perceivedbenefit.', names(.))) %>%
+  dplyr::rename(technology= perceivedbenefit.technology)
+
+bensumcentral
+
+
+```
+
+
+```{r, echo=FALSE}
+
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+bensumcentral %>%
+  select(technology, perceivedbenefit.mean) %>%
+  mutate(technology = fct_reorder(technology, perceivedbenefit.mean, .desc = FALSE))%>%
+  ggplot(aes(x=technology, y= perceivedbenefit.mean))+
+  geom_bar(stat="identity", position=position_dodge(), fill = "palegreen3")+
+  ylim(0,4)+
+  labs(y = "Mean Values of Perceived Benefit", x = "Energy Technologies")+
+  ggtitle("Your Title Here")+
+  coord_flip()
+
+
+```
+
+
+```{r, eval=TRUE, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+# summary statistics for risks from different energy sources
+
+bensumIND <- codedmodule2 %>%
+  summarize_at(vars(starts_with(c("Ben_IND"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
+  #add row index so later spreading indexed correctly
+  add_rownames()%>%
+  #melt to long format
+  gather(technology, value, -rowname) %>%
+  # separate risky from variable suffix
+  separate(technology, c("Ben", "var"), extra = "merge", fill = "left") %>%
+  #separate mean from variable prefix
+  separate(var, c("technology", "summary")) %>%
+  # spread summary values back to wide form
+  spread(summary,value) %>%
+  #clean up
+  select(-rowname, -Ben) %>%
+  arrange(mean) %>%
+  setNames(paste0('perceivedbenefit.', names(.))) %>%
+  dplyr::rename(technology= perceivedbenefit.technology)
+
+bensumIND
+
+
+```
+
+```{r, echo=FALSE}
+
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+bensumIND %>%
+  select(technology, perceivedbenefit.mean) %>%
+  mutate(technology = fct_reorder(technology, perceivedbenefit.mean, .desc = FALSE))%>%
+  ggplot(aes(x=technology, y= perceivedbenefit.mean))+
+  geom_bar(stat="identity", position=position_dodge(), fill = "palegreen3")+
+  ylim(0,4)+
+  labs(y = "Mean Values of Perceived Benefit", x = "Energy Technologies")+
+  ggtitle("Your Title Here")+
+  coord_flip()
+
+
+```
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+
+center_barplot <- full_join( bensumcentral,risksumcentral, by = NULL, copy = FALSE, keep = FALSE) %>%
+  select(technology, perceivedbenefit.mean, perceivedrisk.mean) %>%
+  mutate(technology = fct_reorder(technology, perceivedbenefit.mean, .desc = FALSE))%>%
+   gather(key = "level", value = "mean", perceivedbenefit.mean, perceivedrisk.mean)
+
+center_barplot$level <- as.factor(center_barplot$level)                                          
+class(center_barplot$level)
+levels(center_barplot$level)
+
+ center_barplot%>% mutate(level = fct_relevel(level, 
+            "perceivedbenefit.mean", "perceivedrisk.mean"))+
+  ggplot(aes(y=technology, x= mean, fill =  level))+
+  geom_bar(stat="identity", position=position_dodge())+
+  xlim(0,4)+
+  scale_fill_manual("legend", values = c("perceivedbenefit.mean" = "palegreen3","perceivedrisk.mean" = "firebrick2"))
+
+
+```
+
+
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+
+full_join(bensumIND,risksumIND, by = NULL, copy = FALSE, keep = FALSE) %>%
+  select(technology, perceivedbenefit.mean, perceivedrisk.mean) %>%
+  mutate(technology = fct_reorder(technology, perceivedbenefit.mean, .desc = FALSE))%>%
+  gather(key = "level", value = "mean", perceivedbenefit.mean, perceivedrisk.mean) %>%
+  ggplot(aes(x=technology, y= mean, fill = level ))+
+  geom_bar(stat="identity", position=position_dodge())+
+  ylim(0,4)+
+  scale_fill_manual("legend", values = c("perceivedbenefit.mean" = "palegreen3","perceivedrisk.mean" = "firebrick2"))+
+  coord_flip()
+
+```

@@ -1,28 +1,62 @@
 ---
 title: "module2extra"
-output: html_document
+output:
+  html_document:
+    fig_width: 7
+    fig_height: 6
+    fig_caption: yes
+    keep_md: yes
+    theme: paper
+    df_print: paged
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r}
+
+likertmodule2 <- module2%>%
+  filter(!row_number() %in% c(1,2)) %>% 
+  select(starts_with("Ben"))%>%
+  gather(Technology, Perceived_Benefit, Ben_Hydro:Ben_INDKerosene)%>%
+  separate(Technology, c("Ben", "Technology"), extra = "merge", fill = "left")%>%
+  select(-Ben) %>% 
+  group_by(Technology, Perceived_Benefit) %>%
+  dplyr::summarise(n=n())%>%
+  mutate(Perceived_Benefit = factor(Perceived_Benefit,  levels = c("Rather not say/Don't know","Not at all beneficial","Slightly beneficial","Moderately beneficial","Very beneficial", "Extremely beneficial")))%>%
+  pivot_wider(names_from = Perceived_Benefit, values_from = n)%>%
+  rename("NA1"="Rather not say/Don't know")%>%
+  select("Technology","Not at all beneficial","Slightly beneficial","Moderately beneficial","Very beneficial", "Extremely beneficial", "NA1","NA")%>%
+  unite("Rather not say/Don't know", "NA1":"NA", na.rm = TRUE, remove = FALSE)%>%
+  select(!c("NA1","NA"))
+
 ```
 
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+```{r}
+#summary statistics for nuclear energy accept, reject and reluctantly accept scale
+codedmodule2 %>%
+  summarize_at(vars(N_accept,N_reject,N_reluctantlyaccept), list(~mean(., na.rm = TRUE),~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE),~n())) %>%
+  add_rownames() %>%
+  gather(acceptance, value, -rowname) %>%
+  separate(acceptance, c("N_accept", "var") ,  extra = "merge", fill = "left") %>%
+  separate(var, c("Acceptance", "summary")) %>%
+  spread(summary, value) %>%
+  select(-rowname, -N_accept)%>%
+  arrange(mean)
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
+```{r}
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+# chi square test for risk perception from nuclear energy and gender, race 
+
+# first combine gender and caste variables
+
+chitest <- codedmodule2 %>%
+  select(Risky_Nuclear,Risky_Hydro, Risky_Hydro, Risky_Solar,Urban_Rural, Gender, Caste) %>%
+  na.omit() %>%
+  filter(!Caste=="Rather not say/Don't know")%>%
+  unite(gendercaste, Gender, Caste, sep = "_", remove = FALSE)
+
+chitest
+
 ```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
