@@ -2,8 +2,8 @@
 title: "module2graphsandPCA"
 output:
   html_document:
-    fig_width: 7
-    fig_height: 6
+    fig_width: 10
+    fig_height: 7
     fig_caption: yes
     keep_md: yes
     theme: paper
@@ -26,7 +26,7 @@ suppressPackageStartupMessages(library(ggbiplot))
 
 
 
-
+## Original Dataset
 ```{r, echo=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 moduletwo <- read_excel( "~/Desktop/thesis_surveydata/political_factors_complete.xlsx")
@@ -40,7 +40,7 @@ module2 %>%
 ```
 
 
-
+## Coded Dataset
 
 
 ```{r, eval =TRUE, echo=FALSE}
@@ -104,7 +104,7 @@ codedmodule2
 ```
 
 
-Q1. Below is a list of various centrally managed sources of energy. How risky are each of these energy technologies according to you?  Please tell me whether you see each technology as: not at all risky, slightly risky, moderately risky, very risky, or extremely risky
+## Q1. Below is a list of various centrally managed sources of energy. How risky are each of these energy technologies according to you?  Please tell me whether you see each technology as: not at all risky, slightly risky, moderately risky, very risky, or extremely risky
 
 ```{r, eval=TRUE, echo=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
@@ -157,7 +157,7 @@ risksumcentral %>%
 
 
 
-Q2. Following is a list of various individually or community-owned and managed sources of energy. How risky are each of these energy technologies according to you? Please tell me whether you see each technology as: not at all risky, slightly risky, moderately risky, very risky, or extremely risky. 
+## Q2. Following is a list of various individually or community-owned and managed sources of energy. How risky are each of these energy technologies according to you? Please tell me whether you see each technology as: not at all risky, slightly risky, moderately risky, very risky, or extremely risky. 
 
 ```{r, eval=TRUE, echo=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
@@ -205,7 +205,7 @@ risksumIND %>%
 ```
 
 
-Q3. Following is a list of centrally managed sources of energy. How beneficial are each of these according to you? Please tell me whether you see each technology as: not at all beneficial, slightly beneficial, moderately beneficial, very beneficial, or extremely beneficial?
+## Q3. Following is a list of centrally managed sources of energy. How beneficial are each of these according to you? Please tell me whether you see each technology as: not at all beneficial, slightly beneficial, moderately beneficial, very beneficial, or extremely beneficial?
 
 ```{r, eval=TRUE, echo=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
@@ -255,7 +255,7 @@ bensumcentral %>%
 ```
 
 
-Q4. Following is a list of various individually or community owned and managed sources of energy. How beneficial are each of these according to you? Please tell me whether you see each technology as: not at all beneficial, slightly beneficial, moderately beneficial, very beneficial or extremely beneficial ?
+## Q4. Following is a list of various individually or community owned and managed sources of energy. How beneficial are each of these according to you? Please tell me whether you see each technology as: not at all beneficial, slightly beneficial, moderately beneficial, very beneficial or extremely beneficial ?
 
 ```{r, eval=TRUE, echo=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
@@ -348,20 +348,20 @@ full_join(bensumIND,risksumIND, by = NULL, copy = FALSE, keep = FALSE) %>%
 ```
 
 
-Principal Component Analysis on Kahan et al (2007) scale
+## Principal Component Analysis on Kahan et al (2007) scale
 
-K_IINTRFER	The government interferes far too much in our everyday lives.
-K_IPRIVACY	The government should stop telling people how to live their lives.
-K_SHARM	    Sometimes the government needs to make laws that keep people from hurting themselves.
-K_IPROTECT	It’s not the government’s business to try to protect people from themselves.
-K_SLIMCHOI	The government should put limits on the choices individuals can make so they don’t get in the way of what’s good for society.
-K_SPROTECT	The government should do more to advance society’s goals, even if that means limiting the freedom and choices of individuals.
-K_HEQUAL	  We have gone too far in pushing equal rights in this country.
-K_HREVDIS1	Nowadays it seems like there is just as much discrimination against upper castes as there is against Dalits.
-K_EDISCRIM	Discrimination against minorities is still a very serious problem in our society.
-K_ERADEQ1	  We need to dramatically reduce inequalities between the rich and the poor.
-K_EWEALTH	  Our society would be better off if the distribution of wealth was more equal.
-K_ERADEQ2	  We need to dramatically reduce inequalities between men and women.
+- **K_IINTRFER**	The government interferes far too much in our everyday lives.
+- **K_IPRIVACY**	The government should stop telling people how to live their lives.
+- **K_SHARM**	    Sometimes the government needs to make laws that keep people from hurting themselves.
+- **K_IPROTECT**	It’s not the government’s business to try to protect people from themselves.
+- **K_SLIMCHOI**	The government should put limits on the choices individuals can make so they don’t get in the way of what’s good for society.
+- **K_SPROTECT**	The government should do more to advance society’s goals, even if that means limiting the freedom and choices of individuals.
+- **K_HEQUAL**	  We have gone too far in pushing equal rights in this country.
+- **K_HREVDIS1**	Nowadays it seems like there is just as much discrimination against upper castes as there is against Dalits.
+- **K_EDISCRIM**	Discrimination against minorities is still a very serious problem in our society.
+- **K_ERADEQ1**	  We need to dramatically reduce inequalities between the rich and the poor.
+- **K_EWEALTH**	  Our society would be better off if the distribution of wealth was more equal.
+- **K_ERADEQ2**	  We need to dramatically reduce inequalities between men and women.
 
 
 ```{r, echo=FALSE}
@@ -417,27 +417,27 @@ qplot(c(1:12), var_explainedK) +
 
 
 
-PCA on the economic -political values of the perceiver
+## PCA on the economic -political values of the perceiver
 
 
-DECISIONDECEN	 Local politicians shouldn't have to ask permission from the central government to implement policies
-DECISIONCEN	   Laws and policies would be implemented more smoothly if more power lay with the central government.
-SYSTEMTOTAL	   It is good to have a strong leader who does not have to bother with elections.
-SYSTEMTECHNO	 Experts, not the government, should make decisions according to what they think is best for the country.
-SYSTEMDEMO	   It is very important to have a democratic political system because it ensures that no individual leader has too much power.
-SYSTEMRELIGION There should be a system governed by religious law.
-INDUSTRYSMALL	 Large corporations are destroying the local industries in India and benefiting only a handful of people.
-INDUSTRYLARGE	 Large scale industries are required for the development of the country that will benefit everyone
-ECONOMYLOCAL	 India would be better off if foreign companies didn't come to here
-ECONOMYGLOBAL	 Foreign companies have led to a range of benefits for the Indian people and society
-DEVOVERENV	   Economic growth and creating jobs should be prioritized over environmental protection
-ENVOVERDEV	   Polluting industries that spoil the environment should be shut down even if it costs people their jobs
-OWNERPVT	     All businesses and industries should be owned privately
-OWNERPUB	     The government should own most large businesses and industries
-OWNERREG	     Regardless of ownership, the government should pass strong regulations and implement them
-OWNERNOREG	   There is too much red-tape and the government should not interfere with businesses and industries
-WEALTHLIM	     A limit should be put to how much wealth a person can amass
-MECHANISATION	 Rapid mechanization of work is taking away jobs from workers in this country
+- **DECISIONDECEN**	 Local politicians shouldn't have to ask permission from the central government to implement policies
+- **DECISIONCEN**	   Laws and policies would be implemented more smoothly if more power lay with the central government.
+- **SYSTEMTOTAL**	   It is good to have a strong leader who does not have to bother with elections.
+- **SYSTEMTECHNO**	 Experts, not the government, should make decisions according to what they think is best for the country.
+- **SYSTEMDEMO**	   It is very important to have a democratic political system because it ensures that no individual leader has too much power.
+- **SYSTEMRELIGION** There should be a system governed by religious law.
+- **INDUSTRYSMALL**	 Large corporations are destroying the local industries in India and benefiting only a handful of people.
+- **INDUSTRYLARGE**	 Large scale industries are required for the development of the country that will benefit everyone
+- **ECONOMYLOCAL**	 India would be better off if foreign companies didn't come to here
+- **ECONOMYGLOBAL**	 Foreign companies have led to a range of benefits for the Indian people and society
+- **DEVOVERENV**	   Economic growth and creating jobs should be prioritized over environmental protection
+- **ENVOVERDEV**	   Polluting industries that spoil the environment should be shut down even if it costs people their jobs
+- **OWNERPVT**	     All businesses and industries should be owned privately
+- **OWNERPUB**	     The government should own most large businesses and industries
+- **OWNERREG**	     Regardless of ownership, the government should pass strong regulations and implement them
+- **OWNERNOREG**	   There is too much red-tape and the government should not interfere with businesses and industries
+- **WEALTHLIM**	     A limit should be put to how much wealth a person can amass
+- **MECHANISATION**	 Rapid mechanization of work is taking away jobs from workers in this country
 
 
 
@@ -492,23 +492,23 @@ qplot(c(1:11), var_explained_ecopol) +
 ```
 
 
-PCA on eco-pol characteristics of the technology -  Solar Energy
+## PCA on eco-pol characteristics of the technology -  Solar Energy
 
 
-DISPLACESOLAR	 Solar energy is leading to displacement of people from their land
-POLLUTESOLAR	 Solar energy increases pollution of air/water/land
-HEALTHSOLAR	   Solar energy poses a great risk to the health of people living around it
-JOBSSOLAR	     Solar energy will bring jobs to the local community
-BEAUTYSOLAR	   Solar energy spoils the natural beauty of the landscape
-PRIDESOLAR	   I would be proud if my community used solar energy
-NPRIDESOLAR	   Solar energy is a mark of pride for our nation
-DEVSOLAR	     Solar energy pushes forward the country's development
-PROSPERSOLAR	 Solar energy brings economic prosperity to the surrounding regions
-RELYSOLAR	     I don't like the idea that I have to rely on the government for electricity from (large scale) solar energy
+- **DISPLACESOLAR**	 Solar energy is leading to displacement of people from their land
+- **POLLUTESOLAR**	 Solar energy increases pollution of air/water/land
+- **HEALTHSOLAR**	   Solar energy poses a great risk to the health of people living around it
+- **JOBSSOLAR**	     Solar energy will bring jobs to the local community
+- **BEAUTYSOLAR**	   Solar energy spoils the natural beauty of the landscape
+- **PRIDESOLAR**	   I would be proud if my community used solar energy
+- **NPRIDESOLAR**	   Solar energy is a mark of pride for our nation
+- **DEVSOLAR**	     Solar energy pushes forward the country's development
+- **PROSPERSOLAR**	 Solar energy brings economic prosperity to the surrounding regions
+- **RELYSOLAR**	     I don't like the idea that I have to rely on the government for electricity from (large scale) solar energy
 
 
 
-```{r}
+```{r, echo=FALSE}
 
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
@@ -567,7 +567,7 @@ qplot(c(1:10), var_explainedSolar) +
 ```
 
 
-PCA on eco-pol characteristics of the technology -  Nuclear Energy
+## PCA on eco-pol characteristics of the technology -  Nuclear Energy
 
 
 ```{r, echo = FALSE}
