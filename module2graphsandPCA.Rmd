@@ -1,6 +1,5 @@
 ---
 title: "module2graphsandPCA"
-output: 
 output:
   html_document:
     fig_width: 7
@@ -9,7 +8,6 @@ output:
     keep_md: yes
     theme: paper
     df_print: paged
-  
 ---
 
 ```{r load packages, warning = FALSE, message = FALSE, echo=FALSE}
@@ -106,8 +104,7 @@ codedmodule2
 ```
 
 
-1. Plot the  mean risk scores (Q1)as histogram ordered from high to low risk – so basically the red bars only in reverse order (aka nuclear as high risk).
-
+Q1. Below is a list of various centrally managed sources of energy. How risky are each of these energy technologies according to you?  Please tell me whether you see each technology as: not at all risky, slightly risky, moderately risky, very risky, or extremely risky
 
 ```{r, eval=TRUE, echo=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
@@ -152,11 +149,15 @@ risksumcentral %>%
   geom_bar(stat="identity", position=position_dodge(), fill = "firebrick2")+
   ylim(0,4)+
   labs(y = "Mean Values of Perceived Risk", x = "Energy Technologies")+
-  ggtitle("Your Title Here")+
+  ggtitle("Perceived risk from centrally managed energy technologies")+
   coord_flip()
 
 
 ```
+
+
+
+Q2. Following is a list of various individually or community-owned and managed sources of energy. How risky are each of these energy technologies according to you? Please tell me whether you see each technology as: not at all risky, slightly risky, moderately risky, very risky, or extremely risky. 
 
 ```{r, eval=TRUE, echo=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
@@ -197,12 +198,14 @@ risksumIND %>%
   geom_bar(stat="identity", position=position_dodge(), fill = "firebrick2")+
   ylim(0,4)+
   labs(y = "Mean Values of Perceived Risk", x = "Energy Technologies")+
-  ggtitle("Your Title Here")+
+  ggtitle("Perceived risk from individually or community owned energy technologies")+
   coord_flip()
 
 
 ```
 
+
+Q3. Following is a list of centrally managed sources of energy. How beneficial are each of these according to you? Please tell me whether you see each technology as: not at all beneficial, slightly beneficial, moderately beneficial, very beneficial, or extremely beneficial?
 
 ```{r, eval=TRUE, echo=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
@@ -245,12 +248,14 @@ bensumcentral %>%
   geom_bar(stat="identity", position=position_dodge(), fill = "palegreen3")+
   ylim(0,4)+
   labs(y = "Mean Values of Perceived Benefit", x = "Energy Technologies")+
-  ggtitle("Your Title Here")+
+  ggtitle("Perceived benefit from centrally managed energy technologies")+
   coord_flip()
 
 
 ```
 
+
+Q4. Following is a list of various individually or community owned and managed sources of energy. How beneficial are each of these according to you? Please tell me whether you see each technology as: not at all beneficial, slightly beneficial, moderately beneficial, very beneficial or extremely beneficial ?
 
 ```{r, eval=TRUE, echo=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
@@ -291,7 +296,7 @@ bensumIND %>%
   geom_bar(stat="identity", position=position_dodge(), fill = "palegreen3")+
   ylim(0,4)+
   labs(y = "Mean Values of Perceived Benefit", x = "Energy Technologies")+
-  ggtitle("Your Title Here")+
+  ggtitle("Perceived benefit from individually or community owned energy technologies")+
   coord_flip()
 
 
@@ -315,6 +320,8 @@ levels(center_barplot$level)
   geom_bar(stat="identity", position=position_dodge())+
   ylim(0,4)+
   scale_fill_manual("legend", values = c("perceivedbenefit.mean" = "palegreen3","perceivedrisk.mean" = "firebrick2"))+
+  labs(y = "Mean Values", x = "Energy Technologies")+
+  ggtitle("Perceived risk and benefit from centrally owned energy technologies")+
   coord_flip()
 
 
@@ -334,9 +341,27 @@ full_join(bensumIND,risksumIND, by = NULL, copy = FALSE, keep = FALSE) %>%
   geom_bar(stat="identity", position=position_dodge())+
   ylim(0,4)+
   scale_fill_manual("legend", values = c("perceivedbenefit.mean" = "palegreen3","perceivedrisk.mean" = "firebrick2"))+
+  labs(y = "Mean Values", x = "Energy Technologies")+
+  ggtitle("Perceived risk and benefit from individually owned energy technologies")+
   coord_flip()
 
 ```
+
+
+Principal Component Analysis on Kahan et al (2007) scale
+
+K_IINTRFER	The government interferes far too much in our everyday lives.
+K_IPRIVACY	The government should stop telling people how to live their lives.
+K_SHARM	    Sometimes the government needs to make laws that keep people from hurting themselves.
+K_IPROTECT	It’s not the government’s business to try to protect people from themselves.
+K_SLIMCHOI	The government should put limits on the choices individuals can make so they don’t get in the way of what’s good for society.
+K_SPROTECT	The government should do more to advance society’s goals, even if that means limiting the freedom and choices of individuals.
+K_HEQUAL	  We have gone too far in pushing equal rights in this country.
+K_HREVDIS1	Nowadays it seems like there is just as much discrimination against upper castes as there is against Dalits.
+K_EDISCRIM	Discrimination against minorities is still a very serious problem in our society.
+K_ERADEQ1	  We need to dramatically reduce inequalities between the rich and the poor.
+K_EWEALTH	  Our society would be better off if the distribution of wealth was more equal.
+K_ERADEQ2	  We need to dramatically reduce inequalities between men and women.
 
 
 ```{r, echo=FALSE}
@@ -392,6 +417,29 @@ qplot(c(1:12), var_explainedK) +
 
 
 
+PCA on the economic -political values of the perceiver
+
+
+DECISIONDECEN	 Local politicians shouldn't have to ask permission from the central government to implement policies
+DECISIONCEN	   Laws and policies would be implemented more smoothly if more power lay with the central government.
+SYSTEMTOTAL	   It is good to have a strong leader who does not have to bother with elections.
+SYSTEMTECHNO	 Experts, not the government, should make decisions according to what they think is best for the country.
+SYSTEMDEMO	   It is very important to have a democratic political system because it ensures that no individual leader has too much power.
+SYSTEMRELIGION There should be a system governed by religious law.
+INDUSTRYSMALL	 Large corporations are destroying the local industries in India and benefiting only a handful of people.
+INDUSTRYLARGE	 Large scale industries are required for the development of the country that will benefit everyone
+ECONOMYLOCAL	 India would be better off if foreign companies didn't come to here
+ECONOMYGLOBAL	 Foreign companies have led to a range of benefits for the Indian people and society
+DEVOVERENV	   Economic growth and creating jobs should be prioritized over environmental protection
+ENVOVERDEV	   Polluting industries that spoil the environment should be shut down even if it costs people their jobs
+OWNERPVT	     All businesses and industries should be owned privately
+OWNERPUB	     The government should own most large businesses and industries
+OWNERREG	     Regardless of ownership, the government should pass strong regulations and implement them
+OWNERNOREG	   There is too much red-tape and the government should not interfere with businesses and industries
+WEALTHLIM	     A limit should be put to how much wealth a person can amass
+MECHANISATION	 Rapid mechanization of work is taking away jobs from workers in this country
+
+
 
 ```{r, echo= FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
@@ -444,54 +492,48 @@ qplot(c(1:11), var_explained_ecopol) +
 ```
 
 
+PCA on eco-pol characteristics of the technology -  Solar Energy
+
+
+DISPLACESOLAR	 Solar energy is leading to displacement of people from their land
+POLLUTESOLAR	 Solar energy increases pollution of air/water/land
+HEALTHSOLAR	   Solar energy poses a great risk to the health of people living around it
+JOBSSOLAR	     Solar energy will bring jobs to the local community
+BEAUTYSOLAR	   Solar energy spoils the natural beauty of the landscape
+PRIDESOLAR	   I would be proud if my community used solar energy
+NPRIDESOLAR	   Solar energy is a mark of pride for our nation
+DEVSOLAR	     Solar energy pushes forward the country's development
+PROSPERSOLAR	 Solar energy brings economic prosperity to the surrounding regions
+RELYSOLAR	     I don't like the idea that I have to rely on the government for electricity from (large scale) solar energy
+
+
+
 ```{r}
 
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
-#PCA on Kahan scale
+#PCA on eco-pol characterisitics of the technology
 
 Solar <- codedmodule2 %>%
   select("DISPLACESOLAR":"RELYSOLAR") 
 
-#%>%
-  separate(Var, c("prefix", "Var", "technology"), sep = c(0,-5), remove = T)%>%
-  select(!"prefix")
 
 ROOFS<- codedmodule2 %>%
   select("DISPLACEROOFS":"RELYROOFS")
 
+#%>%
+  #separate(Var, c("prefix", "Var", "technology"), sep = c(0,-5), remove = T)%>%
+ # select(!"prefix")
 # %>%
-  pivot_longer(cols ="DISPLACEROOFS":"RELYROOFS", names_to = "Var", values_to = "score") %>%
-  separate(Var, c("prefix", "Var", "technology"), sep = c(0,-5), remove = T)%>%
-  select(!"prefix")
-
+  #pivot_longer(cols ="DISPLACEROOFS":"RELYROOFS", names_to = "Var", values_to = "score") %>%
+  #separate(Var, c("prefix", "Var", "technology"), sep = c(0,-5), remove = T)%>%
+  #select(!"prefix")
   
-DIESEL<- codedmodule2 %>%
-  select("DISPLACEDIESEL":"RELYDIESEL")%>%
-  pivot_longer(cols ="DISPLACEDIESEL":"RELYDIESEL", names_to = "Var", values_to = "score") %>%
-  separate(Var, c("prefix", "Var", "technology"), sep = c(0,-6), remove = T)%>%
-  select(!"prefix")
-
-
-FIREWOOD<- codedmodule2 %>%
-  select("DISPLACEFIRE":"RELYFIRE")%>%
-  pivot_longer(cols ="DISPLACEFIRE":"RELYFIRE", names_to = "Var", values_to = "score") %>%
-  separate(Var, c("prefix", "Var", "technology"), sep = c(0,-8), remove = T)%>%
-  select(!"prefix")
-
-
-COAL<- codedmodule2 %>%
-  select("DISPLACECOAL":"RELYCOAL")%>%
-  pivot_longer(cols ="DISPLACECOAL":"RELYCOAL", names_to = "Var", values_to = "score") %>%
-  separate(Var, c("prefix", "Var", "technology"), sep = c(0,-4), remove = T)%>%
-  select(!"prefix")
-
-
-NUCLEAR<- codedmodule2 %>%
-  select("DISPLACENUCLEAR":"RELYNUCLEAR")%>%
-  pivot_longer(cols ="DISPLACENUCLEAR":"RELYNUCLEAR", names_to = "Var", values_to = "score") %>%
-  separate(Var, c("prefix", "Var", "technology"), sep = c(0,-7), remove = T)%>%
-  select(!"prefix")
+#DIESEL<- codedmodule2 %>%
+  #select("DISPLACEDIESEL":"RELYDIESEL")%>%
+  #pivot_longer(cols ="DISPLACEDIESEL":"RELYDIESEL", names_to = "Var", values_to = "score") %>%
+  #separate(Var, c("prefix", "Var", "technology"), sep = c(0,-6), remove = T)%>%
+  #select(!"prefix")
 
 Solar.pca <- Solar %>%
   na.omit()%>%
@@ -520,6 +562,44 @@ qplot(c(1:10), var_explainedSolar) +
   ylab("Variance Explained") +
   ggtitle("Scree Plot") +
   ylim(0.01, 0.40)+
+  xlim(1,7)
+
+```
+
+
+PCA on eco-pol characteristics of the technology -  Nuclear Energy
+
+
+```{r, echo = FALSE}
+
+Nuclear<- codedmodule2 %>%
+  select("DISPLACENUCLEAR":"RELYNUCLEAR")
+
+
+Nuclear.pca <- Nuclear %>%
+  na.omit()%>%
+  prcomp(center = TRUE, scale. = TRUE)
+
+rotations = Nuclear.pca["rotation"]
+
+#calculate total variance explained by each principal component
+var_explainedNuclear <- Nuclear.pca$sdev^2 / sum(Nuclear.pca$sdev^2)
+
+
+rotationsNuclear <- do.call(rbind.data.frame, rotations)
+                  
+rotationsNuclear
+
+```
+
+```{r, echo=FALSE}
+
+qplot(c(1:10), var_explainedNuclear) + 
+  geom_line() + 
+  xlab("Principal Component") + 
+  ylab("Variance Explained") +
+  ggtitle("Scree Plot") +
+  ylim(0.01, 0.30)+
   xlim(1,7)
 
 ```

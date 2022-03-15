@@ -5,9 +5,8 @@ output:
     fig_width: 7
     fig_height: 6
     fig_caption: yes
-    keep_md: yes
     theme: paper
-    df_print: paged
+    df_print: kable
   
 ---
 
