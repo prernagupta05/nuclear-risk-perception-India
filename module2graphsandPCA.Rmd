@@ -1,20 +1,21 @@
 ---
 title: "module2graphsandPCA"
 output:
-  pdf_document: 
-    toc: true
-    number_sections: true
-    toc_depth: 2
-    fig_width: 9
-    fig_height: 6
-    fig_caption: yes
-    df_print: paged
   html_document:
     fig_width: 9
     fig_height: 6
     fig_caption: yes
     keep_md: yes
     theme: paper
+    df_print: paged
+  pdf_document: 
+    
+    toc: true
+    number_sections: true
+    toc_depth: 2
+    fig_width: 9
+    fig_height: 6
+    fig_caption: yes
     df_print: paged
 ---
 
@@ -120,7 +121,7 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 # summary statistics for risks from different energy sources
 
 risksumcentral <- codedmodule2 %>%
-  select(!starts_with(c("RISKY_IND")))%>%
+  dplyr::select(!starts_with(c("RISKY_IND")))%>%
   summarize_at(vars(starts_with(c("RISKY"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
   #add row index so later spreading indexed correctly
   add_rownames()%>%
@@ -133,7 +134,7 @@ risksumcentral <- codedmodule2 %>%
   # spread summary values back to wide form
   spread(summary,value) %>%
   #clean up
-  select(-rowname, -Risky) %>%
+  dplyr::select(-rowname, -Risky) %>%
   arrange(mean) %>%
   setNames(paste0('perceivedrisk.', names(.))) %>%
   dplyr::rename(technology= perceivedrisk.technology)
@@ -151,7 +152,7 @@ risksumcentral
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 risksumcentral %>%
-  select(technology, perceivedrisk.mean) %>%
+  dplyr::select(technology, perceivedrisk.mean) %>%
   mutate(technology = fct_reorder(technology, perceivedrisk.mean, .desc = FALSE))%>%
   ggplot(aes(x=technology, y= perceivedrisk.mean))+
   geom_bar(stat="identity", position=position_dodge(), fill = "firebrick2")+
@@ -185,7 +186,7 @@ risksumIND <- codedmodule2 %>%
   # spread summary values back to wide form
   spread(summary,value) %>%
   #clean up
-  select(-rowname, -Risky) %>%
+  dplyr::select(-rowname, -Risky) %>%
   arrange(mean) %>%
   setNames(paste0('perceivedrisk.', names(.))) %>%
   dplyr::rename(technology= perceivedrisk.technology)
@@ -200,7 +201,7 @@ risksumIND
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 risksumIND %>%
-  select(technology, perceivedrisk.mean) %>%
+  dplyr::select(technology, perceivedrisk.mean) %>%
   mutate(technology = fct_reorder(technology, perceivedrisk.mean, .desc = FALSE))%>%
   ggplot(aes(x=technology, y= perceivedrisk.mean))+
   geom_bar(stat="identity", position=position_dodge(), fill = "firebrick2")+
@@ -221,7 +222,7 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 # summary statistics for risks from different energy sources
 
 bensumcentral <- codedmodule2 %>%
-  select(!starts_with(c("Ben_IND")))%>%
+  dplyr::select(!starts_with(c("Ben_IND")))%>%
   summarize_at(vars(starts_with(c("Ben"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
   #add row index so later spreading indexed correctly
   add_rownames()%>%
@@ -234,7 +235,7 @@ bensumcentral <- codedmodule2 %>%
   # spread summary values back to wide form
   spread(summary,value) %>%
   #clean up
-  select(-rowname, -Ben) %>%
+  dplyr::select(-rowname, -Ben) %>%
   arrange(mean) %>%
   setNames(paste0('perceivedbenefit.', names(.))) %>%
   dplyr::rename(technology= perceivedbenefit.technology)
@@ -250,7 +251,7 @@ bensumcentral
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 bensumcentral %>%
-  select(technology, perceivedbenefit.mean) %>%
+  dplyr::select(technology, perceivedbenefit.mean) %>%
   mutate(technology = fct_reorder(technology, perceivedbenefit.mean, .desc = FALSE))%>%
   ggplot(aes(x=technology, y= perceivedbenefit.mean))+
   geom_bar(stat="identity", position=position_dodge(), fill = "palegreen3")+
@@ -283,7 +284,7 @@ bensumIND <- codedmodule2 %>%
   # spread summary values back to wide form
   spread(summary,value) %>%
   #clean up
-  select(-rowname, -Ben) %>%
+  dplyr::select(-rowname, -Ben) %>%
   arrange(mean) %>%
   setNames(paste0('perceivedbenefit.', names(.))) %>%
   dplyr::rename(technology= perceivedbenefit.technology)
@@ -298,7 +299,7 @@ bensumIND
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 bensumIND %>%
-  select(technology, perceivedbenefit.mean) %>%
+  dplyr::select(technology, perceivedbenefit.mean) %>%
   mutate(technology = fct_reorder(technology, perceivedbenefit.mean, .desc = FALSE))%>%
   ggplot(aes(x=technology, y= perceivedbenefit.mean))+
   geom_bar(stat="identity", position=position_dodge(), fill = "palegreen3")+
@@ -315,13 +316,11 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 
 center_barplot <- full_join( bensumcentral,risksumcentral, by = NULL, copy = FALSE, keep = FALSE) %>%
-  select(technology, perceivedbenefit.mean, perceivedrisk.mean) %>%
+ dplyr::select(technology, perceivedbenefit.mean, perceivedrisk.mean) %>%
   mutate(technology = fct_reorder(technology, perceivedbenefit.mean, .desc = FALSE))%>%
    gather(key = "level", value = "mean", perceivedbenefit.mean, perceivedrisk.mean)
 
 center_barplot$level <- as.factor(center_barplot$level)                                          
-class(center_barplot$level)
-levels(center_barplot$level)
 
  center_barplot%>% 
   ggplot(aes(x=technology, y= mean, fill =  center_barplot$level))+
@@ -342,7 +341,7 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 
 full_join(bensumIND,risksumIND, by = NULL, copy = FALSE, keep = FALSE) %>%
-  select(technology, perceivedbenefit.mean, perceivedrisk.mean) %>%
+ dplyr::select(technology, perceivedbenefit.mean, perceivedrisk.mean) %>%
   mutate(technology = fct_reorder(technology, perceivedbenefit.mean, .desc = FALSE))%>%
   gather(key = "level", value = "mean", perceivedbenefit.mean, perceivedrisk.mean) %>%
   ggplot(aes(x=technology, y= mean, fill = level ))+
@@ -355,8 +354,9 @@ full_join(bensumIND,risksumIND, by = NULL, copy = FALSE, keep = FALSE) %>%
 
 ```
 
+\newpage
 
-## Principal Component Analysis on Kahan et al (2007) scale
+# **Kahan et al (2007) scale**
 
 - **K_IINTRFER**	The government interferes far too much in our everyday lives.
 - **K_IPRIVACY**	The government should stop telling people how to live their lives.
@@ -372,13 +372,30 @@ full_join(bensumIND,risksumIND, by = NULL, copy = FALSE, keep = FALSE) %>%
 - **K_ERADEQ2**	  We need to dramatically reduce inequalities between men and women.
 
 
+## Cronbach's alpha test on the Kahan et al (2007) scale
+
 ```{r, echo=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
-#PCA on Kahan scale
+library(ltm)
 
+#cronbach alpha
+
+Kahanscale <- codedmodule2 %>%
+  dplyr::select(starts_with(c("K_")))
+
+cronbach.alpha(Kahanscale, na.rm = TRUE, CI=TRUE, standardized=TRUE)
+
+```
+
+## Principal Component Analysis on Kahan et al (2007) scale
+
+```{r, echo=FALSE}
+
+
+#PCA on Kahan scale
 pcaresultsK <- codedmodule2 %>%
-  select(starts_with(c("K_")))%>%
+  dplyr::select(starts_with(c("K_")))%>%
   na.omit()%>%
   prcomp(center = TRUE, scale. = TRUE)
 
@@ -388,24 +405,30 @@ rotations = pcaresultsK["rotation"]
 var_explainedK <- pcaresultsK$sdev^2 / sum(pcaresultsK$sdev^2)
 
 
-rotationsK <- do.call(rbind.data.frame, rotations)
-                  
+rotationsK <- do.call(rbind.data.frame, rotations)%>%
+              tibble::rownames_to_column("Variables") 
+              
 rotationsK
 
 
+pcatableK  <- summary(pcaresultsK)
+
+UnclassedK <- unclass(pcatableK)
+
+ImportanceK <- UnclassedK["importance"]
+
+varexplK <- do.call(rbind.data.frame, ImportanceK) 
+ 
+KPCAtable <- data.frame(t(varexplK), row.names=names(varexplK))
+
+as_tibble(KPCAtable) %>%
+ add_column("Principal Components" = c("PC1", "PC2", "PC3", "PC4", "PC5", "PC6", "PC7", "PC8", "PC9", "PC10", "PC11", "PC12"))%>%
+ dplyr::select("Principal Components",  importance.Proportion.of.Variance, importance.Cumulative.Proportion ) %>%  
+ dplyr::rename(Proportion_of_Variance = importance.Proportion.of.Variance, Cumulative_Proportion = importance.Cumulative.Proportion)
+
+
 ```
 
-
-```{r, echo=FALSE}
-knitr::opts_chunk$set(warning = FALSE, message = FALSE)
-
-KPC_var <-data.frame(var_explainedK, row.names=names(rotationsK)) %>%
-          tibble::rownames_to_column("PC")
-
-KPC_var
-
-  
-```
 
 
 
@@ -423,9 +446,9 @@ qplot(c(1:12), var_explainedK) +
 
 ```
 
+\newpage
 
-
-## PCA on the economic -political values of the perceiver
+# **The economic -political values of the perceiver scale**
 
 
 - **DECISIONDECEN**	 Local politicians shouldn't have to ask permission from the central government to implement policies
@@ -448,11 +471,11 @@ qplot(c(1:12), var_explainedK) +
 - **MECHANISATION**	 Rapid mechanization of work is taking away jobs from workers in this country
 
 
-
+## Cronbach's alpha test on the economic -political values of the perceiver
 ```{r, echo= FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 ecopolscalescores <- codedmodule2 %>%
-  select(starts_with(c("Risky","SYSTEMDEMO","SYSTEMRELIGION","SYSTEMTECHNO","SYSTEMTOTAL","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG", "Gender","Caste","Religion", "State")))%>%
+ dplyr::select(starts_with(c("Risky","SYSTEMDEMO","SYSTEMRELIGION","SYSTEMTECHNO","SYSTEMTOTAL","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG", "Gender","Caste","Religion", "State")))%>%
   rowwise()%>%
   na.omit()%>%
   dplyr::mutate(Pro_decentralisation = mean(c_across("DECISIONDECEN":"DECISIONCEN")))%>%
@@ -462,22 +485,49 @@ ecopolscalescores <- codedmodule2 %>%
    dplyr::mutate(Pro_private = mean(c_across("OWNERPVT":"OWNERREG")))%>%
   dplyr::select(!c("DECISIONDECEN","DECISIONCEN", "INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL", "ECONOMYLOCAL","ENVOVERDEV",     "DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG"))
 
+#cronbach alpha
+
+
+cronbach.alpha(ecopolscalescores, na.rm = TRUE, CI=TRUE, standardized=TRUE)
+
 ```
+
+## PCA on the economic -political values of the perceiver
 
 ```{r, echo=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 # PCA test on qualities of the perceiver
 
 ecopolscalepca <- ecopolscalescores %>%
-  select(!starts_with(c("Risky","Gender","Caste","Religion","State")))%>%
+  dplyr::select(!starts_with(c("Risky","Gender","Caste","Religion","State")))%>%
   prcomp(center = TRUE,scale. = TRUE)
 
 
 var_explained_ecopol = ecopolscalepca$sdev^2 / sum(ecopolscalepca$sdev^2)
 
-summary(ecopolscalepca)
+
+pcatableecopol  <- summary(ecopolscalepca)
+
+Unclassedecopol <- unclass(pcatableecopol)
+
+Importanceecopol <- Unclassedecopol["importance"]
+
+varexplecopol <- do.call(rbind.data.frame, Importanceecopol) 
+ 
+ecopolPCAtable <- data.frame(t(varexplecopol), row.names=names(varexplecopol))
+
+as_tibble(ecopolPCAtable) %>%
+ add_column("Principal Components" = c("PC1", "PC2", "PC3", "PC4", "PC5", "PC6", "PC7", "PC8", "PC9", "PC10", "PC11"))%>%
+ dplyr::select("Principal Components",  importance.Proportion.of.Variance, importance.Cumulative.Proportion ) %>%  
+ dplyr::rename(Proportion_of_Variance = importance.Proportion.of.Variance, Cumulative_Proportion = importance.Cumulative.Proportion)
 
 ```
+
+
+
+## Variables in the PCs
+
+
 ```{r, echo=FALSE}
 
 rotationsecopol = ecopolscalepca["rotation"]
@@ -498,8 +548,9 @@ qplot(c(1:11), var_explained_ecopol) +
 
 ```
 
+\newpage
 
-## PCA on eco-pol characteristics of the technology -  Solar Energy
+# **eco - pol characteristics of the technology scale-  Solar Energy and Nuclear Energy**
 
 
 - **DISPLACESOLAR**	 Solar energy is leading to displacement of people from their land
@@ -514,43 +565,58 @@ qplot(c(1:11), var_explained_ecopol) +
 - **RELYSOLAR**	     I don't like the idea that I have to rely on the government for electricity from (large scale) solar energy
 
 
+## Cronbach's alpha test on eco-pol characteristics of the technology -  Solar Energy
 
 ```{r, echo=FALSE}
-
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 #PCA on eco-pol characterisitics of the technology
 
 Solar <- codedmodule2 %>%
-  select("DISPLACESOLAR":"RELYSOLAR") 
+ dplyr::select("DISPLACESOLAR":"RELYSOLAR") 
 
+cronbach.alpha(Solar, na.rm = TRUE, CI=TRUE, standardized=TRUE)
 
 ROOFS<- codedmodule2 %>%
-  select("DISPLACEROOFS":"RELYROOFS")
+ dplyr::select("DISPLACEROOFS":"RELYROOFS")
 
-#%>%
-  #separate(Var, c("prefix", "Var", "technology"), sep = c(0,-5), remove = T)%>%
- # select(!"prefix")
-# %>%
-  #pivot_longer(cols ="DISPLACEROOFS":"RELYROOFS", names_to = "Var", values_to = "score") %>%
-  #separate(Var, c("prefix", "Var", "technology"), sep = c(0,-5), remove = T)%>%
-  #select(!"prefix")
-  
-#DIESEL<- codedmodule2 %>%
-  #select("DISPLACEDIESEL":"RELYDIESEL")%>%
-  #pivot_longer(cols ="DISPLACEDIESEL":"RELYDIESEL", names_to = "Var", values_to = "score") %>%
-  #separate(Var, c("prefix", "Var", "technology"), sep = c(0,-6), remove = T)%>%
-  #select(!"prefix")
+
+
+
+```
+
+## PCA on eco-pol characteristics of the technology -  Solar Energy
+
+```{r, echo = FALSE}
 
 Solar.pca <- Solar %>%
   na.omit()%>%
   prcomp(center = TRUE, scale. = TRUE)
 
+pcatablesolar  <- summary(Solar.pca)
+
+Unclassedsolar <- unclass(pcatablesolar)
+
+Importancesolar <- Unclassedsolar["importance"]
+
+varexplsolar <- do.call(rbind.data.frame, Importancesolar) 
+ 
+solarPCAtable <- data.frame(t(varexplsolar), row.names=names(varexplsolar))
+
+as_tibble(solarPCAtable) %>%
+ add_column("Principal Components" = c("PC1", "PC2", "PC3", "PC4", "PC5", "PC6", "PC7", "PC8", "PC9", "PC10"))%>%
+ dplyr::select("Principal Components",  importance.Proportion.of.Variance, importance.Cumulative.Proportion ) %>%  
+ dplyr::rename(Proportion_of_Variance = importance.Proportion.of.Variance, Cumulative_Proportion = importance.Cumulative.Proportion)
+```
+
+
+```{r, echo=FALSE}
+
+
 rotations = Solar.pca["rotation"]
 
 #calculate total variance explained by each principal component
 var_explainedSolar <- Solar.pca$sdev^2 / sum(Solar.pca$sdev^2)
-
 
 rotationsSolar <- do.call(rbind.data.frame, rotations)
                   
@@ -580,14 +646,45 @@ qplot(c(1:10), var_explainedSolar) +
 ```{r, echo = FALSE}
 
 Nuclear<- codedmodule2 %>%
-  select("DISPLACENUCLEAR":"RELYNUCLEAR")
+ dplyr::select("DISPLACENUCLEAR":"RELYNUCLEAR")
+
+cronbach.alpha(Nuclear, na.rm = TRUE, CI=TRUE, standardized=TRUE)
+
+```
+
+```{r, echo = FALSE}
 
 
 Nuclear.pca <- Nuclear %>%
   na.omit()%>%
   prcomp(center = TRUE, scale. = TRUE)
 
+
+pcatablenuclear  <- summary(Nuclear.pca)
+
+Unclassednuclear <- unclass(pcatablenuclear)
+
+Importancenuclear <- Unclassednuclear["importance"]
+
+varexplnuclear <- do.call(rbind.data.frame, Importancenuclear) 
+ 
+nuclearPCAtable <- data.frame(t(varexplnuclear), row.names=names(varexplnuclear))
+
+as_tibble(nuclearPCAtable) %>%
+ add_column("Principal Components" = c("PC1", "PC2", "PC3", "PC4", "PC5", "PC6", "PC7", "PC8", "PC9", "PC10"))%>%
+ dplyr::select("Principal Components",  importance.Proportion.of.Variance, importance.Cumulative.Proportion ) %>%  
+ dplyr::rename(Proportion_of_Variance = importance.Proportion.of.Variance, Cumulative_Proportion = importance.Cumulative.Proportion)
+
+```
+
+
+
+
+```{r, echo=FALSE}
+
+
 rotations = Nuclear.pca["rotation"]
+
 
 #calculate total variance explained by each principal component
 var_explainedNuclear <- Nuclear.pca$sdev^2 / sum(Nuclear.pca$sdev^2)
