@@ -8,7 +8,9 @@ output:
     keep_md: yes
     theme: paper
     df_print: paged
-  pdf_document: 
+  
+  
+pdf_document: 
     
     toc: true
     number_sections: true
@@ -323,7 +325,7 @@ center_barplot <- full_join( bensumcentral,risksumcentral, by = NULL, copy = FAL
 center_barplot$level <- as.factor(center_barplot$level)                                          
 
  center_barplot%>% 
-  ggplot(aes(x=technology, y= mean, fill =  center_barplot$level))+
+  ggplot(aes(x=technology, y= mean, fill =  (factor(center_barplot$level, levels = c("perceivedrisk.mean", "perceivedbenefit.mean")))))+
   geom_bar(stat="identity", position=position_dodge())+
   ylim(0,4)+
   scale_fill_manual("legend", values = c("perceivedbenefit.mean" = "palegreen3","perceivedrisk.mean" = "firebrick2"))+
@@ -340,11 +342,14 @@ center_barplot$level <- as.factor(center_barplot$level)
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 
-full_join(bensumIND,risksumIND, by = NULL, copy = FALSE, keep = FALSE) %>%
+IND_barplot <- full_join(bensumIND,risksumIND, by = NULL, copy = FALSE, keep = FALSE) %>%
  dplyr::select(technology, perceivedbenefit.mean, perceivedrisk.mean) %>%
   mutate(technology = fct_reorder(technology, perceivedbenefit.mean, .desc = FALSE))%>%
-  gather(key = "level", value = "mean", perceivedbenefit.mean, perceivedrisk.mean) %>%
-  ggplot(aes(x=technology, y= mean, fill = level ))+
+  gather(key = "level", value = "mean", perceivedbenefit.mean, perceivedrisk.mean)
+  
+IND_barplot$level <- as.factor(IND_barplot$level)
+    
+IND_barplot%>%  ggplot(aes(x=technology, y= mean, fill = (factor(IND_barplot$level, levels = c("perceivedrisk.mean", "perceivedbenefit.mean")))))+
   geom_bar(stat="identity", position=position_dodge())+
   ylim(0,4)+
   scale_fill_manual("legend", values = c("perceivedbenefit.mean" = "palegreen3","perceivedrisk.mean" = "firebrick2"))+
