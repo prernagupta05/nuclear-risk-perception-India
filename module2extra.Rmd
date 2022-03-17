@@ -60,3 +60,34 @@ chitest <- codedmodule2 %>%
 chitest
 
 ```
+
+
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+KPC_var <-data.frame(var_explainedK, row.names=names(rotationsK)) %>%
+          tibble::rownames_to_column("PC")
+
+KPC_var
+
+  
+```
+
+
+```{r}
+#%>%
+  #separate(Var, c("prefix", "Var", "technology"), sep = c(0,-5), remove = T)%>%
+ # select(!"prefix")
+# %>%
+  #pivot_longer(cols ="DISPLACEROOFS":"RELYROOFS", names_to = "Var", values_to = "score") %>%
+  #separate(Var, c("prefix", "Var", "technology"), sep = c(0,-5), remove = T)%>%
+  #select(!"prefix")
+  
+#DIESEL<- codedmodule2 %>%
+  #select("DISPLACEDIESEL":"RELYDIESEL")%>%
+  #pivot_longer(cols ="DISPLACEDIESEL":"RELYDIESEL", names_to = "Var", values_to = "score") %>%
+  #separate(Var, c("prefix", "Var", "technology"), sep = c(0,-6), remove = T)%>%
+  #select(!"prefix")
+```
+

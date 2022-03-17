@@ -18,7 +18,7 @@ pdf_document:
     fig_width: 9
     fig_height: 6
     fig_caption: yes
-    df_print: paged
+    df_print: 
 ---
 
 ```{r load packages, warning = FALSE, message = FALSE, echo=FALSE}
@@ -154,11 +154,13 @@ risksumcentral
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 risksumcentral %>%
-  dplyr::select(technology, perceivedrisk.mean) %>%
+  dplyr::select(technology, perceivedrisk.mean, perceivedrisk.sd) %>%
   mutate(technology = fct_reorder(technology, perceivedrisk.mean, .desc = FALSE))%>%
   ggplot(aes(x=technology, y= perceivedrisk.mean))+
   geom_bar(stat="identity", position=position_dodge(), fill = "firebrick2")+
-  ylim(0,4)+
+  ylim(0,5)+
+  geom_errorbar(aes(ymin=perceivedrisk.mean-perceivedrisk.sd, ymax=perceivedrisk.mean + perceivedrisk.sd), width=.2,
+                 position=position_dodge(.9))+
   labs(y = "Mean Values of Perceived Risk", x = "Energy Technologies")+
   ggtitle("Perceived risk from centrally managed energy technologies")+
   coord_flip()
@@ -203,11 +205,13 @@ risksumIND
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 risksumIND %>%
-  dplyr::select(technology, perceivedrisk.mean) %>%
+  dplyr::select(technology, perceivedrisk.mean,perceivedrisk.sd) %>%
   mutate(technology = fct_reorder(technology, perceivedrisk.mean, .desc = FALSE))%>%
   ggplot(aes(x=technology, y= perceivedrisk.mean))+
   geom_bar(stat="identity", position=position_dodge(), fill = "firebrick2")+
-  ylim(0,4)+
+  geom_errorbar(aes(ymin=perceivedrisk.mean-perceivedrisk.sd, ymax=perceivedrisk.mean + perceivedrisk.sd), width=.2,
+                 position=position_dodge(.9))+
+  ylim(0,5)+
   labs(y = "Mean Values of Perceived Risk", x = "Energy Technologies")+
   ggtitle("Perceived risk from individually or community owned energy technologies")+
   coord_flip()
@@ -253,11 +257,13 @@ bensumcentral
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 bensumcentral %>%
-  dplyr::select(technology, perceivedbenefit.mean) %>%
+  dplyr::select(technology, perceivedbenefit.mean,perceivedbenefit.sd) %>%
   mutate(technology = fct_reorder(technology, perceivedbenefit.mean, .desc = FALSE))%>%
   ggplot(aes(x=technology, y= perceivedbenefit.mean))+
   geom_bar(stat="identity", position=position_dodge(), fill = "palegreen3")+
-  ylim(0,4)+
+   geom_errorbar(aes(ymin=perceivedbenefit.mean-perceivedbenefit.sd, ymax=perceivedbenefit.mean + perceivedbenefit.sd), width=.2,
+                 position=position_dodge(.9))+
+  ylim(0,5)+
   labs(y = "Mean Values of Perceived Benefit", x = "Energy Technologies")+
   ggtitle("Perceived benefit from centrally managed energy technologies")+
   coord_flip()
@@ -301,11 +307,13 @@ bensumIND
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 bensumIND %>%
-  dplyr::select(technology, perceivedbenefit.mean) %>%
+  dplyr::select(technology, perceivedbenefit.mean, perceivedbenefit.sd) %>%
   mutate(technology = fct_reorder(technology, perceivedbenefit.mean, .desc = FALSE))%>%
   ggplot(aes(x=technology, y= perceivedbenefit.mean))+
   geom_bar(stat="identity", position=position_dodge(), fill = "palegreen3")+
-  ylim(0,4)+
+  geom_errorbar(aes(ymin=perceivedbenefit.mean-perceivedbenefit.sd, ymax=perceivedbenefit.mean + perceivedbenefit.sd), width=.2,
+                 position=position_dodge(.9))+
+  ylim(0,5)+
   labs(y = "Mean Values of Perceived Benefit", x = "Energy Technologies")+
   ggtitle("Perceived benefit from individually or community owned energy technologies")+
   coord_flip()
