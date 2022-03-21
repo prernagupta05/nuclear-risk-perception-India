@@ -1,0 +1,429 @@
+---
+title: "module2extra"
+output:
+  html_document:
+    fig_width: 7
+    fig_height: 6
+    fig_caption: yes
+    keep_md: yes
+    theme: paper
+    df_print: paged
+---
+
+```{r}
+
+likertmodule2 <- module2%>%
+  filter(!row_number() %in% c(1,2)) %>% 
+  select(starts_with("Ben"))%>%
+  gather(Technology, Perceived_Benefit, Ben_Hydro:Ben_INDKerosene)%>%
+  separate(Technology, c("Ben", "Technology"), extra = "merge", fill = "left")%>%
+  select(-Ben) %>% 
+  group_by(Technology, Perceived_Benefit) %>%
+  dplyr::summarise(n=n())%>%
+  mutate(Perceived_Benefit = factor(Perceived_Benefit,  levels = c("Rather not say/Don't know","Not at all beneficial","Slightly beneficial","Moderately beneficial","Very beneficial", "Extremely beneficial")))%>%
+  pivot_wider(names_from = Perceived_Benefit, values_from = n)%>%
+  rename("NA1"="Rather not say/Don't know")%>%
+  select("Technology","Not at all beneficial","Slightly beneficial","Moderately beneficial","Very beneficial", "Extremely beneficial", "NA1","NA")%>%
+  unite("Rather not say/Don't know", "NA1":"NA", na.rm = TRUE, remove = FALSE)%>%
+  select(!c("NA1","NA"))
+
+```
+
+
+```{r}
+#summary statistics for nuclear energy accept, reject and reluctantly accept scale
+codedmodule2 %>%
+  summarize_at(vars(N_accept,N_reject,N_reluctantlyaccept), list(~mean(., na.rm = TRUE),~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE),~n())) %>%
+  add_rownames() %>%
+  gather(acceptance, value, -rowname) %>%
+  separate(acceptance, c("N_accept", "var") ,  extra = "merge", fill = "left") %>%
+  separate(var, c("Acceptance", "summary")) %>%
+  spread(summary, value) %>%
+  select(-rowname, -N_accept)%>%
+  arrange(mean)
+
+```
+
+
+```{r}
+
+# chi square test for risk perception from nuclear energy and gender, race 
+
+# first combine gender and caste variables
+
+chitest <- codedmodule2 %>%
+  select(Risky_Nuclear,Risky_Hydro, Risky_Hydro, Risky_Solar,Urban_Rural, Gender, Caste) %>%
+  na.omit() %>%
+  filter(!Caste=="Rather not say/Don't know")%>%
+  unite(gendercaste, Gender, Caste, sep = "_", remove = FALSE)
+
+chitest
+
+```
+
+
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+KPC_var <-data.frame(var_explainedK, row.names=names(rotationsK)) %>%
+          tibble::rownames_to_column("PC")
+
+KPC_var
+
+  
+```
+
+
+```{r}
+#%>%
+  #separate(Var, c("prefix", "Var", "technology"), sep = c(0,-5), remove = T)%>%
+ # select(!"prefix")
+# %>%
+  #pivot_longer(cols ="DISPLACEROOFS":"RELYROOFS", names_to = "Var", values_to = "score") %>%
+  #separate(Var, c("prefix", "Var", "technology"), sep = c(0,-5), remove = T)%>%
+  #select(!"prefix")
+  
+#DIESEL<- codedmodule2 %>%
+  #select("DISPLACEDIESEL":"RELYDIESEL")%>%
+  #pivot_longer(cols ="DISPLACEDIESEL":"RELYDIESEL", names_to = "Var", values_to = "score") %>%
+  #separate(Var, c("prefix", "Var", "technology"), sep = c(0,-6), remove = T)%>%
+  #select(!"prefix")
+```
+
+
+```{r}
+rotations = pcaresultsK["rotation"]
+
+#calculate total variance explained by each principal component
+var_explainedK <- pcaresultsK$sdev^2 / sum(pcaresultsK$sdev^2)
+
+
+rotationsK <- do.call(rbind.data.frame, rotations)%>%
+              tibble::rownames_to_column("Variables") 
+              
+rotationsK
+
+
+pcatableK  <- summary(pcaresultsK)
+
+UnclassedK <- unclass(pcatableK)
+
+ImportanceK <- UnclassedK["importance"]
+
+varexplK <- do.call(rbind.data.frame, ImportanceK) 
+ 
+KPCAtable <- data.frame(t(varexplK), row.names=names(varexplK))
+
+as_tibble(KPCAtable) %>%
+ add_column("Principal Components" = c("PC1", "PC2", "PC3", "PC4", "PC5", "PC6", "PC7", "PC8", "PC9", "PC10", "PC11", "PC12"))%>%
+ dplyr::select("Principal Components",  importance.Proportion.of.Variance, importance.Cumulative.Proportion ) %>%  
+ dplyr::rename(Proportion_of_Variance = importance.Proportion.of.Variance, Cumulative_Proportion = importance.Cumulative.Proportion)
+```
+
+\newpage
+
+
+
+
+
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+qplot(c(1:12), var_explainedK) + 
+  geom_line() + 
+  xlab("Principal Component") + 
+  ylab("Variance Explained") +
+  ggtitle("Scree Plot") +
+  ylim(0, 0.30)+
+  xlim(1,7)
+
+
+```
+
+\newpage
+
+# **The economic -political values of the perceiver scale**
+
+
+- **DECISIONDECEN**	 Local politicians shouldn't have to ask permission from the central government to implement policies
+- **DECISIONCEN**	   Laws and policies would be implemented more smoothly if more power lay with the central government.
+- **SYSTEMTOTAL**	   It is good to have a strong leader who does not have to bother with elections.
+- **SYSTEMTECHNO**	 Experts, not the government, should make decisions according to what they think is best for the country.
+- **SYSTEMDEMO**	   It is very important to have a democratic political system because it ensures that no individual leader has too much power.
+- **SYSTEMRELIGION** There should be a system governed by religious law.
+- **INDUSTRYSMALL**	 Large corporations are destroying the local industries in India and benefiting only a handful of people.
+- **INDUSTRYLARGE**	 Large scale industries are required for the development of the country that will benefit everyone
+- **ECONOMYLOCAL**	 India would be better off if foreign companies didn't come to here
+- **ECONOMYGLOBAL**	 Foreign companies have led to a range of benefits for the Indian people and society
+- **DEVOVERENV**	   Economic growth and creating jobs should be prioritized over environmental protection
+- **ENVOVERDEV**	   Polluting industries that spoil the environment should be shut down even if it costs people their jobs
+- **OWNERPVT**	     All businesses and industries should be owned privately
+- **OWNERPUB**	     The government should own most large businesses and industries
+- **OWNERREG**	     Regardless of ownership, the government should pass strong regulations and implement them
+- **OWNERNOREG**	   There is too much red-tape and the government should not interfere with businesses and industries
+- **WEALTHLIM**	     A limit should be put to how much wealth a person can amass
+- **MECHANISATION**	 Rapid mechanization of work is taking away jobs from workers in this country
+
+
+## Cronbach's alpha test on the economic -political values of the perceiver
+```{r, echo= FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+ecopolscalescores <- codedmodule2 %>%
+ dplyr::select(starts_with(c("Risky","SYSTEMDEMO","SYSTEMRELIGION","SYSTEMTECHNO","SYSTEMTOTAL","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG", "Gender","Caste","Religion", "State")))%>%
+  rowwise()%>%
+  na.omit()%>%
+  dplyr::mutate(Pro_decentralisation = mean(c_across("DECISIONDECEN":"DECISIONCEN")))%>%
+   dplyr::mutate(Pro_largescale = mean(c_across("INDUSTRYLARGE":"INDUSTRYSMALL")))%>%
+   dplyr::mutate(Pro_global = mean(c_across("ECONOMYGLOBAL":"ECONOMYLOCAL")))%>%
+   dplyr::mutate(Pro_ecogrowth = mean(c_across("ENVOVERDEV":"DEVOVERENV")))%>%
+   dplyr::mutate(Pro_private = mean(c_across("OWNERPVT":"OWNERREG")))%>%
+  dplyr::select(!c("DECISIONDECEN","DECISIONCEN", "INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL", "ECONOMYLOCAL","ENVOVERDEV",     "DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG"))
+
+#cronbach alpha
+
+
+cronbach.alpha(ecopolscalescores, na.rm = TRUE, CI=TRUE, standardized=TRUE)
+
+```
+
+## PCA on the economic -political values of the perceiver
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+# PCA test on qualities of the perceiver
+
+ecopolscalepca <- ecopolscalescores %>%
+  dplyr::select(!starts_with(c("Risky","Gender","Caste","Religion","State")))%>%
+  prcomp(center = TRUE,scale. = TRUE)
+
+
+var_explained_ecopol = ecopolscalepca$sdev^2 / sum(ecopolscalepca$sdev^2)
+
+
+pcatableecopol  <- summary(ecopolscalepca)
+
+Unclassedecopol <- unclass(pcatableecopol)
+
+Importanceecopol <- Unclassedecopol["importance"]
+
+varexplecopol <- do.call(rbind.data.frame, Importanceecopol) 
+ 
+ecopolPCAtable <- data.frame(t(varexplecopol), row.names=names(varexplecopol))
+
+as_tibble(ecopolPCAtable) %>%
+ add_column("Principal Components" = c("PC1", "PC2", "PC3", "PC4", "PC5", "PC6", "PC7", "PC8", "PC9", "PC10", "PC11"))%>%
+ dplyr::select("Principal Components",  importance.Proportion.of.Variance, importance.Cumulative.Proportion ) %>%  
+ dplyr::rename(Proportion_of_Variance = importance.Proportion.of.Variance, Cumulative_Proportion = importance.Cumulative.Proportion)
+
+```
+
+
+
+## Variables in the PCs
+
+
+```{r, echo=FALSE}
+
+rotationsecopol = ecopolscalepca["rotation"]
+rotationsDFecopol <- do.call(rbind.data.frame, rotationsecopol)
+rotationsDFecopol
+```
+
+
+```{r, echo=FALSE}
+
+qplot(c(1:11), var_explained_ecopol) + 
+  geom_line() + 
+  xlab("Principal Component") + 
+  ylab("Variance Explained") +
+  ggtitle("Scree Plot") +
+  ylim(0.05, 0.20)+
+  xlim(1,7)
+
+```
+
+\newpage
+
+# **eco - pol characteristics of the technology scale-  Solar Energy and Nuclear Energy**
+
+
+- **DISPLACESOLAR**	 Solar energy is leading to displacement of people from their land
+- **POLLUTESOLAR**	 Solar energy increases pollution of air/water/land
+- **HEALTHSOLAR**	   Solar energy poses a great risk to the health of people living around it
+- **JOBSSOLAR**	     Solar energy will bring jobs to the local community
+- **BEAUTYSOLAR**	   Solar energy spoils the natural beauty of the landscape
+- **PRIDESOLAR**	   I would be proud if my community used solar energy
+- **NPRIDESOLAR**	   Solar energy is a mark of pride for our nation
+- **DEVSOLAR**	     Solar energy pushes forward the country's development
+- **PROSPERSOLAR**	 Solar energy brings economic prosperity to the surrounding regions
+- **RELYSOLAR**	     I don't like the idea that I have to rely on the government for electricity from (large scale) solar energy
+
+
+## Cronbach's alpha test on eco-pol characteristics of the technology -  Solar Energy
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+#PCA on eco-pol characterisitics of the technology
+
+Solar <- codedmodule2 %>%
+ dplyr::select("DISPLACESOLAR":"RELYSOLAR") 
+
+cronbach.alpha(Solar, na.rm = TRUE, CI=TRUE, standardized=TRUE)
+
+ROOFS<- codedmodule2 %>%
+ dplyr::select("DISPLACEROOFS":"RELYROOFS")
+
+
+
+
+```
+
+## PCA on eco-pol characteristics of the technology -  Solar Energy
+
+```{r, echo = FALSE}
+
+Solar.pca <- Solar %>%
+  na.omit()%>%
+  prcomp(center = TRUE, scale. = TRUE)
+
+pcatablesolar  <- summary(Solar.pca)
+
+Unclassedsolar <- unclass(pcatablesolar)
+
+Importancesolar <- Unclassedsolar["importance"]
+
+varexplsolar <- do.call(rbind.data.frame, Importancesolar) 
+ 
+solarPCAtable <- data.frame(t(varexplsolar), row.names=names(varexplsolar))
+
+as_tibble(solarPCAtable) %>%
+ add_column("Principal Components" = c("PC1", "PC2", "PC3", "PC4", "PC5", "PC6", "PC7", "PC8", "PC9", "PC10"))%>%
+ dplyr::select("Principal Components",  importance.Proportion.of.Variance, importance.Cumulative.Proportion ) %>%  
+ dplyr::rename(Proportion_of_Variance = importance.Proportion.of.Variance, Cumulative_Proportion = importance.Cumulative.Proportion)
+```
+
+
+```{r, echo=FALSE}
+
+
+rotations = Solar.pca["rotation"]
+
+#calculate total variance explained by each principal component
+var_explainedSolar <- Solar.pca$sdev^2 / sum(Solar.pca$sdev^2)
+
+rotationsSolar <- do.call(rbind.data.frame, rotations)
+                  
+rotationsSolar
+
+
+```
+
+
+
+```{r, echo=FALSE}
+
+qplot(c(1:10), var_explainedSolar) + 
+  geom_line() + 
+  xlab("Principal Component") + 
+  ylab("Variance Explained") +
+  ggtitle("Scree Plot") +
+  ylim(0.01, 0.40)+
+  xlim(1,7)
+
+```
+
+
+## PCA on eco-pol characteristics of the technology -  Nuclear Energy
+
+
+```{r, echo = FALSE}
+
+Nuclear<- codedmodule2 %>%
+ dplyr::select("DISPLACENUCLEAR":"RELYNUCLEAR")
+
+cronbach.alpha(Nuclear, na.rm = TRUE, CI=TRUE, standardized=TRUE)
+
+```
+
+```{r, echo = FALSE}
+
+
+Nuclear.pca <- Nuclear %>%
+  na.omit()%>%
+  prcomp(center = TRUE, scale. = TRUE)
+
+
+pcatablenuclear  <- summary(Nuclear.pca)
+
+Unclassednuclear <- unclass(pcatablenuclear)
+
+Importancenuclear <- Unclassednuclear["importance"]
+
+varexplnuclear <- do.call(rbind.data.frame, Importancenuclear) 
+ 
+nuclearPCAtable <- data.frame(t(varexplnuclear), row.names=names(varexplnuclear))
+
+as_tibble(nuclearPCAtable) %>%
+ add_column("Principal Components" = c("PC1", "PC2", "PC3", "PC4", "PC5", "PC6", "PC7", "PC8", "PC9", "PC10"))%>%
+ dplyr::select("Principal Components",  importance.Proportion.of.Variance, importance.Cumulative.Proportion ) %>%  
+ dplyr::rename(Proportion_of_Variance = importance.Proportion.of.Variance, Cumulative_Proportion = importance.Cumulative.Proportion)
+
+```
+
+
+
+
+```{r, echo=FALSE}
+
+
+rotations = Nuclear.pca["rotation"]
+
+
+#calculate total variance explained by each principal component
+var_explainedNuclear <- Nuclear.pca$sdev^2 / sum(Nuclear.pca$sdev^2)
+
+
+rotationsNuclear <- do.call(rbind.data.frame, rotations)
+                  
+rotationsNuclear
+
+```
+
+```{r, echo=FALSE}
+
+qplot(c(1:10), var_explainedNuclear) + 
+  geom_line() + 
+  xlab("Principal Component") + 
+  ylab("Variance Explained") +
+  ggtitle("Scree Plot") +
+  ylim(0.01, 0.30)+
+  xlim(1,7)
+
+```
+
+```{r}
+#trying to work with likert packages here 
+
+likertstack <- module2%>%
+  filter(!row_number() %in% c(1,2)) %>% 
+  select(starts_with("RISKY"))%>%
+  gather(Technology, Perceived_Risk, Risky_Hydro:Risky_INDLPG, factor_key = TRUE)%>%
+  separate(Technology, c("Risky", "Technology"), extra = "merge", fill = "left")%>%
+  select(-Risky) %>% 
+  group_by(Technology, Perceived_Risk) %>%
+  summarise(n=n()) %>%
+  pivot_wider(names_from = "Perceived_Risk", values_from = "n")
+
+
+likert(Measure ~ ., data=likertstack, ylab=NULL,
+       ReferenceZero=3, as.percent=TRUE,
+       positive.order=TRUE, 
+       main = list("Pereived risk from energy technologies in India",x=unit(.55, "npc")), 
+       sub= list("Perceived risk",x=unit(.57, "npc")), 
+       xlim=c(-40,-20,0,20,40,60,80,100),
+       strip=FALSE, 
+       par.strip.text=list(cex=.7))
+```
