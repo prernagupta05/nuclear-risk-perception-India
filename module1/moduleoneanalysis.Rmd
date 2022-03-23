@@ -62,16 +62,32 @@ codedmodule1 <- module1 %>%
                                                                         . == "Somewhat disagree" ~ 2,
                                                                         . == "Neither agree nor disagree" ~3,
                                                                         . == "Somewhat agree" ~ 4,
-                                                                        . == "Strongly agree" ~ 5)))
+                                                                        . == "Strongly agree" ~ 5))) %>%
 
-codedmodule1
 
-  mutate_at(vars(Livelihood_Income), funs(case_when(. == "a) own farming/fishing/animal rearing/business" ~ "LSI", 
-                                                                        . == "(b) employed for wages/salary" ~ ,
-                                                                        . == "(c) student" ~3,
-                                                                        . == "Somewhat agree" ~ 4,
-                                                                        . == "Strongly agree" ~ 5)))
+
+  mutate_at(vars(Livelihood_Income), funs(case_when(. == "(a) own farming/fishing/animal rearing/business" ~ "LSI", 
+                                                    . == "(b) employed for wages/salary" ~ "ISI",
+                                                    . == "(c) student" ~"student",
+                                                    . == "(d) currently unemployed" ~ "unemployed",
+                                                    . == "(e) homemaker" ~ "homemaker",
+                                                    . == "(f) retired" ~ "retired",
+                                                    . == "(g) unable to work" ~ "unable to work" ))) %>%
   
+   mutate_at(vars(education), funs(case_when(. == "No schooling completed" ~ 0, 
+                                                                        . == "Primary school" ~ 1,
+                                                                        . == "Grade 10th" ~ 2,
+                                                                        . == "Grade 12th" ~ 3,
+                                                                        . == "Some college, no degree" ~ 4,
+                                                                        . == "Trade/technical/vocational training" ~ 5,
+                                                                        . == "Bachelor's degree" ~ 6,
+                                                                        . == "Master's degree" ~ 7,
+                                                                        . == "Professional degree" ~ 8,
+                                                                        . == "Doctorate degree" ~ 9 ))) %>%
+  
+
+  
+codedmodule1
 #coded dependent variables for module 1 livelihood and income security survey
 
 
