@@ -1,0 +1,190 @@
+---
+title: "WMEIndia"
+output:
+  html_document:
+    fig_width: 9
+    fig_height: 6
+    fig_caption: yes
+    keep_md: yes
+    theme: paper
+    df_print: paged
+---
+
+```{r load packages, warning = FALSE, message = FALSE, echo=FALSE}
+  knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(readxl))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(tidyr))
+suppressPackageStartupMessages(library(ggplot2))
+
+
+```
+
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+moduletwo <- read_excel( "~/Desktop/thesis_surveydata/political_factors_complete.xlsx")
+save(moduletwo, file = "moduletwo.rda")
+module2 <- data.frame(moduletwo)
+module2[module2 == "Rather not say/ Don't know"] <- "Rather not say/Don't know"
+module2 %>%
+  filter(!row_number() %in% c(1,2))
+
+# loaded data set for module 2 eco -pol variables and removes the rows with question number and question text
+```
+
+
+```{r, eval =TRUE, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+#This chunk contains the coding schemes of various scales used in survey one: eco-political factors, kahan scale and acceptance scale
+codedmodule2 <- module2 %>%
+  
+#remove row 1
+  filter(!row_number() %in% c(1,2)) %>% 
+  
+# replace risky likert scale with numbers
+  mutate_at(vars(starts_with("Risky")), funs(case_when(. =="Not at all risky" ~ 1, 
+                                                       . =="Slightly risky" ~ 2, 
+                                                       . =="Moderately risky" ~ 3, 
+                                                       . =="Very risky" ~ 4, 
+                                                       . =="Extremely risky" ~ 5))) %>%
+
+# replace beneficial likert scale with numbers  
+  mutate_at(vars(starts_with("Ben")), funs(case_when(. =="Not at all beneficial" ~ 1,
+                                                     . =="Slightly beneficial" ~ 2,
+                                                     . =="Moderately beneficial" ~ 3,
+                                                     . =="Very beneficial" ~ 4,
+                                                     . =="Extremely beneficial" ~ 5 ))) %>%
+
+# replace nuclear acceptance likert scale with numbers
+  mutate_at(vars(N_accept,N_reluctantlyaccept,N_reject), funs(case_when(. == "Strongly disagree" ~ 1, 
+                                                                        . == "Somewhat disagree" ~ 2,
+                                                                        . == "Neither agree nor disagree" ~3,
+                                                                        . == "Somewhat agree" ~ 4,
+                                                                        . == "Strongly agree" ~ 5))) %>%
+  
+# code likert scale for variables for Kahan scale into numbers
+  mutate_at(vars(starts_with (c("K_I","K_H","DISPLACE", "POLLUTE", "HEALTH", "JOBS", "BEAUTY", "PRIDE", "NPRIDE", "DEV", "PROSPER", "RELY"))), funs(case_when(. == "Strongly disagree" ~ 1, 
+               . == "Somewhat disagree" ~ 2,
+               . == "Neither agree nor disagree" ~3,
+               . == "Somewhat agree" ~ 4,
+               . == "Strongly agree" ~ 5))) %>%
+  
+# reverse code for likert scale for variables for Kahan scale into numbers
+  mutate_at(vars(starts_with (c("K_S","K_E"))), funs(case_when(. == "Strongly disagree" ~ 5, 
+                                                               . == "Somewhat disagree" ~ 4,
+                                                               . == "Neither agree nor disagree" ~3,
+                                                               . == "Somewhat agree" ~ 2,
+                                                               . == "Strongly agree" ~ 1))) %>%
+
+# code eco-pol scale variables into numbers
+  mutate_at(vars(SYSTEMDEMO,SYSTEMRELIGION,SYSTEMTECHNO,SYSTEMTOTAL,WEALTHLIM,MECHANISATION,DECISIONDECEN,INDUSTRYLARGE,ECONOMYGLOBAL,OWNERPVT,OWNERNOREG), funs(case_when(. == "Strongly disagree" ~ 1, 
+                        . == "Somewhat disagree" ~ 2,
+                        . == "Neither agree nor disagree" ~3,
+                        . == "Somewhat agree" ~ 4,
+                        . == "Strongly agree" ~ 5))) %>%
+
+# reverse code eco-pol scale variables into numbers 
+ mutate_at(vars(DECISIONCEN, INDUSTRYSMALL, ECONOMYLOCAL, ENVOVERDEV,OWNERPUB, OWNERREG), funs(case_when(. == "Strongly disagree" ~ 5, 
+                                                                                                         . == "Somewhat disagree" ~ 4,
+                                                                                                         . == "Neither agree nor disagree" ~3,
+                                                                                                         . == "Somewhat agree" ~ 2,
+                                                                                                         . == "Strongly agree" ~ 1)))
+
+codedmodule2
+```
+
+
+
+```{r, eval =TRUE, echo=FALSE}
+
+
+castegendereffect <- codedmodule2 %>%
+  select(starts_with(c("Risky", "Gender", "Caste")))%>%
+  unite("Gender_Caste", c("Gender", "Caste")) %>%
+  na.omit() 
+
+
+castegendereffect$Gender_Caste <- as.factor(castegendereffect$Gender_Caste)
+levels(castegendereffect$Gender_Caste)
+
+ 
+
+castegendereffect %>%
+  mutate(Gender_Caste = factor(Gender_Caste, levels = c("Female_Brahmin", "Female_SC", "Male_Brahmin", "Male_General","Male_OBC", "Male_SC", "Male_ST", "Female_General", "Female_OBC", "Female_ST")))%>%
+  select(!starts_with(c("Risky_IND")))%>%
+  #select("Risky_Hydro", "Risky_Nuclear", "Risky_Coal","Gender_Caste")%>%
+  rowwise()%>%
+  na.omit()%>%
+  dplyr::mutate(riskscore = mean(c_across(Risky_Hydro:Risky_Oil))) %>%
+  select(Gender_Caste, riskscore) %>%
+  dplyr::group_by(Gender_Caste)%>%
+  summarise(mean=mean(riskscore), sd=sd(riskscore))%>%
+  arrange(desc(mean))%>%
+  ggplot(aes(y = Gender_Caste, x = mean))+
+  geom_bar(stat="identity", position=position_dodge(), fill = "firebrick2")+
+  geom_errorbar(aes(xmin=mean-sd, xmax=mean + sd), width=.2,
+                 position=position_dodge(.9))
+#%>%
+ 
+#group_by("Gender_Caste") %>%
+ #summarise_at(vars("Risky_Nuclear"), list(Riskscore = mean))
+    #mutate(Gender_Caste = factor(Gender_Caste, levels = c("Male_Brahmin", "Male_General","Male_OBC", "Male_SC", "Male_ST","Female_Brahmin", "Female_General", "Female_OBC","Female_SC", "Female_ST")))
+
+```
+
+```{r, echo=FALSE}
+
+
+
+castegendereffect %>%
+  mutate(Gender_Caste = factor(Gender_Caste, levels = c("Female_Brahmin", "Female_SC", "Male_Brahmin", "Male_General","Male_OBC", "Male_SC", "Male_ST", "Female_General", "Female_OBC", "Female_ST")))%>%
+  select(!starts_with(c("Risky_IND")))%>%
+  select("Risky_Hydro", "Risky_Nuclear", "Risky_Coal","Gender_Caste")%>%
+  na.omit()%>%
+  dplyr::group_by(Gender_Caste)%>%
+  summarise(hydro_m=mean(Risky_Hydro), hydro_sd=sd(Risky_Hydro), nuclear_m=mean(Risky_Nuclear), nuclear_sd=sd(Risky_Nuclear), coal_m=mean(Risky_Coal),   coal_sd=sd(Risky_Coal))%>%
+  arrange(desc(nuclear_m))%>%
+  ggplot(aes(y = Gender_Caste, x = hydro_m))+
+  geom_bar(stat="identity", position=position_dodge(), fill = "firebrick2")+
+  geom_errorbar(aes(xmin=hydro_m-hydro_sd, xmax=hydro_m + hydro_sd), width=.2,
+                 position=position_dodge(.9))
+
+
+
+
+
+
+
+
+```
+
+
+
+
+```{r}
+
+codedmodule2$Urban_Rural <- as.factor(codedmodule2$Urban_Rural)
+class(codedmodule2$Urban_Rural)
+levels(codedmodule2$Urban_Rural)
+
+
+urban_rural <- codedmodule2 %>%
+  select(starts_with(c("Risky", "Urban_Rural")))%>%
+  select(!starts_with(c("Risky_IND")))%>%
+  select("Risky_Hydro", "Risky_Solar", "Risky_Nuclear","Urban_Rural")%>%
+  rowwise()%>%
+  na.omit()%>%
+  dplyr::mutate(riskscore = mean(c(Risky_Hydro))) %>%
+  select(Urban_Rural, riskscore) %>%
+  dplyr::group_by(Urban_Rural)%>%
+  summarise(mean=mean(riskscore), sd=sd(riskscore))%>%
+  arrange(desc(mean))%>%
+  ggplot(aes(x= Urban_Rural, y = mean))+
+  geom_bar(stat="identity", position=position_dodge(), fill = "firebrick2")+
+  geom_errorbar(aes(ymin=mean-sd, ymax=mean + sd), width=.2,
+                 position=position_dodge(.9))
+```
+
