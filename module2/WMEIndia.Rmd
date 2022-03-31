@@ -25,7 +25,7 @@ suppressPackageStartupMessages(library(ggplot2))
 
 ```{r, echo=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
-moduletwo <- read_excel( "~/Desktop/thesis_surveydata/political_factors_complete.xlsx")
+moduletwo <- read_excel(here::here("thesis_surveydata/political_factors_complete.xlsx"))
 save(moduletwo, file = "moduletwo.rda")
 module2 <- data.frame(moduletwo)
 module2[module2 == "Rather not say/ Don't know"] <- "Rather not say/Don't know"
@@ -140,12 +140,12 @@ castegendereffect %>%
 
 
 castegendereffect %>%
-  mutate(Gender_Caste = factor(Gender_Caste, levels = c("Female_Brahmin", "Female_SC", "Male_Brahmin", "Male_General","Male_OBC", "Male_SC", "Male_ST", "Female_General", "Female_OBC", "Female_ST")))%>%
+  mutate(Gender_Caste = factor(Gender_Caste, levels = c("Female_Brahmin","Male_General", "Male_OBC", "Female_SC","Male_ST", "Male_SC","Female_ST", "Female_General", "Female_OBC","Male_Brahmin")))%>%
   select(!starts_with(c("Risky_IND")))%>%
   select("Risky_Hydro", "Risky_Nuclear", "Risky_Coal","Gender_Caste")%>%
   na.omit()%>%
   dplyr::group_by(Gender_Caste)%>%
-  summarise(hydro_m=mean(Risky_Hydro), hydro_sd=sd(Risky_Hydro), nuclear_m=mean(Risky_Nuclear), nuclear_sd=sd(Risky_Nuclear), coal_m=mean(Risky_Coal),   coal_sd=sd(Risky_Coal))%>%
+  summarise(hydro_m=mean(Risky_Hydro), hydro_sd=sd(Risky_Hydro), nuclear_m=mean(Risky_Nuclear), nuclear_sd=sd(Risky_Nuclear),            coal_m=mean(Risky_Coal),   coal_sd=sd(Risky_Coal))%>%
   arrange(desc(nuclear_m))%>%
   ggplot(aes(y = Gender_Caste, x = hydro_m))+
   geom_bar(stat="identity", position=position_dodge(), fill = "firebrick2")+

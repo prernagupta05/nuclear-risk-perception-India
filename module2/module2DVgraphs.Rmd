@@ -40,8 +40,9 @@ suppressPackageStartupMessages(library(psych)) # psychometrics
 ## Original Dataset
 ```{r, echo=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
-moduletwo <- read_excel( "~/Desktop/thesis_surveydata/political_factors_complete.xlsx")
+moduletwo <- read_excel(here::here("thesis_surveydata/political_factors_complete.xlsx"))
 save(moduletwo, file = "moduletwo.rda")
+
 module2 <- data.frame(moduletwo)
 module2[module2 == "Rather not say/ Don't know"] <- "Rather not say/Don't know"
 module2 %>%
