@@ -13,11 +13,8 @@ output:
 ```{r load packages, warning = FALSE, message = FALSE}
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(readxl))
-suppressPackageStartupMessages(library(hablar))
-suppressPackageStartupMessages(library(tsibble))
 suppressPackageStartupMessages(library(dplyr))
-suppressPackageStartupMessages(library(DT))
-suppressPackageStartupMessages(library(ggplot2))
+
 
 ```
 
@@ -25,7 +22,7 @@ suppressPackageStartupMessages(library(ggplot2))
 
 ```{r, eval=TRUE}
 
-moduleone <- read_excel( "~/Desktop/thesis_surveydata/livelihood_insecurity_complete.xlsx")
+moduleone <- read_excel(here::here("thesis_surveydata/livelihood_insecurity_complete.xlsx"))
 save(moduleone, file = "moduleone.rda")
 module1 <- data.frame(moduleone)
 module1 %>%
@@ -74,6 +71,7 @@ codedmodule1 <- module1 %>%
                                                     . == "(f) retired" ~ "retired",
                                                     . == "(g) unable to work" ~ "unable to work" ))) %>%
   
+# coding education
    mutate_at(vars(education), funs(case_when(. == "No schooling completed" ~ 0, 
                                                                         . == "Primary school" ~ 1,
                                                                         . == "Grade 10th" ~ 2,
@@ -84,20 +82,95 @@ codedmodule1 <- module1 %>%
                                                                         . == "Master's degree" ~ 7,
                                                                         . == "Professional degree" ~ 8,
                                                                         . == "Doctorate degree" ~ 9 ))) %>%
+# coding yes and no questions
+  mutate_at(vars(Iassociation, govtscheme, wateravail, polposition, polparty), funs(case_when(.== "Yes" ~ 1,
+                                            .== "No" ~ 0))) %>%
+# reverse coding yes and no questions
+  mutate_at(vars(illness,severeillness), funs(case_when(.== "Yes" ~ 0,
+                                            .== "No" ~ 1))) %>%
   
+# coding How confident are you that you can continue your current livelihood if you want to? 
+ mutate_at(vars(Lconfidence), funs(case_when(. == "Not at all confident" ~ 1, 
+                                                                        . == "Not much confident" ~ 2,
+                                                                        . == "Neutral" ~3,
+                                                                        . == "Somewhat confident" ~ 4,
+                                                                        . == "Very confident" ~ 5))) %>%
+  
+ mutate_at(vars(Lboat, houseown), funs(case_when(.== "Own it" ~ 1,
+                                                 .== "Rent it" ~ 0)))%>%
 
+
+# J security index coding
   
-codedmodule1
+ mutate_at(vars(JISRkeep), funs(case_when(. == "Strongly disagree" ~ 1, 
+                                                                        . == "Somewhat disagree" ~ 2,
+                                                                        . == "Neither agree nor disagree" ~3,
+                                                                        . == "Somewhat agree" ~ 4,
+                                                                        . == "Strongly agree" ~ 5))) %>%
+  
+  
+# reverse code JIS 
+  mutate_at(vars(JISlosefuture, JISlose, JISfuture), funs(case_when(. == "Strongly disagree" ~ 5, 
+                                                                        . == "Somewhat disagree" ~ 4,
+                                                                        . == "Neither agree nor disagree" ~3,
+                                                                        . == "Somewhat agree" ~ 2,
+                                                                        . == "Strongly agree" ~ 1))) %>%
+  
+  mutate_at(vars(totalincome, otherincome), funs(case_when(. == "Less than Rs 1,00,000" ~ 1,
+                                                                        . == "Rs 1,00,000 to Rs 2,50,000"  ~ 2,
+                                                                        . == "Rs 2,50,001 to Rs 5,00,000" ~ 3,
+                                                                        . == "Rs 5,00,001 to Rs 10,00,000" ~ 4,
+                                                                        . == "Rs 10,00,001 and above"  ~ 5))) %>%
+  
+  mutate_at(vars(workknowledge, subsidyknow), funs(case_when(. == "Very poor" ~ 1, 
+                                                                        . == "Poor" ~ 2,
+                                                                        . == "Fair" ~3,
+                                                                        . == "Good" ~ 4,
+                                                                        . == "Very good" ~ 5))) %>%
+ 
+mutate_at(vars(drinkingwater, cookingwater), funs(case_when(. == "Bottled water/ Filtered Water" ~ 1,                                       
+                                                          .  == "Piped into dwelling" ~ 2,                                                  
+                                                          .  == "Piped to neighbour" ~ 3,                                                   
+                                                          .  == "Piped to yard/plot" ~ 4, 
+                                                          .  == "Protected well" ~ 5, 
+                                                          .  == "Public tap/standpipe" ~6,
+                                                          .  == "Surface Water  (River/Dam/Lake/Pond/Stream/Canal/Irrigation Channel)" ~7, 
+                                                          .  == "Tanker Truck" ~ 8,
+                                                          .  == "Tubewell/borehole" ~ 9,
+                                                          .  == "Unprotected Spring" ~ 10))) %>%
+  
+  
+  mutate_at(vars(toilet), funs(case_when(. == "No facility/bush/field" ~ 1,                                       
+                                                          .  == "Hanging toilet/hanging latrine" ~ 2,                                             
+                                                          .  == "Bucket toilet"  ~ 3,                                                   
+                                                          .  == "Composting toilet"  ~ 4, 
+                                                          .  == "Pit latrine without slab/open pit" ~ 5, 
+                                                          .  == "Pit latrine with slab" ~6,
+                                                          .  == "Ventilated improved pit laterine"  ~7, 
+                                                          .  == "Flush to somewhere else"  ~ 8,
+                                                          .  == "Flush to pit latrine"  ~ 9,
+                                                          .  == "Flush to septic tank" ~ 10,
+                                                          .  == "Flush to piped sewer system" ~ 11))) %>%
+ 
+  mutate_at(vars(house), funs(case_when(. == "Hut made of mud, bamboo, straw etc. (kutcha house)" ~ 1, 
+                                        . == "Permanent single story house (pukka house)" ~ 2,
+                                        . == "Apartment/Flat in a multi-story building"  ~3,
+                                        . == "Multi-story house" ~ 4)))
+ 
+        
 #coded dependent variables for module 1 livelihood and income security survey
 
-
+codedmodule1
 ```
 
 ```{r}
-# normalize quantitative livelihood-income security variables 
+# combining quantitative livelihood-income security variables 
 
+# Livelihood security 
 
+x <- as.factor(codedmodule1$cookstove)
 
+levels(x)
 
 ```
 
