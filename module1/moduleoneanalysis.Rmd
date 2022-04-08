@@ -155,24 +155,63 @@ mutate_at(vars(drinkingwater, cookingwater), funs(case_when(. == "Bottled water/
   mutate_at(vars(house), funs(case_when(. == "Hut made of mud, bamboo, straw etc. (kutcha house)" ~ 1, 
                                         . == "Permanent single story house (pukka house)" ~ 2,
                                         . == "Apartment/Flat in a multi-story building"  ~3,
-                                        . == "Multi-story house" ~ 4)))
+                                        . == "Multi-story house" ~ 4))) %>% 
  
-        
-#coded dependent variables for module 1 livelihood and income security survey
+  mutate_at(vars(foodtrouble), funs(case_when(. == "8 or more months" ~ 1,                                       
+                                                          .  == "6-8 months"  ~ 2,                                                  
+                                                          .  == "4-6 months"  ~ 3,                                                   
+                                                          .  == "2-4 months"  ~ 4, 
+                                                          .  == "1-2 months" ~ 5, 
+                                                          .  == "0 months"  ~6))) %>%
+  
+   mutate_at(vars(foodadequacy), funs(case_when(. == "Extremely inadequate" ~ 1, 
+                                                                        . == "Moderately inadequate" ~ 2,
+                                                                        . == "Slightly inadequate" ~3,
+                                                                        . == "Neither adequate nor inadequate" ~ 4,
+                                                                        . == "Slightly adequate" ~ 5,
+                                                                        . == "Moderately adequate" ~ 6,
+                                                                        . == "Extremely adequate" ~ 7)))%>%
 
+separate( col = cookstove, into = c("cook1", "cook2", "cook3", "cook4"), sep = ",") %>%
+separate( col = vehicle, into = c("vehicle1", "vehicle2", "vehicle3", "vehicle4"), sep = ",")%>%
+separate( col = foodsource, into = c("food1", "food2", "food3", "food4"), sep = ",")
+  
+
+
+#coded dependent variables for module 1 livelihood and income security survey
+                                                 
+                  
+                                 
 codedmodule1
 ```
 
 ```{r}
-# combining quantitative livelihood-income security variables 
+# solving the problem of multiple answers  to a questions 
+codedmodule1 
 
-# Livelihood security 
-
-x <- as.factor(codedmodule1$cookstove)
-
-levels(x)
 
 ```
 
+
+
+
+```{r}
+
+x <- as.factor(codedmodule1$vehicle)
+
+levels(x)
+
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
 
 

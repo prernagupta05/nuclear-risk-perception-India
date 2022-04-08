@@ -21,6 +21,7 @@ suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(DT))
 suppressPackageStartupMessages(library(ggplot2))
 suppressPackageStartupMessages(library(ggbiplot))
+suppressPackageStartupMessages(library(readr))
 
 ```
 
@@ -172,6 +173,8 @@ codedmodule2 <- module2 %>%
                                                                                                          . == "Strongly agree" ~ 1)))
 
 codedmodule2
+
+write_csv(codedmodule2,"Macintosh HD\\Users\\prernagupta\\my documents\\codedmodule2.csv")
 ```
 
 
