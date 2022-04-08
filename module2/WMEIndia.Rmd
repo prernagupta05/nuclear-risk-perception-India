@@ -26,7 +26,6 @@ suppressPackageStartupMessages(library(ggplot2))
 ```{r, echo=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 moduletwo <- read_excel(here::here("thesis_surveydata/political_factors_complete.xlsx"))
-save(moduletwo, file = "moduletwo.rda")
 module2 <- data.frame(moduletwo)
 module2[module2 == "Rather not say/ Don't know"] <- "Rather not say/Don't know"
 module2 %>%
@@ -93,27 +92,207 @@ codedmodule2 <- module2 %>%
                                                                                                          . == "Somewhat agree" ~ 2,
                                                                                                          . == "Strongly agree" ~ 1)))
 
+
 codedmodule2
+
 ```
 
+
+```{r, eval=TRUE}
+
+moduleone <- read_excel(here::here("thesis_surveydata/livelihood_insecurity_complete.xlsx"))
+save(moduleone, file = "moduleone.rda")
+module1 <- data.frame(moduleone)
+module1 %>%
+  filter(!row_number() %in% c(1,2))
+
+# loaded data set for module 2 eco -pol variables and removes the rows with question number and question text
+```
+
+
+
+```{r, eval =TRUE}
+#This chunk contains the coding schemes of various scales used in survey one: eco-political factors, kahan scale and acceptance scale
+codedmodule1 <- module1 %>%
+  
+#remove row 1
+  filter(!row_number() %in% c(1,2)) %>% 
+  
+# replace risky likert scale with numbers
+  mutate_at(vars(starts_with("Risky")), funs(case_when(. =="Not at all risky" ~ 1, 
+                                                       . =="Slightly risky" ~ 2, 
+                                                       . =="Moderately risky" ~ 3, 
+                                                       . =="Very risky" ~ 4, 
+                                                       . =="Extremely risky" ~ 5))) %>%
+
+# replace beneficial likert scale with numbers  
+  mutate_at(vars(starts_with("Ben")), funs(case_when(. =="Not at all beneficial" ~ 1,
+                                                     . =="Slightly beneficial" ~ 2,
+                                                     . =="Moderately beneficial" ~ 3,
+                                                     . =="Very beneficial" ~ 4,
+                                                     . =="Extremely beneficial" ~ 5 ))) %>%
+
+# replace nuclear acceptance likert scale with numbers
+  mutate_at(vars(N_accept,N_reluctantlyaccept,N_reject), funs(case_when(. == "Strongly disagree" ~ 1, 
+                                                                        . == "Somewhat disagree" ~ 2,
+                                                                        . == "Neither agree nor disagree" ~3,
+                                                                        . == "Somewhat agree" ~ 4,
+                                                                        . == "Strongly agree" ~ 5))) %>%
+
+
+
+  mutate_at(vars(Livelihood_Income), funs(case_when(. == "(a) own farming/fishing/animal rearing/business" ~ "LSI", 
+                                                    . == "(b) employed for wages/salary" ~ "ISI",
+                                                    . == "(c) student" ~"student",
+                                                    . == "(d) currently unemployed" ~ "unemployed",
+                                                    . == "(e) homemaker" ~ "homemaker",
+                                                    . == "(f) retired" ~ "retired",
+                                                    . == "(g) unable to work" ~ "unable to work" ))) %>%
+  
+# coding education
+   mutate_at(vars(education), funs(case_when(. == "No schooling completed" ~ 0, 
+                                                                        . == "Primary school" ~ 1,
+                                                                        . == "Grade 10th" ~ 2,
+                                                                        . == "Grade 12th" ~ 3,
+                                                                        . == "Some college, no degree" ~ 4,
+                                                                        . == "Trade/technical/vocational training" ~ 5,
+                                                                        . == "Bachelor's degree" ~ 6,
+                                                                        . == "Master's degree" ~ 7,
+                                                                        . == "Professional degree" ~ 8,
+                                                                        . == "Doctorate degree" ~ 9 ))) %>%
+# coding yes and no questions
+  mutate_at(vars(Iassociation, govtscheme, wateravail, polposition, polparty), funs(case_when(.== "Yes" ~ 1,
+                                            .== "No" ~ 0))) %>%
+# reverse coding yes and no questions
+  mutate_at(vars(illness,severeillness), funs(case_when(.== "Yes" ~ 0,
+                                            .== "No" ~ 1))) %>%
+  
+# coding How confident are you that you can continue your current livelihood if you want to? 
+ mutate_at(vars(Lconfidence), funs(case_when(. == "Not at all confident" ~ 1, 
+                                                                        . == "Not much confident" ~ 2,
+                                                                        . == "Neutral" ~3,
+                                                                        . == "Somewhat confident" ~ 4,
+                                                                        . == "Very confident" ~ 5))) %>%
+  
+ mutate_at(vars(Lboat, houseown), funs(case_when(.== "Own it" ~ 1,
+                                                 .== "Rent it" ~ 0)))%>%
+
+
+# J security index coding
+  
+ mutate_at(vars(JISRkeep), funs(case_when(. == "Strongly disagree" ~ 1, 
+                                                                        . == "Somewhat disagree" ~ 2,
+                                                                        . == "Neither agree nor disagree" ~3,
+                                                                        . == "Somewhat agree" ~ 4,
+                                                                        . == "Strongly agree" ~ 5))) %>%
+  
+  
+# reverse code JIS 
+  mutate_at(vars(JISlosefuture, JISlose, JISfuture), funs(case_when(. == "Strongly disagree" ~ 5, 
+                                                                        . == "Somewhat disagree" ~ 4,
+                                                                        . == "Neither agree nor disagree" ~3,
+                                                                        . == "Somewhat agree" ~ 2,
+                                                                        . == "Strongly agree" ~ 1))) %>%
+  
+  mutate_at(vars(totalincome, otherincome), funs(case_when(. == "Less than Rs 1,00,000" ~ 1,
+                                                                        . == "Rs 1,00,000 to Rs 2,50,000"  ~ 2,
+                                                                        . == "Rs 2,50,001 to Rs 5,00,000" ~ 3,
+                                                                        . == "Rs 5,00,001 to Rs 10,00,000" ~ 4,
+                                                                        . == "Rs 10,00,001 and above"  ~ 5))) %>%
+  
+  mutate_at(vars(workknowledge, subsidyknow), funs(case_when(. == "Very poor" ~ 1, 
+                                                                        . == "Poor" ~ 2,
+                                                                        . == "Fair" ~3,
+                                                                        . == "Good" ~ 4,
+                                                                        . == "Very good" ~ 5))) %>%
+ 
+mutate_at(vars(drinkingwater, cookingwater), funs(case_when(. == "Bottled water/ Filtered Water" ~ 1,                                       
+                                                          .  == "Piped into dwelling" ~ 2,                                                  
+                                                          .  == "Piped to neighbour" ~ 3,                                                   
+                                                          .  == "Piped to yard/plot" ~ 4, 
+                                                          .  == "Protected well" ~ 5, 
+                                                          .  == "Public tap/standpipe" ~6,
+                                                          .  == "Surface Water  (River/Dam/Lake/Pond/Stream/Canal/Irrigation Channel)" ~7, 
+                                                          .  == "Tanker Truck" ~ 8,
+                                                          .  == "Tubewell/borehole" ~ 9,
+                                                          .  == "Unprotected Spring" ~ 10))) %>%
+  
+  
+  mutate_at(vars(toilet), funs(case_when(. == "No facility/bush/field" ~ 1,                                       
+                                                          .  == "Hanging toilet/hanging latrine" ~ 2,                                             
+                                                          .  == "Bucket toilet"  ~ 3,                                                   
+                                                          .  == "Composting toilet"  ~ 4, 
+                                                          .  == "Pit latrine without slab/open pit" ~ 5, 
+                                                          .  == "Pit latrine with slab" ~6,
+                                                          .  == "Ventilated improved pit laterine"  ~7, 
+                                                          .  == "Flush to somewhere else"  ~ 8,
+                                                          .  == "Flush to pit latrine"  ~ 9,
+                                                          .  == "Flush to septic tank" ~ 10,
+                                                          .  == "Flush to piped sewer system" ~ 11))) %>%
+ 
+  mutate_at(vars(house), funs(case_when(. == "Hut made of mud, bamboo, straw etc. (kutcha house)" ~ 1, 
+                                        . == "Permanent single story house (pukka house)" ~ 2,
+                                        . == "Apartment/Flat in a multi-story building"  ~3,
+                                        . == "Multi-story house" ~ 4))) %>% 
+ 
+  mutate_at(vars(foodtrouble), funs(case_when(. == "8 or more months" ~ 1,                                       
+                                                          .  == "6-8 months"  ~ 2,                                                  
+                                                          .  == "4-6 months"  ~ 3,                                                   
+                                                          .  == "2-4 months"  ~ 4, 
+                                                          .  == "1-2 months" ~ 5, 
+                                                          .  == "0 months"  ~6))) %>%
+  
+   mutate_at(vars(foodadequacy), funs(case_when(. == "Extremely inadequate" ~ 1, 
+                                                                        . == "Moderately inadequate" ~ 2,
+                                                                        . == "Slightly inadequate" ~3,
+                                                                        . == "Neither adequate nor inadequate" ~ 4,
+                                                                        . == "Slightly adequate" ~ 5,
+                                                                        . == "Moderately adequate" ~ 6,
+                                                                        . == "Extremely adequate" ~ 7)))%>%
+
+separate( col = cookstove, into = c("cook1", "cook2", "cook3", "cook4"), sep = ",") %>%
+separate( col = vehicle, into = c("vehicle1", "vehicle2", "vehicle3", "vehicle4"), sep = ",")%>%
+separate( col = foodsource, into = c("food1", "food2", "food3", "food4"), sep = ",")
+  
+
+
+#coded dependent variables for module 1 livelihood and income security survey
+                                                 
+                  
+                                 
+codedmodule1 
+```
+
+```{r}
+
+suppressPackageStartupMessages(library(tidyselect))
+# combine codedmodule1 and codedmodule2
+
+numcol2 <- codedmodule2 %>% add_column(Respondent = 1:1099, .before = "Language") 
+numcol1 <- codedmodule1 %>% add_column(Respondent = 1099:2160, .before = "Language")
+
+joineddf <-  full_join(numcol2, numcol1, by = c("Respondent", "Language", "Survey_Date", "State", "Risky_Hydro", "Risky_Solar", "Risky_Wind", "Risky_Nuclear", "Risky_Coal", "Risky_Gas", "Risky_Oil", "Risky_INDHydro", "Risky_INDSolar", "Risky_INDWind", "Risky_INDBiogas", "Risky_INDDiesel", "Risky_INDKerosene", "Risky_INDFirewoodetc", "Risky_INDLPG", "Ben_Hydro", "Ben_Solar", "Ben_Wind", "Ben_Nuclear", "Ben_Coal", "Ben_Gas", "Ben_Oil", "Ben_INDHydro", "Ben_INDSolar", "Ben_INDWind", "Ben_INDDiesel", "Ben_INDBiogas", "Ben_INDFirewoodetc", "Ben_INDLPG", "Ben_INDKerosene", "N_accept", "N_reluctantlyaccept", "N_reject", "age", "urban_rural", "gender", "caste", "religion", "religiontext")) 
+
+joineddf
+```
 
 
 ```{r, eval =TRUE, echo=FALSE}
 
 
-castegendereffect <- codedmodule2 %>%
-  select(starts_with(c("Risky", "Gender", "Caste")))%>%
-  unite("Gender_Caste", c("Gender", "Caste")) %>%
+castegendereffect <- joineddf %>%
+  select(starts_with(c("Risky", "gender", "caste")))%>%
+  unite("Gender_Caste", c("gender", "caste")) %>%
   na.omit() 
 
 
 castegendereffect$Gender_Caste <- as.factor(castegendereffect$Gender_Caste)
 levels(castegendereffect$Gender_Caste)
 
- 
+ # mean risk from centrally controlled energy technologies
 
 castegendereffect %>%
-  mutate(Gender_Caste = factor(Gender_Caste, levels = c("Female_Brahmin", "Female_SC", "Male_Brahmin", "Male_General","Male_OBC", "Male_SC", "Male_ST", "Female_General", "Female_OBC", "Female_ST")))%>%
+  mutate(Gender_Caste = factor(Gender_Caste, levels = c("Female_Brahmin", "Female_SC", "Female_OBC", "Male_SC","Male_ST", "Male_General", "Female_General","Female_ST" ,"Male_OBC", "Male_Brahmin")))%>%
   select(!starts_with(c("Risky_IND")))%>%
   #select("Risky_Hydro", "Risky_Nuclear", "Risky_Coal","Gender_Caste")%>%
   rowwise()%>%
@@ -135,8 +314,42 @@ castegendereffect %>%
 
 ```
 
-```{r, echo=FALSE}
 
+
+```{r, eval =TRUE, echo=FALSE}
+
+
+ # mean risk from indicidually or community owned energy technologies
+
+castegendereffect %>%
+  mutate(Gender_Caste = factor(Gender_Caste, levels = c("Female_OBC","Female_SC", "Female_ST" ,"Female_Brahmin", "Male_ST",  "Male_SC","Female_General", "Male_General", "Male_OBC", "Male_Brahmin")))%>%
+  select(starts_with(c("Risky_IND", "Gender_Caste")))%>%
+  #select("Risky_Hydro", "Risky_Nuclear", "Risky_Coal","Gender_Caste")%>%
+  rowwise()%>%
+  na.omit()%>%
+  dplyr::mutate(riskscore = mean(c_across(Risky_INDHydro:Risky_INDLPG))) %>%
+  select(Gender_Caste, riskscore) %>%
+  dplyr::group_by(Gender_Caste)%>%
+  summarise(mean=mean(riskscore), sd=sd(riskscore))%>%
+  arrange(desc(mean))%>%
+  ggplot(aes(y = Gender_Caste, x = mean))+
+  geom_bar(stat="identity", position=position_dodge(), fill = "firebrick2")+
+  geom_errorbar(aes(xmin=mean-sd, xmax=mean + sd), width=.2,
+                 position=position_dodge(.9))
+
+
+#%>%
+ 
+#group_by("Gender_Caste") %>%
+ #summarise_at(vars("Risky_Nuclear"), list(Riskscore = mean))
+    #mutate(Gender_Caste = factor(Gender_Caste, levels = c("Male_Brahmin", "Male_General","Male_OBC", "Male_SC", "Male_ST","Female_Brahmin", "Female_General", "Female_OBC","Female_SC", "Female_ST")))
+
+```
+
+
+
+
+```{r, echo=FALSE}
 
 
 castegendereffect %>%
@@ -146,45 +359,259 @@ castegendereffect %>%
   na.omit()%>%
   dplyr::group_by(Gender_Caste)%>%
   summarise(hydro_m=mean(Risky_Hydro), hydro_sd=sd(Risky_Hydro), nuclear_m=mean(Risky_Nuclear), nuclear_sd=sd(Risky_Nuclear),            coal_m=mean(Risky_Coal),   coal_sd=sd(Risky_Coal))%>%
-  arrange(desc(nuclear_m))%>%
+  arrange(desc(hydro_m))%>%
   ggplot(aes(y = Gender_Caste, x = hydro_m))+
   geom_bar(stat="identity", position=position_dodge(), fill = "firebrick2")+
   geom_errorbar(aes(xmin=hydro_m-hydro_sd, xmax=hydro_m + hydro_sd), width=.2,
                  position=position_dodge(.9))
-
-
-
-
-
-
-
-
 ```
+
+# centrally managed by urban and rural 
+
+
+```{r}
+
+joineddf$urban_rural <- as.factor(joineddf$urban_rural)
+class(joineddf$urban_rural)
+levels(joineddf$urban_rural)
+
+
+
+joineddf %>%
+  select(starts_with(c("Risky", "urban_rural")))%>%
+  select(!starts_with(c("Risky_IND")))%>%
+  #select("Risky_Hydro", "Risky_Solar", "Risky_Nuclear","urban_rural")%>%
+  rowwise()%>%
+  na.omit()%>%
+  dplyr::mutate(riskscore = mean(c_across(Risky_Hydro:Risky_Oil))) %>%
+  select(urban_rural, riskscore) %>%
+  dplyr::group_by(urban_rural)%>%
+  summarise(mean=mean(riskscore), sd=sd(riskscore))%>%
+  arrange(desc(mean))%>%
+  ggplot(aes(x= urban_rural, y = mean))+
+  geom_bar(stat="identity", position=position_dodge(), fill = "firebrick2")+
+  geom_errorbar(aes(ymin=mean-sd, ymax=mean + sd), width=.2,
+                 position=position_dodge(.9))
+```
+
 
 
 
 
 ```{r}
 
-codedmodule2$Urban_Rural <- as.factor(codedmodule2$Urban_Rural)
-class(codedmodule2$Urban_Rural)
-levels(codedmodule2$Urban_Rural)
+joineddf$gender <- as.factor(joineddf$gender)
+class(joineddf$gender)
+levels(joineddf$gender)
 
 
-urban_rural <- codedmodule2 %>%
-  select(starts_with(c("Risky", "Urban_Rural")))%>%
+
+joineddf %>%
+  select(starts_with(c("Risky", "gender")))%>%
   select(!starts_with(c("Risky_IND")))%>%
-  select("Risky_Hydro", "Risky_Solar", "Risky_Nuclear","Urban_Rural")%>%
+  #select("Risky_Hydro", "Risky_Solar", "Risky_Nuclear","urban_rural")%>%
   rowwise()%>%
   na.omit()%>%
-  dplyr::mutate(riskscore = mean(c(Risky_Hydro))) %>%
-  select(Urban_Rural, riskscore) %>%
-  dplyr::group_by(Urban_Rural)%>%
+  dplyr::mutate(riskscore = mean(c_across(Risky_Hydro:Risky_Oil))) %>%
+  select(gender, riskscore) %>%
+  dplyr::group_by(gender)%>%
   summarise(mean=mean(riskscore), sd=sd(riskscore))%>%
   arrange(desc(mean))%>%
-  ggplot(aes(x= Urban_Rural, y = mean))+
+  ggplot(aes(x= gender, y = mean))+
   geom_bar(stat="identity", position=position_dodge(), fill = "firebrick2")+
   geom_errorbar(aes(ymin=mean-sd, ymax=mean + sd), width=.2,
                  position=position_dodge(.9))
+```
+
+
+
+
+
+
+
+
+
+```{r, echo=FALSE}
+
+joineddf$gender <- as.factor(joineddf$gender)
+class(joineddf$gender)
+levels(joineddf$gender)
+
+
+
+joineddf %>%
+  select(starts_with(c("Risky", "gender")))%>%
+  select(starts_with(c("Risky_IND", "gender")))%>%
+  #select("Risky_Hydro", "Risky_Solar", "Risky_Nuclear","urban_rural")%>%
+  rowwise()%>%
+  na.omit()%>%
+  dplyr::mutate(riskscore = mean(c_across(Risky_INDHydro:Risky_INDLPG))) %>%
+  select(gender, riskscore) %>%
+  dplyr::group_by(gender)%>%
+  summarise(mean=mean(riskscore), sd=sd(riskscore))%>%
+  arrange(desc(mean))%>%
+  ggplot(aes(x= gender, y = mean))+
+  geom_bar(stat="identity", position=position_dodge(), fill = "firebrick2")+
+  geom_errorbar(aes(ymin=mean-sd, ymax=mean + sd), width=.2,
+                 position=position_dodge(.9))
+```
+
+
+
+
+
+
+
+
+
+```{r, echo=FALSE}
+
+joineddf$religion <- as.factor(joineddf$religion)
+class(joineddf$religion)
+levels(joineddf$religion)
+
+
+
+joineddf %>%
+  select(starts_with(c("Risky", "religion")))%>%
+  select(!starts_with(c("Risky_IND", "religiontext")))%>%
+ mutate(religion = factor(religion, levels = c("Agnostism/ Atheism","Other (Please mention)" ,  "Jainism", "Buddhism", "Islam",              "Hinduism", "Christanity", "Sikhism"))) %>%
+  #select("Risky_Hydro", "Risky_Solar", "Risky_Nuclear","urban_rural")%>%
+  rowwise()%>%
+  na.omit()%>%
+  dplyr::mutate(riskscore = mean(c_across(Risky_Hydro:Risky_Oil))) %>%
+  select(religion, riskscore) %>%
+  dplyr::group_by(religion)%>%
+  summarise(mean=mean(riskscore), sd=sd(riskscore))%>%
+  arrange(desc(mean))%>%
+  ggplot(aes(x= religion, y = mean))+
+  geom_bar(stat="identity", position=position_dodge(), fill = "firebrick2")+
+  geom_errorbar(aes(ymin=mean-sd, ymax=mean + sd), width=.2,
+                 position=position_dodge(.9))+
+  coord_flip()
+```
+
+```{r, echo=FALSE}
+
+joineddf$religion <- as.factor(joineddf$religion)
+class(joineddf$religion)
+levels(joineddf$religion)
+
+
+
+joineddf %>%
+  select(!starts_with(c("religiontext")))%>%
+  select(starts_with(c("Risky_IND", "religion")))%>%
+ mutate(religion = factor(religion, levels = c("Agnostism/ Atheism", "Jainism","Other (Please mention)" ,  "Buddhism", "Islam",              "Hinduism", "Christanity", "Sikhism"))) %>%
+  #select("Risky_Hydro", "Risky_Solar", "Risky_Nuclear","urban_rural")%>%
+  rowwise()%>%
+  na.omit()%>%
+  dplyr::mutate(riskscore = mean(c_across(Risky_INDHydro:Risky_INDLPG))) %>%
+  select(religion, riskscore) %>%
+  dplyr::group_by(religion)%>%
+  summarise(mean=mean(riskscore), sd=sd(riskscore))%>%
+  arrange(desc(mean))%>%
+  ggplot(aes(x= religion, y = mean))+
+  geom_bar(stat="identity", position=position_dodge(), fill = "firebrick2")+
+  geom_errorbar(aes(ymin=mean-sd, ymax=mean + sd), width=.2,
+                 position=position_dodge(.9))+
+  coord_flip()
+```
+
+
+```{r, echo=FALSE}
+
+joineddf$age <- as.factor(joineddf$age)
+class(joineddf$age)
+levels(joineddf$age)
+
+
+
+joineddf %>%
+  select(starts_with(c("Risky", "age")))%>%
+  select(!starts_with(c("Risky_IND")))%>%
+ mutate(age = factor(age, levels = c("18-24 years old", "25-34 years old", "35-44 years old", "45-54 years old" , "55-64 years old" ,  "65-74 years old", "75 years or older"))) %>%
+  #select("Risky_Hydro", "Risky_Solar", "Risky_Nuclear","urban_rural")%>%
+  rowwise()%>%
+  na.omit()%>%
+  dplyr::mutate(riskscore = mean(c_across(Risky_Hydro:Risky_Oil))) %>%
+  select(age, riskscore) %>%
+  dplyr::group_by(age)%>%
+  summarise(mean=mean(riskscore), sd=sd(riskscore))%>%
+  arrange(desc(mean))%>%
+  ggplot(aes(x= age, y = mean))+
+  geom_bar(stat="identity", position=position_dodge(), fill = "firebrick2")+
+  geom_errorbar(aes(ymin=mean-sd, ymax=mean + sd), width=.2,
+                 position=position_dodge(.9))+
+  coord_flip()
+```
+
+```{r, echo=FALSE}
+
+joineddf$age <- as.factor(joineddf$age)
+class(joineddf$age)
+levels(joineddf$age)
+
+
+
+joineddf %>%
+  select(starts_with(c("Risky", "age")))%>%
+  select(starts_with(c("Risky_IND", "age")))%>%
+ mutate(age = factor(age, levels = c("18-24 years old", "25-34 years old", "35-44 years old", "45-54 years old" , "55-64 years old" ,  "65-74 years old", "75 years or older"))) %>%
+  #select("Risky_Hydro", "Risky_Solar", "Risky_Nuclear","urban_rural")%>%
+  rowwise()%>%
+  na.omit()%>%
+  dplyr::mutate(riskscore = mean(c_across(Risky_INDHydro:Risky_INDLPG))) %>%
+  select(age, riskscore) %>%
+  dplyr::group_by(age)%>%
+  summarise(mean=mean(riskscore), sd=sd(riskscore))%>%
+  arrange(desc(mean))%>%
+  ggplot(aes(x= age, y = mean))+
+  geom_bar(stat="identity", position=position_dodge(), fill = "firebrick2")+
+  geom_errorbar(aes(ymin=mean-sd, ymax=mean + sd), width=.2,
+                 position=position_dodge(.9))+
+  coord_flip()
+```
+
+
+```{r, echo=FALSE}
+
+joineddf$State <- as.factor(joineddf$State)
+class(joineddf$State)
+levels(joineddf$State)
+
+
+
+
+joineddf %>%
+  select(starts_with(c("Risky", "State")))%>%
+  select(!starts_with(c("Risky_IND")))%>%
+ mutate(State = factor(State, levels = c("Maharashtra",  "West Bengal","UP" , "Rajasthan" , "Tamilnadu"))) %>%
+  #select("Risky_Hydro", "Risky_Solar", "Risky_Nuclear","urban_rural")%>%
+  rowwise()%>%
+  na.omit()%>%
+  dplyr::mutate(riskscore = mean(c(Risky_Hydro:Risky_Oil))) %>%
+  select(State, riskscore) %>%
+  dplyr::group_by(State)%>%
+  summarise(mean=mean(riskscore), sd=sd(riskscore))%>%
+  arrange(desc(mean))
+
+
+%>%
+  ggplot(aes(x= technology, y = mean))+
+  geom_bar(stat="identity", position=position_dodge(), fill = "firebrick2")+
+  geom_errorbar(aes(ymin=mean-sd, ymax=mean + sd), width=.2,
+                 position=position_dodge(.9))+
+  coord_flip()
+```
+
+
+#Distribution checks 
+
+```{r}
+joineddf %>%
+  filter(urban_rural == "Rural") %>%
+  ggplot(aes(x=Risky_Hydro, y = ..count..), fill = "lightgray")+
+  geom_density()
 ```
 
