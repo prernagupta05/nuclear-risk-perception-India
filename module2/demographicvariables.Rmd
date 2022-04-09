@@ -1,5 +1,5 @@
 ---
-title: "WMEIndia"
+title: "demographic variables"
 output:
   html_document:
     fig_width: 9
