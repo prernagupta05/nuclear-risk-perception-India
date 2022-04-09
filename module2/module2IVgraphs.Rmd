@@ -113,7 +113,7 @@ codedmodule2
 
 
 
-```{r}
+```{r, echo = FALSE}
 demorisk <- codedmodule2%>%
   group_by(SYSTEMDEMO)%>%
   filter(SYSTEMDEMO == 5)%>%
@@ -129,11 +129,10 @@ demorisk <- codedmodule2%>%
   spread(meansd,summary) %>%
   #clean up
   select(-Risky)%>%
-  arrange(mean)
-```
+  arrange(mean) %>%
+  mutate_at(vars(SYSTEMDEMO), funs(case_when(. == 5 ~ "democractic"))) %>%
+  dplyr::rename(Govt = SYSTEMDEMO)
 
-
-```{r, echo=FALSE}
 techrisk <- codedmodule2%>%
   group_by(SYSTEMTECHNO)%>%
   filter(SYSTEMTECHNO == 5)%>%
@@ -149,11 +148,10 @@ techrisk <- codedmodule2%>%
   spread(meansd,summary) %>%
   #clean up
   select(-Risky)%>%
-  arrange(mean)
-```
+  arrange(mean) %>%
+  mutate_at(vars(SYSTEMTECHNO), funs(case_when(. == 5 ~ "technocratic"))) %>%
+  dplyr::rename(Govt = SYSTEMTECHNO)
 
-
-```{r, echo=FALSE}
 religionrisk <- codedmodule2%>%
   group_by(SYSTEMRELIGION)%>%
   filter(SYSTEMRELIGION == 5)%>%
@@ -169,10 +167,10 @@ religionrisk <- codedmodule2%>%
   spread(meansd,summary) %>%
   #clean up
   select(-Risky)%>%
-  arrange(mean)
-```
+  arrange(mean)%>%
+  mutate_at(vars(SYSTEMRELIGION), funs(case_when(. == 5 ~ "religious"))) %>%
+  dplyr::rename(Govt = SYSTEMRELIGION)
 
-```{r, echo=FALSE}
 totalrisk <- codedmodule2%>%
   group_by(SYSTEMTOTAL)%>%
   filter(SYSTEMTOTAL == 5)%>%
@@ -188,30 +186,50 @@ totalrisk <- codedmodule2%>%
   spread(meansd,summary) %>%
   #clean up
   select(-Risky)%>%
-  arrange(mean)
+  arrange(mean)%>%
+  mutate_at(vars(SYSTEMTOTAL), funs(case_when(. == 5 ~ "totalitarian"))) %>%
+  dplyr::rename(Govt = SYSTEMTOTAL)
 ```
 
 
 
 ```{r, echo=FALSE}
 
-df1 <- left_join(religionrisk, totalrisk, by = "technology")
-df2 <- left_join(demorisk, techrisk, by = "technology" )
-```
+df1 <- full_join(religionrisk, totalrisk)
+df2 <- full_join(demorisk, techrisk)
+govtgraph <- full_join(df1, df2) %>%
+  group_by(technology)
 
 
-
-```{r, echo=FALSE}
-
-codedmodule2 %>%
-   select(starts_with(c("Risky", "SYSTEM"))) %>%
-  select(!starts_with(c("Risky_IND")))%>%
-  filter(SYSTEMTOTAL == 5) +
-  ggplot(aes(x= ))
-  +
-  #filter(SYSTEMTOTAL ==  "5"), "SYSTEMTEHNO" == 5, "SYSTEMDEMO" == 5, "SYSTEMRELIGION" == 5)
-  ggplot(subset("SYSTEMTOTAL" == 5))
+ggplot(govtgraph, aes(x = technology, y= mean, group = Govt))+
+  geom_line(aes(colour = Govt, line = Govt)) 
+  #ylim(0,4)
+  #scale_color_manual(values = c("darkred", "steelblue"))
   
+
+```
+
+
+
+
+
+
+```{r, echo=FALSE}
+
+ecopolscalescores <- codedmodule2 %>%
+  select(starts_with(c("Risky","SYSTEMDEMO","SYSTEMRELIGION","SYSTEMTECHNO","SYSTEMTOTAL","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG")))%>%
+  rowwise()%>%
+  dplyr::mutate(Pro_decentralisation = mean(c_across("DECISIONDECEN":"DECISIONCEN")))%>%
+   dplyr::mutate(Pro_largescale = mean(c_across("INDUSTRYLARGE":"INDUSTRYSMALL")))%>%
+   dplyr::mutate(Pro_global = mean(c_across("ECONOMYGLOBAL":"ECONOMYLOCAL")))%>%
+   dplyr::mutate(Pro_ecogrowth = mean(c_across("ENVOVERDEV":"DEVOVERENV")))%>%
+   dplyr::mutate(Pro_private = mean(c_across("OWNERPVT":"OWNERREG")))%>%
+  dplyr::select(!c("DECISIONDECEN","DECISIONCEN", "INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL", "ECONOMYLOCAL","ENVOVERDEV",     "DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG")) %>%
+    na.omit()
+
+ggplot(ecopolscalescores, aes(Pro_decentralisation, Risky_Hydro))+
+  geom_point()
+
 
 
 
