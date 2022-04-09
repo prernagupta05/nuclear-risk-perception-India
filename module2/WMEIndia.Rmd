@@ -277,6 +277,31 @@ joineddf
 ```
 
 
+
+
+```{r, echo=FALSE}
+cenrisksummary <- joineddf %>%
+  group_by(State)%>%
+  summarize_at(vars(starts_with(c("RISKY"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
+  #melt to long format
+  gather(key = "technology", value = "summary", Risky_Hydro_mean, Risky_Solar_mean, Risky_Wind_mean, Risky_Nuclear_mean, Risky_Coal_mean, Risky_Gas_mean, Risky_Oil_mean, Risky_Hydro_sd, Risky_Solar_sd, Risky_Wind_sd, Risky_Nuclear_sd, Risky_Coal_sd, Risky_Gas_sd, Risky_Oil_sd) %>%
+  select(State, technology, summary) %>%
+  # separate risky from variable suffix
+  separate(technology, c("Risky", "var"), extra = "merge", fill = "left") %>%
+  #separate mean from variable prefix
+  separate(var, c("technology", "meansd")) %>%
+  # spread summary values back to wide form
+  spread(meansd,summary) %>%
+  #clean up
+  select(-Risky)%>%
+  arrange(mean) #%>%
+  #setNames(paste0('perceivedrisk.', names(.))) %>%
+  #dplyr::rename(technology= perceivedrisk.technology)
+
+cenrisksummary
+```
+
+
 ```{r, eval =TRUE, echo=FALSE}
 
 
@@ -574,35 +599,25 @@ joineddf %>%
 ```
 
 
+
+
 ```{r, echo=FALSE}
 
 joineddf$State <- as.factor(joineddf$State)
 class(joineddf$State)
 levels(joineddf$State)
 
-
-
-
-joineddf %>%
-  select(starts_with(c("Risky", "State")))%>%
-  select(!starts_with(c("Risky_IND")))%>%
- mutate(State = factor(State, levels = c("Maharashtra",  "West Bengal","UP" , "Rajasthan" , "Tamilnadu"))) %>%
-  #select("Risky_Hydro", "Risky_Solar", "Risky_Nuclear","urban_rural")%>%
-  rowwise()%>%
-  na.omit()%>%
-  dplyr::mutate(riskscore = mean(c(Risky_Hydro:Risky_Oil))) %>%
-  select(State, riskscore) %>%
-  dplyr::group_by(State)%>%
-  summarise(mean=mean(riskscore), sd=sd(riskscore))%>%
-  arrange(desc(mean))
-
-
-%>%
-  ggplot(aes(x= technology, y = mean))+
-  geom_bar(stat="identity", position=position_dodge(), fill = "firebrick2")+
+cenrisksummary %>%
+  mutate(technology = fct_reorder(technology, mean, .desc = TRUE))%>%
+  ggplot(aes(x= technology, y= mean))+
+  geom_bar(stat="identity", position=position_dodge())+
   geom_errorbar(aes(ymin=mean-sd, ymax=mean + sd), width=.2,
                  position=position_dodge(.9))+
+  ylim(0,5)+
+  facet_wrap(~ State)+
+  #scale_fill_manual(y, values =))+
   coord_flip()
+
 ```
 
 
