@@ -1,6 +1,14 @@
 ---
 title: "Dependent Variable Graphs"
 output:
+  pdf_document:
+    toc: yes
+    number_sections: yes
+    toc_depth: 2
+    fig_width: 9
+    fig_height: 6
+    fig_caption: yes
+
   html_document:
     fig_width: 9
     fig_height: 6
@@ -8,16 +16,8 @@ output:
     keep_md: yes
     theme: paper
     df_print: paged
-  
-  
-pdf_document: 
-    
-    toc: true
-    number_sections: true
-    toc_depth: 2
-    fig_width: 9
-    fig_height: 6
-    fig_caption: yes
+ 
+
 ---
 
 ```{r load packages, warning = FALSE, message = FALSE, echo=FALSE}
@@ -40,7 +40,6 @@ suppressPackageStartupMessages(library(psych)) # psychometrics
 ```{r, echo=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 moduletwo <- read_excel(here::here("thesis_surveydata/political_factors_complete.xlsx"))
-save(moduletwo, file = "moduletwo.rda")
 
 module2 <- data.frame(moduletwo)
 module2[module2 == "Rather not say/ Don't know"] <- "Rather not say/Don't know"
@@ -109,17 +108,17 @@ codedmodule2 <- module2 %>%
 ```
 
 
-```{r, eval=TRUE}
+```{r, eval=TRUE, echo=FALSE}
 
 moduleone <- read_excel(here::here("thesis_surveydata/livelihood_insecurity_complete.xlsx"))
-save(moduleone, file = "moduleone.rda")
+
 module1 <- data.frame(moduleone)
 
 # loaded data set for module 2 eco -pol variables and removes the rows with question number and question text
 ```
 
 
-```{r, eval =TRUE}
+```{r, eval =TRUE, echo=FALSE}
 #This chunk contains the coding schemes of various scales used in survey one: eco-political factors, kahan scale and acceptance scale
 codedmodule1 <- module1 %>%
   
@@ -153,7 +152,7 @@ codedmodule1 <- module1 %>%
 ```
 
 
-```{r}
+```{r, echo=FALSE}
 
 suppressPackageStartupMessages(library(tidyselect))
 # combine codedmodule1 and codedmodule2
