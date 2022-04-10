@@ -1,6 +1,14 @@
 ---
-title: "demographic variables"
+title: "Demographic Variables Plotted Against DVs(combined dataset)"
 output:
+  pdf_document: 
+    toc: yes
+    number_sections: yes
+    toc_depth: 2
+    fig_width: 9
+    fig_height: 6
+    fig_caption: yes
+    
   html_document:
     fig_width: 9
     fig_height: 6
@@ -92,7 +100,7 @@ codedmodule2 <- module2 %>%
 ```
 
 
-```{r, eval=TRUE}
+```{r, eval=TRUE, echo=FALSE}
 
 moduleone <- read_excel(here::here("thesis_surveydata/livelihood_insecurity_complete.xlsx"))
 module1 <- data.frame(moduleone)
@@ -102,7 +110,7 @@ module1 <- data.frame(moduleone)
 
 
 
-```{r, eval =TRUE}
+```{r, eval =TRUE, echo=FALSE}
 #This chunk contains the coding schemes of various scales used in survey one: eco-political factors, kahan scale and acceptance scale
 codedmodule1 <- module1 %>%
   
@@ -132,7 +140,7 @@ codedmodule1 <- module1 %>%
 
 ```
 
-```{r}
+```{r, echo = FALSE}
 
 suppressPackageStartupMessages(library(tidyselect))
 # combine codedmodule1 and codedmodule2
@@ -146,33 +154,7 @@ joineddf <-  full_join(numcol2, numcol1, by = c("Respondent", "Language", "Surve
 
 
 
-
-```{r, echo=FALSE}
-cenrisksummary <- joineddf %>%
-  group_by(State)%>%
-  summarize_at(vars(starts_with(c("RISKY"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
-  #melt to long format
-  gather(key = "technology", value = "summary", Risky_Hydro_mean, Risky_Solar_mean, Risky_Wind_mean, Risky_Nuclear_mean, Risky_Coal_mean, Risky_Gas_mean, Risky_Oil_mean, Risky_Hydro_sd, Risky_Solar_sd, Risky_Wind_sd, Risky_Nuclear_sd, Risky_Coal_sd, Risky_Gas_sd, Risky_Oil_sd) %>%
-  select(State, technology, summary) %>%
-  # separate risky from variable suffix
-  separate(technology, c("Risky", "var"), extra = "merge", fill = "left") %>%
-  #separate mean from variable prefix
-  separate(var, c("technology", "meansd")) %>%
-  # spread summary values back to wide form
-  spread(meansd,summary) %>%
-  #clean up
-  select(-Risky)%>%
-  arrange(mean) #%>%
-  #setNames(paste0('perceivedrisk.', names(.))) %>%
-  #dplyr::rename(technology= perceivedrisk.technology)
-
-cenrisksummary
-```
-
-
-
-
-##Perceived Risk Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by gender and caste groups 
+## Perceived Risk Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by gender and caste groups 
 
 OBC = Other Backward Classes
 SC = Scheduled Castes
@@ -188,7 +170,7 @@ castegendereffect <- joineddf %>%
 
 
 castegendereffect$Gender_Caste <- as.factor(castegendereffect$Gender_Caste)
-levels(castegendereffect$Gender_Caste)
+#levels(castegendereffect$Gender_Caste)
 
  # mean risk from centrally controlled energy technologies
 
@@ -212,7 +194,46 @@ castegendereffect %>%
 
 ```
 
-##Perceived Risk Scores for all individually or community owned energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by gender and caste groups 
+## Perceived Benefit Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by gender and caste groups 
+
+OBC = Other Backward Classes
+SC = Scheduled Castes
+ST = Scheduled Tribes
+
+```{r, eval =TRUE, echo=FALSE}
+
+
+castegenderben <- joineddf %>%
+  select(starts_with(c("Ben", "gender", "caste")))%>%
+  unite("Gender_Caste", c("gender", "caste")) %>%
+  na.omit() 
+
+
+
+ # mean benefit from centrally controlled energy technologies
+
+castegenderben %>%
+  mutate(Gender_Caste = factor(castegenderben$Gender_Caste, levels = c("Male_OBC","Female_Brahmin","Male_SC","Male_ST", "Male_General", "Female_SC", "Female_OBC",  "Female_General" , "Male_Brahmin","Female_ST")))%>%
+  select(!starts_with(c("Ben_IND")))%>%
+  rowwise()%>%
+  na.omit()%>%
+  dplyr::mutate(benscore = mean(c_across(Ben_Hydro:Ben_Oil))) %>%
+  select(Gender_Caste, benscore) %>%
+  dplyr::group_by(Gender_Caste)%>%
+  summarise(mean=mean(benscore), sd=sd(benscore))%>%
+  arrange(desc(mean))%>%
+  ggplot(aes(y = Gender_Caste, x = mean))+
+  geom_bar(stat="identity", position=position_dodge(), fill = "palegreen3")+
+  geom_errorbar(aes(xmin=mean-sd, xmax=mean + sd), width=.2,
+                 position=position_dodge(.9))+
+  labs(x = "mean perceived risk", y = "GenderXCaste groups")
+ 
+
+
+```
+
+
+## Perceived Risk Scores for all individually or community owned energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by gender and caste groups 
 
 OBC = Other Backward Classes
 SC = Scheduled Castes
@@ -249,7 +270,38 @@ castegendereffect %>%
 
 ```
 
-##Perceived Risk Scores for centrally managed hydroelectric dams by gender and caste groups 
+## Perceived Benefit Scores for all individually or community owned energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by gender and caste groups 
+
+OBC = Other Backward Classes
+SC = Scheduled Castes
+ST = Scheduled Tribes
+
+```{r, eval =TRUE, echo=FALSE}
+
+# mean benefit from individually or community owned energy technologies
+
+
+castegenderben %>%
+  mutate(Gender_Caste = factor(Gender_Caste, levels = c("Male_OBC","Female_SC","Female_Brahmin","Female_OBC","Male_SC", "Male_General","Male_ST","Female_General","Male_Brahmin", "Female_ST")))%>%
+  select(starts_with(c("Ben_IND", "Gender_Caste")))%>%
+  #select("Risky_Hydro", "Risky_Nuclear", "Risky_Coal","Gender_Caste")%>%
+  rowwise()%>%
+  na.omit()%>%
+  dplyr::mutate(benscore = mean(c_across(Ben_INDHydro:Ben_INDLPG))) %>%
+  select(Gender_Caste, benscore) %>%
+  dplyr::group_by(Gender_Caste)%>%
+  summarise(mean=mean(benscore), sd=sd(benscore))%>%
+  arrange(desc(mean))%>%
+  ggplot(aes(y = Gender_Caste, x = mean))+
+  geom_bar(stat="identity", position=position_dodge(), fill = "palegreen3")+
+  geom_errorbar(aes(xmin=mean-sd, xmax=mean + sd), width=.2,
+                 position=position_dodge(.9))+
+  labs(x = "mean perceived benefit", y = "GenderXCaste groups")
+
+
+```
+
+## Perceived Risk Scores for centrally managed hydroelectric dams by gender and caste groups 
 
 OBC = Other Backward Classes
 SC = Scheduled Castes
@@ -272,14 +324,38 @@ castegendereffect %>%
                  position=position_dodge(.9))+
   labs(x = "mean perceived risk", y = "GenderXCaste groups")
 ```
+## Perceived Benefit Scores for centrally managed hydroelectric dams by gender and caste groups 
 
-##Perceived Risk Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by urban or rural location of the respondent 
+OBC = Other Backward Classes
+SC = Scheduled Castes
+ST = Scheduled Tribes
 
-```{r}
+
+```{r, echo=FALSE}
+
+castegenderben %>%
+  mutate(Gender_Caste = factor(Gender_Caste, levels = c("Male_OBC","Male_ST", "Female_Brahmin","Male_SC","Male_General", "Female_SC","Female_General","Female_OBC","Male_Brahmin",  "Female_ST")))%>%
+  select(!starts_with(c("Ben_IND")))%>%
+  select("Ben_Hydro", "Ben_Nuclear", "Ben_Coal","Gender_Caste")%>%
+  na.omit()%>%
+  dplyr::group_by(Gender_Caste)%>%
+  summarise(hydro_m=mean(Ben_Hydro), hydro_sd=sd(Ben_Hydro), nuclear_m=mean(Ben_Nuclear), nuclear_sd=sd(Ben_Nuclear),            coal_m=mean(Ben_Coal),   coal_sd=sd(Ben_Coal))%>%
+  arrange(desc(hydro_m))%>%
+  ggplot(aes(y = Gender_Caste, x = hydro_m))+
+  geom_bar(stat="identity", position=position_dodge(), fill = "palegreen3")+
+  geom_errorbar(aes(xmin=hydro_m-hydro_sd, xmax=hydro_m + hydro_sd), width=.2,
+                 position=position_dodge(.9))+
+  labs(x = "mean perceived benefit", y = "GenderXCaste groups")
+```
+
+
+## Perceived Risk Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by urban or rural location of the respondent 
+
+```{r, echo=FALSE}
 
 joineddf$urban_rural <- as.factor(joineddf$urban_rural)
-class(joineddf$urban_rural)
-levels(joineddf$urban_rural)
+#class(joineddf$urban_rural)
+#levels(joineddf$urban_rural)
 
 
 joineddf %>%
@@ -299,15 +375,35 @@ joineddf %>%
   labs(x = "urban or rural", y = "mean risk")
 ```
 
+## Perceived Benefit Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by urban or rural location of the respondent 
 
 
-##Perceived Risk Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by gender
+```{r, echo=FALSE}
 
-```{r}
+joineddf %>%
+  select(starts_with(c("Ben", "urban_rural")))%>%
+  select(!starts_with(c("Ben_IND")))%>%
+  rowwise()%>%
+  na.omit()%>%
+  dplyr::mutate(benscore = mean(c_across(Ben_Hydro:Ben_Oil))) %>%
+  select(urban_rural, benscore) %>%
+  dplyr::group_by(urban_rural)%>%
+  summarise(mean=mean(benscore), sd=sd(benscore))%>%
+  arrange(desc(mean))%>%
+  ggplot(aes(x= urban_rural, y = mean))+
+  geom_bar(stat="identity", position=position_dodge(), fill = "palegreen3")+
+  geom_errorbar(aes(ymin=mean-sd, ymax=mean + sd), width=.2,
+                 position=position_dodge(.9))+
+  labs(x = "urban or rural", y = "mean benefit")
+```
+
+## Perceived Risk Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by gender
+
+```{r, echo =FALSE}
 
 joineddf$gender <- as.factor(joineddf$gender)
-class(joineddf$gender)
-levels(joineddf$gender)
+#class(joineddf$gender)
+#levels(joineddf$gender)
 
 
 joineddf %>%
@@ -328,14 +424,36 @@ joineddf %>%
 ```
 
 
-##Perceived Risk Scores for all individually or community owned energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by gender. 
+## Perceived Benefit Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by gender
+
+
+```{r, echo =FALSE}
+
+joineddf %>%
+  select(starts_with(c("Ben", "gender")))%>%
+  select(!starts_with(c("Ben_IND")))%>%
+  rowwise()%>%
+  na.omit()%>%
+  dplyr::mutate(benscore = mean(c_across(Ben_Hydro:Ben_Oil))) %>%
+  select(gender, benscore) %>%
+  dplyr::group_by(gender)%>%
+  summarise(mean=mean(benscore), sd=sd(benscore))%>%
+  arrange(desc(mean))%>%
+  ggplot(aes(x= gender, y = mean))+
+  geom_bar(stat="identity", position=position_dodge(), fill = "palegreen3")+
+  geom_errorbar(aes(ymin=mean-sd, ymax=mean + sd), width=.2,
+                 position=position_dodge(.9))+
+  labs(y = "mean benefit")
+```
+
+## Perceived Risk Scores for all individually or community owned energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by gender. 
 
 
 ```{r, echo=FALSE}
 
 joineddf$gender <- as.factor(joineddf$gender)
-class(joineddf$gender)
-levels(joineddf$gender)
+#class(joineddf$gender)
+#levels(joineddf$gender)
 
 
 
@@ -356,14 +474,36 @@ joineddf %>%
   labs(y = "mean risk")
 ```
 
-##Perceived Risk Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by religion
+## Perceived Risk Scores for all individually or community owned energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by gender. 
+
+```{r, echo=FALSE}
+
+joineddf %>%
+  select(starts_with(c("Ben", "gender")))%>%
+  select(starts_with(c("Ben_IND", "gender")))%>%
+  rowwise()%>%
+  na.omit()%>%
+  dplyr::mutate(benscore = mean(c_across(Ben_INDHydro:Ben_INDLPG))) %>%
+  select(gender, benscore) %>%
+  dplyr::group_by(gender)%>%
+  summarise(mean=mean(benscore), sd=sd(benscore))%>%
+  arrange(desc(mean))%>%
+  ggplot(aes(x= gender, y = mean))+
+  geom_bar(stat="identity", position=position_dodge(), fill = "palegreen3")+
+  geom_errorbar(aes(ymin=mean-sd, ymax=mean + sd), width=.2,
+                 position=position_dodge(.9))+
+  labs(y = "mean benefit")
+```
+
+
+## Perceived Risk Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by religion
 
 
 ```{r, echo=FALSE}
 
 joineddf$religion <- as.factor(joineddf$religion)
-class(joineddf$religion)
-levels(joineddf$religion)
+#class(joineddf$religion)
+#levels(joineddf$religion)
 
 
 
@@ -383,16 +523,43 @@ joineddf %>%
   geom_bar(stat="identity", position=position_dodge(), fill = "firebrick2")+
   geom_errorbar(aes(ymin=mean-sd, ymax=mean + sd), width=.2,
                  position=position_dodge(.9))+
+  labs(y= "mean perceived risk")+
   coord_flip()
 ```
 
-##Perceived Risk Scores for all individually or community owned energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by religion. 
+
+## Perceived Benefit Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by religion
+
+```{r, echo=FALSE}
+
+joineddf %>%
+  select(starts_with(c("Ben", "religion")))%>%
+  select(!starts_with(c("Ben_IND", "religiontext")))%>%
+ mutate(religion = factor(religion, levels = c("Other (Please mention)" ,"Agnostism/ Atheism",  "Christanity","Hinduism", "Islam","Jainism", "Sikhism" ,"Buddhism"))) %>%
+  #select("Risky_Hydro", "Risky_Solar", "Risky_Nuclear","urban_rural")%>%
+  rowwise()%>%
+  na.omit()%>%
+  dplyr::mutate(benscore = mean(c_across(Ben_Hydro:Ben_Oil))) %>%
+  select(religion, benscore) %>%
+  dplyr::group_by(religion)%>%
+  summarise(mean=mean(benscore), sd=sd(benscore))%>%
+  arrange(desc(mean))%>%
+  ggplot(aes(x= religion, y = mean))+
+  geom_bar(stat="identity", position=position_dodge(), fill = "palegreen3")+
+  geom_errorbar(aes(ymin=mean-sd, ymax=mean + sd), width=.2,
+                 position=position_dodge(.9))+
+  labs(y= "mean perceived benefit")+
+  coord_flip()
+```
+
+
+## Perceived Risk Scores for all individually or community owned energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by religion. 
 
 ```{r, echo=FALSE}
 
 joineddf$religion <- as.factor(joineddf$religion)
-class(joineddf$religion)
-levels(joineddf$religion)
+#class(joineddf$religion)
+#levels(joineddf$religion)
 
 
 
@@ -412,17 +579,43 @@ joineddf %>%
   geom_bar(stat="identity", position=position_dodge(), fill = "firebrick2")+
   geom_errorbar(aes(ymin=mean-sd, ymax=mean + sd), width=.2,
                  position=position_dodge(.9))+
+  labs(y= "mean perceived risk")+
+  coord_flip()
+```
+
+## Perceived Benefit Scores for all individually or community owned energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by religion. 
+
+
+```{r, echo=FALSE}
+
+joineddf %>%
+  select(!starts_with(c("religiontext")))%>%
+  select(starts_with(c("Ben_IND", "religion")))%>%
+ mutate(religion = factor(religion, levels = c( "Jainism","Other (Please mention)" , "Hinduism","Agnostism/ Atheism", "Islam",   "Christanity","Buddhism", "Sikhism"))) %>%
+  #select("Risky_Hydro", "Risky_Solar", "Risky_Nuclear","urban_rural")%>%
+  rowwise()%>%
+  na.omit()%>%
+  dplyr::mutate(benscore = mean(c_across(Ben_INDHydro:Ben_INDLPG))) %>%
+  select(religion, benscore) %>%
+  dplyr::group_by(religion)%>%
+  summarise(mean=mean(benscore), sd=sd(benscore))%>%
+  arrange(desc(mean))%>%
+  ggplot(aes(x= religion, y = mean))+
+  geom_bar(stat="identity", position=position_dodge(), fill = "palegreen3")+
+  geom_errorbar(aes(ymin=mean-sd, ymax=mean + sd), width=.2,
+                 position=position_dodge(.9))+
+  labs(y= "mean perceived benefit")+
   coord_flip()
 ```
 
 
-##Perceived Risk Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by age
+## Perceived Risk Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by age
 
 ```{r, echo=FALSE}
 
 joineddf$age <- as.factor(joineddf$age)
-class(joineddf$age)
-levels(joineddf$age)
+#class(joineddf$age)
+#levels(joineddf$age)
 
 
 
@@ -442,20 +635,37 @@ joineddf %>%
   geom_bar(stat="identity", position=position_dodge(), fill = "firebrick2")+
   geom_errorbar(aes(ymin=mean-sd, ymax=mean + sd), width=.2,
                  position=position_dodge(.9))+
+  labs(y = "mean perceived risk")+
+  coord_flip()
+```
+
+## Perceived Benefit Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by age
+```{r, echo=FALSE}
+
+joineddf %>%
+  select(starts_with(c("Ben", "age")))%>%
+  select(!starts_with(c("Ben_IND")))%>%
+ mutate(age = factor(age, levels = c("18-24 years old", "25-34 years old", "35-44 years old", "45-54 years old" , "55-64 years old" ,  "65-74 years old", "75 years or older"))) %>%
+  #select("Risky_Hydro", "Risky_Solar", "Risky_Nuclear","urban_rural")%>%
+  rowwise()%>%
+  na.omit()%>%
+  dplyr::mutate(benscore = mean(c_across(Ben_Hydro:Ben_Oil))) %>%
+  select(age, benscore) %>%
+  dplyr::group_by(age)%>%
+  summarise(mean=mean(benscore), sd=sd(benscore))%>%
+  arrange(desc(mean))%>%
+  ggplot(aes(x= age, y = mean))+
+  geom_bar(stat="identity", position=position_dodge(), fill = "palegreen3")+
+  geom_errorbar(aes(ymin=mean-sd, ymax=mean + sd), width=.2,
+                 position=position_dodge(.9))+
+  labs(y = "mean perceived benefit")+
   coord_flip()
 ```
 
 
-
-##Perceived Risk Scores for all individually or community owned energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by age. 
+## Perceived Risk Scores for all individually or community owned energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by age. 
 
 ```{r, echo=FALSE}
-
-joineddf$age <- as.factor(joineddf$age)
-class(joineddf$age)
-levels(joineddf$age)
-
-
 
 joineddf %>%
   select(starts_with(c("Risky", "age")))%>%
@@ -473,19 +683,87 @@ joineddf %>%
   geom_bar(stat="identity", position=position_dodge(), fill = "firebrick2")+
   geom_errorbar(aes(ymin=mean-sd, ymax=mean + sd), width=.2,
                  position=position_dodge(.9))+
+  labs(y = "mean perceived risk")+
   coord_flip()
 ```
 
 
 
-##Perceived Risk Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by state
+## Perceived Risk Scores for all individually or community owned energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by age. 
+
+```{r, echo=FALSE}
+
+joineddf %>%
+  select(starts_with(c("Ben", "age")))%>%
+  select(starts_with(c("Ben_IND", "age")))%>%
+ mutate(age = factor(age, levels = c("18-24 years old", "25-34 years old", "35-44 years old", "45-54 years old" , "55-64 years old" ,  "65-74 years old", "75 years or older"))) %>%
+  #select("Risky_Hydro", "Risky_Solar", "Risky_Nuclear","urban_rural")%>%
+  rowwise()%>%
+  na.omit()%>%
+  dplyr::mutate(benscore = mean(c_across(Ben_INDHydro:Ben_INDLPG))) %>%
+  select(age, benscore) %>%
+  dplyr::group_by(age)%>%
+  summarise(mean=mean(benscore), sd=sd(benscore))%>%
+  arrange(desc(mean))%>%
+  ggplot(aes(x= age, y = mean))+
+  geom_bar(stat="identity", position=position_dodge(), fill = "palegreen3")+
+  geom_errorbar(aes(ymin=mean-sd, ymax=mean + sd), width=.2,
+                 position=position_dodge(.9))+
+  labs(y = "mean perceived benefit")+
+  coord_flip()
+```
+
+
+```{r, echo=FALSE}
+cenrisksummary <- joineddf %>%
+  group_by(State)%>%
+  summarize_at(vars(starts_with(c("RISKY"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
+  #melt to long format
+  gather(key = "technology", value = "summary", Risky_Hydro_mean, Risky_Solar_mean, Risky_Wind_mean, Risky_Nuclear_mean, Risky_Coal_mean, Risky_Gas_mean, Risky_Oil_mean, Risky_Hydro_sd, Risky_Solar_sd, Risky_Wind_sd, Risky_Nuclear_sd, Risky_Coal_sd, Risky_Gas_sd, Risky_Oil_sd) %>%
+  select(State, technology, summary) %>%
+  # separate risky from variable suffix
+  separate(technology, c("Risky", "var"), extra = "merge", fill = "left") %>%
+  #separate mean from variable prefix
+  separate(var, c("technology", "meansd")) %>%
+  # spread summary values back to wide form
+  spread(meansd,summary) %>%
+  #clean up
+  select(-Risky)%>%
+  arrange(mean) #%>%
+  #setNames(paste0('perceivedrisk.', names(.))) %>%
+  #dplyr::rename(technology= perceivedrisk.technology)
+
+```
+
+```{r, echo=FALSE}
+cenbensummary <- joineddf %>%
+  group_by(State)%>%
+  summarize_at(vars(starts_with(c("Ben"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
+  #melt to long format
+  gather(key = "technology", value = "summary", Ben_Hydro_mean, Ben_Solar_mean, Ben_Wind_mean, Ben_Nuclear_mean, Ben_Coal_mean, Ben_Gas_mean, Ben_Oil_mean, Ben_Hydro_sd, Ben_Solar_sd, Ben_Wind_sd, Ben_Nuclear_sd, Ben_Coal_sd, Ben_Gas_sd, Ben_Oil_sd) %>%
+  select(State, technology, summary) %>%
+  # separate risky from variable suffix
+  separate(technology, c("Ben", "var"), extra = "merge", fill = "left") %>%
+  #separate mean from variable prefix
+  separate(var, c("technology", "meansd")) %>%
+  # spread summary values back to wide form
+  spread(meansd,summary) %>%
+  #clean up
+  select(-Ben)%>%
+  arrange(mean) #%>%
+  #setNames(paste0('perceivedrisk.', names(.))) %>%
+  #dplyr::rename(technology= perceivedrisk.technology)
+
+```
+
+## Perceived Risk Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by state
 
 
 ```{r, echo=FALSE}
 
 joineddf$State <- as.factor(joineddf$State)
-class(joineddf$State)
-levels(joineddf$State)
+#class(joineddf$State)
+#levels(joineddf$State)
 
 cenrisksummary %>%
   mutate(technology = fct_reorder(technology, mean, .desc = TRUE))%>%
@@ -496,19 +774,134 @@ cenrisksummary %>%
                  position=position_dodge(.9))+
   scale_fill_manual(values=c("#74238B", "#FEF102","#484349","#BA5C12", "#4D9DE0","#CFEBDF", "#FA6728"))+
   xlim(0,5)+
-  facet_wrap(~ State)
+  facet_wrap(~ State)+
+  labs(x = "mean perceived risk", y = "energy technologies")
+  #scale_fill_manual(y, values =))+
+
+
+```
+
+## Perceived Benefit Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by state
+
+
+```{r, echo=FALSE}
+
+joineddf$State <- as.factor(joineddf$State)
+#class(joineddf$State)
+#levels(joineddf$State)
+
+cenbensummary %>%
+  mutate(technology = fct_reorder(technology, mean, .desc = TRUE))%>%
+  ggplot(aes(y= technology, x= mean, fill = technology))+
+  geom_bar(stat="identity", position=position_dodge())+
+  theme_minimal()+
+  geom_errorbar(aes(xmin=mean-sd, xmax=mean + sd), width=.2,
+                 position=position_dodge(.9))+
+  scale_fill_manual(values=c("#74238B", "#FEF102","#484349","#BA5C12", "#4D9DE0","#CFEBDF", "#FA6728"))+
+  xlim(0,5)+
+  facet_wrap(~ State)+
+  labs(x = "mean perceived benefit", y = "energy technologies")
   #scale_fill_manual(y, values =))+
 
 
 ```
 
 
-#Distribution checks 
 
-```{r}
-joineddf %>%
-  filter(urban_rural == "Rural") %>%
-  ggplot(aes(x=Risky_Hydro, y = ..count..), fill = "lightgray")+
-  geom_density()
+
+
+
+
+```{r, echo=FALSE}
+INDrisksummary <- joineddf %>%
+  group_by(State)%>%
+  summarize_at(vars(starts_with(c("RISKY_IND"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
+  #melt to long format
+  gather(key = "technology", value = "summary", Risky_INDHydro_mean, Risky_INDSolar_mean, Risky_INDWind_mean, Risky_INDDiesel_mean, Risky_INDKerosene_mean, Risky_INDFirewoodetc_mean, Risky_INDLPG_mean,  Risky_INDBiogas_mean, Risky_INDHydro_sd, Risky_INDSolar_sd, Risky_INDWind_sd, Risky_INDDiesel_sd, Risky_INDKerosene_sd, Risky_INDBiogas_sd, Risky_INDKerosene_sd, Risky_INDFirewoodetc_sd, Risky_INDLPG_sd) %>%
+  select(State, technology, summary) %>%
+  # separate risky from variable suffix
+  separate(technology, c("Risky", "var"), extra = "merge", fill = "left") %>%
+  #separate mean from variable prefix
+  separate(var, c("technology", "meansd")) %>%
+  # spread summary values back to wide form
+  spread(meansd,summary) %>%
+  #clean up
+  select(-Risky)%>%
+  arrange(mean) #%>%
+  #setNames(paste0('perceivedrisk.', names(.))) %>%
+  #dplyr::rename(technology= perceivedrisk.technology)
+
+```
+
+
+```{r, echo=FALSE}
+INDbensummary <- joineddf %>%
+  group_by(State)%>%
+  summarize_at(vars(starts_with(c("Ben_IND"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
+  #melt to long format
+  gather(key = "technology", value = "summary", Ben_INDHydro_mean, Ben_INDSolar_mean, Ben_INDWind_mean, Ben_INDDiesel_mean, Ben_INDKerosene_mean, Ben_INDFirewoodetc_mean, Ben_INDLPG_mean,  Ben_INDBiogas_mean, Ben_INDHydro_sd, Ben_INDSolar_sd, Ben_INDWind_sd, Ben_INDDiesel_sd, Ben_INDKerosene_sd, Ben_INDBiogas_sd, Ben_INDKerosene_sd, Ben_INDFirewoodetc_sd, Ben_INDLPG_sd) %>%
+  select(State, technology, summary) %>%
+  # separate risky from variable suffix
+  separate(technology, c("Ben", "var"), extra = "merge", fill = "left") %>%
+  #separate mean from variable prefix
+  separate(var, c("technology", "meansd")) %>%
+  # spread summary values back to wide form
+  spread(meansd,summary) %>%
+  #clean up
+  select(-Ben)%>%
+  arrange(mean) #%>%
+  #setNames(paste0('perceivedrisk.', names(.))) %>%
+  #dplyr::rename(technology= perceivedrisk.technology)
+
+```
+
+## Perceived Risk Scores for all individually or community owned/managed energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by state
+```{r, echo=FALSE}
+
+
+INDrisksummary %>%
+  mutate(technology = fct_reorder(technology, mean, .desc = TRUE))%>%
+  ggplot(aes(y= technology, x= mean, fill = technology))+
+  geom_bar(stat="identity", position=position_dodge())+
+  theme_minimal()+
+  geom_errorbar(aes(xmin=mean-sd, xmax=mean + sd), width=.2,
+                 position=position_dodge(.9))+
+  scale_fill_manual(values=c("red","#74238B", "#4D9DE0", "#CFEBDF","#FEF102","#484349","#BA5C12", "#FA6728"))+
+  xlim(0,5)+
+  facet_wrap(~ State)+
+  labs(x = "mean perceived risk", y = "energy technologies")
+  #scale_fill_manual(y, values =))+
+
+
+```
+
+
+## Perceived Benefit Scores for all individually or community owned/managed energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by state
+
+```{r, echo=FALSE}
+
+
+INDbensummary %>%
+  mutate(technology = fct_reorder(technology, mean, .desc = TRUE))%>%
+  ggplot(aes(y= technology, x= mean, fill = technology))+
+  geom_bar(stat="identity", position=position_dodge())+
+  theme_minimal()+
+  geom_errorbar(aes(xmin=mean-sd, xmax=mean + sd), width=.2,
+                 position=position_dodge(.9))+
+  scale_fill_manual(values=c("red","#74238B", "#4D9DE0", "#CFEBDF","#FEF102","#484349","#BA5C12", "#FA6728"))+
+  xlim(0,5)+
+  facet_wrap(~ State)+
+  labs(x = "mean perceived benefit", y = "energy technologies")
+  #scale_fill_manual(y, values =))+
+
+
+```
+
+```{r, echo =FALSE}
+#Distribution checks 
+#joineddf %>%
+  #filter(urban_rural == "Rural") %>%
+  #ggplot(aes(x=Risky_Hydro, y = ..count..), fill = "lightgray")+
+  #geom_density()
 ```
 
