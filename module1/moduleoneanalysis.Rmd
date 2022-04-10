@@ -186,7 +186,7 @@ codedmodule1
 ```
 
 ```{r}
-# solving the problem of multiple answers  to a questions 
+# solving the problem of multiple answers  to a question
 codedmodule1 
 
 
