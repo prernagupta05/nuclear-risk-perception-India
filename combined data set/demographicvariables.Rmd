@@ -19,7 +19,6 @@ suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(tidyr))
 suppressPackageStartupMessages(library(ggplot2))
 
-
 ```
 
 
@@ -28,8 +27,6 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 moduletwo <- read_excel(here::here("thesis_surveydata/political_factors_complete.xlsx"))
 module2 <- data.frame(moduletwo)
 module2[module2 == "Rather not say/ Don't know"] <- "Rather not say/Don't know"
-module2 %>%
-  filter(!row_number() %in% c(1,2))
 
 # loaded data set for module 2 eco -pol variables and removes the rows with question number and question text
 ```
@@ -92,19 +89,13 @@ codedmodule2 <- module2 %>%
                                                                                                          . == "Somewhat agree" ~ 2,
                                                                                                          . == "Strongly agree" ~ 1)))
 
-
-codedmodule2
-
 ```
 
 
 ```{r, eval=TRUE}
 
 moduleone <- read_excel(here::here("thesis_surveydata/livelihood_insecurity_complete.xlsx"))
-save(moduleone, file = "moduleone.rda")
 module1 <- data.frame(moduleone)
-module1 %>%
-  filter(!row_number() %in% c(1,2))
 
 # loaded data set for module 2 eco -pol variables and removes the rows with question number and question text
 ```
@@ -137,130 +128,8 @@ codedmodule1 <- module1 %>%
                                                                         . == "Somewhat disagree" ~ 2,
                                                                         . == "Neither agree nor disagree" ~3,
                                                                         . == "Somewhat agree" ~ 4,
-                                                                        . == "Strongly agree" ~ 5))) %>%
+                                                                        . == "Strongly agree" ~ 5)))
 
-
-
-  mutate_at(vars(Livelihood_Income), funs(case_when(. == "(a) own farming/fishing/animal rearing/business" ~ "LSI", 
-                                                    . == "(b) employed for wages/salary" ~ "ISI",
-                                                    . == "(c) student" ~"student",
-                                                    . == "(d) currently unemployed" ~ "unemployed",
-                                                    . == "(e) homemaker" ~ "homemaker",
-                                                    . == "(f) retired" ~ "retired",
-                                                    . == "(g) unable to work" ~ "unable to work" ))) %>%
-  
-# coding education
-   mutate_at(vars(education), funs(case_when(. == "No schooling completed" ~ 0, 
-                                                                        . == "Primary school" ~ 1,
-                                                                        . == "Grade 10th" ~ 2,
-                                                                        . == "Grade 12th" ~ 3,
-                                                                        . == "Some college, no degree" ~ 4,
-                                                                        . == "Trade/technical/vocational training" ~ 5,
-                                                                        . == "Bachelor's degree" ~ 6,
-                                                                        . == "Master's degree" ~ 7,
-                                                                        . == "Professional degree" ~ 8,
-                                                                        . == "Doctorate degree" ~ 9 ))) %>%
-# coding yes and no questions
-  mutate_at(vars(Iassociation, govtscheme, wateravail, polposition, polparty), funs(case_when(.== "Yes" ~ 1,
-                                            .== "No" ~ 0))) %>%
-# reverse coding yes and no questions
-  mutate_at(vars(illness,severeillness), funs(case_when(.== "Yes" ~ 0,
-                                            .== "No" ~ 1))) %>%
-  
-# coding How confident are you that you can continue your current livelihood if you want to? 
- mutate_at(vars(Lconfidence), funs(case_when(. == "Not at all confident" ~ 1, 
-                                                                        . == "Not much confident" ~ 2,
-                                                                        . == "Neutral" ~3,
-                                                                        . == "Somewhat confident" ~ 4,
-                                                                        . == "Very confident" ~ 5))) %>%
-  
- mutate_at(vars(Lboat, houseown), funs(case_when(.== "Own it" ~ 1,
-                                                 .== "Rent it" ~ 0)))%>%
-
-
-# J security index coding
-  
- mutate_at(vars(JISRkeep), funs(case_when(. == "Strongly disagree" ~ 1, 
-                                                                        . == "Somewhat disagree" ~ 2,
-                                                                        . == "Neither agree nor disagree" ~3,
-                                                                        . == "Somewhat agree" ~ 4,
-                                                                        . == "Strongly agree" ~ 5))) %>%
-  
-  
-# reverse code JIS 
-  mutate_at(vars(JISlosefuture, JISlose, JISfuture), funs(case_when(. == "Strongly disagree" ~ 5, 
-                                                                        . == "Somewhat disagree" ~ 4,
-                                                                        . == "Neither agree nor disagree" ~3,
-                                                                        . == "Somewhat agree" ~ 2,
-                                                                        . == "Strongly agree" ~ 1))) %>%
-  
-  mutate_at(vars(totalincome, otherincome), funs(case_when(. == "Less than Rs 1,00,000" ~ 1,
-                                                                        . == "Rs 1,00,000 to Rs 2,50,000"  ~ 2,
-                                                                        . == "Rs 2,50,001 to Rs 5,00,000" ~ 3,
-                                                                        . == "Rs 5,00,001 to Rs 10,00,000" ~ 4,
-                                                                        . == "Rs 10,00,001 and above"  ~ 5))) %>%
-  
-  mutate_at(vars(workknowledge, subsidyknow), funs(case_when(. == "Very poor" ~ 1, 
-                                                                        . == "Poor" ~ 2,
-                                                                        . == "Fair" ~3,
-                                                                        . == "Good" ~ 4,
-                                                                        . == "Very good" ~ 5))) %>%
- 
-mutate_at(vars(drinkingwater, cookingwater), funs(case_when(. == "Bottled water/ Filtered Water" ~ 1,                                       
-                                                          .  == "Piped into dwelling" ~ 2,                                                  
-                                                          .  == "Piped to neighbour" ~ 3,                                                   
-                                                          .  == "Piped to yard/plot" ~ 4, 
-                                                          .  == "Protected well" ~ 5, 
-                                                          .  == "Public tap/standpipe" ~6,
-                                                          .  == "Surface Water  (River/Dam/Lake/Pond/Stream/Canal/Irrigation Channel)" ~7, 
-                                                          .  == "Tanker Truck" ~ 8,
-                                                          .  == "Tubewell/borehole" ~ 9,
-                                                          .  == "Unprotected Spring" ~ 10))) %>%
-  
-  
-  mutate_at(vars(toilet), funs(case_when(. == "No facility/bush/field" ~ 1,                                       
-                                                          .  == "Hanging toilet/hanging latrine" ~ 2,                                             
-                                                          .  == "Bucket toilet"  ~ 3,                                                   
-                                                          .  == "Composting toilet"  ~ 4, 
-                                                          .  == "Pit latrine without slab/open pit" ~ 5, 
-                                                          .  == "Pit latrine with slab" ~6,
-                                                          .  == "Ventilated improved pit laterine"  ~7, 
-                                                          .  == "Flush to somewhere else"  ~ 8,
-                                                          .  == "Flush to pit latrine"  ~ 9,
-                                                          .  == "Flush to septic tank" ~ 10,
-                                                          .  == "Flush to piped sewer system" ~ 11))) %>%
- 
-  mutate_at(vars(house), funs(case_when(. == "Hut made of mud, bamboo, straw etc. (kutcha house)" ~ 1, 
-                                        . == "Permanent single story house (pukka house)" ~ 2,
-                                        . == "Apartment/Flat in a multi-story building"  ~3,
-                                        . == "Multi-story house" ~ 4))) %>% 
- 
-  mutate_at(vars(foodtrouble), funs(case_when(. == "8 or more months" ~ 1,                                       
-                                                          .  == "6-8 months"  ~ 2,                                                  
-                                                          .  == "4-6 months"  ~ 3,                                                   
-                                                          .  == "2-4 months"  ~ 4, 
-                                                          .  == "1-2 months" ~ 5, 
-                                                          .  == "0 months"  ~6))) %>%
-  
-   mutate_at(vars(foodadequacy), funs(case_when(. == "Extremely inadequate" ~ 1, 
-                                                                        . == "Moderately inadequate" ~ 2,
-                                                                        . == "Slightly inadequate" ~3,
-                                                                        . == "Neither adequate nor inadequate" ~ 4,
-                                                                        . == "Slightly adequate" ~ 5,
-                                                                        . == "Moderately adequate" ~ 6,
-                                                                        . == "Extremely adequate" ~ 7)))%>%
-
-separate( col = cookstove, into = c("cook1", "cook2", "cook3", "cook4"), sep = ",") %>%
-separate( col = vehicle, into = c("vehicle1", "vehicle2", "vehicle3", "vehicle4"), sep = ",")%>%
-separate( col = foodsource, into = c("food1", "food2", "food3", "food4"), sep = ",")
-  
-
-
-#coded dependent variables for module 1 livelihood and income security survey
-                                                 
-                  
-                                 
-codedmodule1 
 ```
 
 ```{r}
@@ -273,7 +142,6 @@ numcol1 <- codedmodule1 %>% add_column(Respondent = 1099:2160, .before = "Langua
 
 joineddf <-  full_join(numcol2, numcol1, by = c("Respondent", "Language", "Survey_Date", "State", "Risky_Hydro", "Risky_Solar", "Risky_Wind", "Risky_Nuclear", "Risky_Coal", "Risky_Gas", "Risky_Oil", "Risky_INDHydro", "Risky_INDSolar", "Risky_INDWind", "Risky_INDBiogas", "Risky_INDDiesel", "Risky_INDKerosene", "Risky_INDFirewoodetc", "Risky_INDLPG", "Ben_Hydro", "Ben_Solar", "Ben_Wind", "Ben_Nuclear", "Ben_Coal", "Ben_Gas", "Ben_Oil", "Ben_INDHydro", "Ben_INDSolar", "Ben_INDWind", "Ben_INDDiesel", "Ben_INDBiogas", "Ben_INDFirewoodetc", "Ben_INDLPG", "Ben_INDKerosene", "N_accept", "N_reluctantlyaccept", "N_reject", "age", "urban_rural", "gender", "caste", "religion", "religiontext")) 
 
-joineddf
 ```
 
 
@@ -302,6 +170,14 @@ cenrisksummary
 ```
 
 
+
+
+##Perceived Risk Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by gender and caste groups 
+
+OBC = Other Backward Classes
+SC = Scheduled Castes
+ST = Scheduled Tribes
+
 ```{r, eval =TRUE, echo=FALSE}
 
 
@@ -317,9 +193,8 @@ levels(castegendereffect$Gender_Caste)
  # mean risk from centrally controlled energy technologies
 
 castegendereffect %>%
-  mutate(Gender_Caste = factor(Gender_Caste, levels = c("Female_Brahmin", "Female_SC", "Female_OBC", "Male_SC","Male_ST", "Male_General", "Female_General","Female_ST" ,"Male_OBC", "Male_Brahmin")))%>%
+  mutate(Gender_Caste = factor(castegendereffect$Gender_Caste, levels = c("Female_Brahmin", "Female_SC", "Female_OBC", "Male_SC","Male_ST", "Male_General", "Female_General","Female_ST" ,"Male_OBC", "Male_Brahmin")))%>%
   select(!starts_with(c("Risky_IND")))%>%
-  #select("Risky_Hydro", "Risky_Nuclear", "Risky_Coal","Gender_Caste")%>%
   rowwise()%>%
   na.omit()%>%
   dplyr::mutate(riskscore = mean(c_across(Risky_Hydro:Risky_Oil))) %>%
@@ -330,21 +205,23 @@ castegendereffect %>%
   ggplot(aes(y = Gender_Caste, x = mean))+
   geom_bar(stat="identity", position=position_dodge(), fill = "firebrick2")+
   geom_errorbar(aes(xmin=mean-sd, xmax=mean + sd), width=.2,
-                 position=position_dodge(.9))
-#%>%
+                 position=position_dodge(.9))+
+  labs(x = "mean perceived risk", y = "GenderXCaste groups")
  
-#group_by("Gender_Caste") %>%
- #summarise_at(vars("Risky_Nuclear"), list(Riskscore = mean))
-    #mutate(Gender_Caste = factor(Gender_Caste, levels = c("Male_Brahmin", "Male_General","Male_OBC", "Male_SC", "Male_ST","Female_Brahmin", "Female_General", "Female_OBC","Female_SC", "Female_ST")))
+
 
 ```
 
+##Perceived Risk Scores for all individually or community owned energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by gender and caste groups 
+
+OBC = Other Backward Classes
+SC = Scheduled Castes
+ST = Scheduled Tribes
 
 
 ```{r, eval =TRUE, echo=FALSE}
 
-
- # mean risk from indicidually or community owned energy technologies
+# mean risk from individually or community owned energy technologies
 
 castegendereffect %>%
   mutate(Gender_Caste = factor(Gender_Caste, levels = c("Female_OBC","Female_SC", "Female_ST" ,"Female_Brahmin", "Male_ST",  "Male_SC","Female_General", "Male_General", "Male_OBC", "Male_Brahmin")))%>%
@@ -360,7 +237,8 @@ castegendereffect %>%
   ggplot(aes(y = Gender_Caste, x = mean))+
   geom_bar(stat="identity", position=position_dodge(), fill = "firebrick2")+
   geom_errorbar(aes(xmin=mean-sd, xmax=mean + sd), width=.2,
-                 position=position_dodge(.9))
+                 position=position_dodge(.9))+
+  labs(x = "mean perceived risk", y = "GenderXCaste groups")
 
 
 #%>%
@@ -371,14 +249,17 @@ castegendereffect %>%
 
 ```
 
+##Perceived Risk Scores for centrally managed hydroelectric dams by gender and caste groups 
 
+OBC = Other Backward Classes
+SC = Scheduled Castes
+ST = Scheduled Tribes
 
 
 ```{r, echo=FALSE}
 
-
 castegendereffect %>%
-  mutate(Gender_Caste = factor(Gender_Caste, levels = c("Female_Brahmin","Male_General", "Male_OBC", "Female_SC","Male_ST", "Male_SC","Female_ST", "Female_General", "Female_OBC","Male_Brahmin")))%>%
+  mutate(Gender_Caste = factor(Gender_Caste, levels = c("Female_Brahmin","Male_ST","Male_Brahmin", "Male_SC","Female_General","Male_General", "Female_OBC", "Female_ST","Female_SC", "Male_OBC")))%>%
   select(!starts_with(c("Risky_IND")))%>%
   select("Risky_Hydro", "Risky_Nuclear", "Risky_Coal","Gender_Caste")%>%
   na.omit()%>%
@@ -388,11 +269,11 @@ castegendereffect %>%
   ggplot(aes(y = Gender_Caste, x = hydro_m))+
   geom_bar(stat="identity", position=position_dodge(), fill = "firebrick2")+
   geom_errorbar(aes(xmin=hydro_m-hydro_sd, xmax=hydro_m + hydro_sd), width=.2,
-                 position=position_dodge(.9))
+                 position=position_dodge(.9))+
+  labs(x = "mean perceived risk", y = "GenderXCaste groups")
 ```
 
-# centrally managed by urban and rural 
-
+##Perceived Risk Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by urban or rural location of the respondent 
 
 ```{r}
 
@@ -401,11 +282,9 @@ class(joineddf$urban_rural)
 levels(joineddf$urban_rural)
 
 
-
 joineddf %>%
   select(starts_with(c("Risky", "urban_rural")))%>%
   select(!starts_with(c("Risky_IND")))%>%
-  #select("Risky_Hydro", "Risky_Solar", "Risky_Nuclear","urban_rural")%>%
   rowwise()%>%
   na.omit()%>%
   dplyr::mutate(riskscore = mean(c_across(Risky_Hydro:Risky_Oil))) %>%
@@ -416,12 +295,13 @@ joineddf %>%
   ggplot(aes(x= urban_rural, y = mean))+
   geom_bar(stat="identity", position=position_dodge(), fill = "firebrick2")+
   geom_errorbar(aes(ymin=mean-sd, ymax=mean + sd), width=.2,
-                 position=position_dodge(.9))
+                 position=position_dodge(.9))+
+  labs(x = "urban or rural", y = "mean risk")
 ```
 
 
 
-
+##Perceived Risk Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by gender
 
 ```{r}
 
@@ -430,11 +310,9 @@ class(joineddf$gender)
 levels(joineddf$gender)
 
 
-
 joineddf %>%
   select(starts_with(c("Risky", "gender")))%>%
   select(!starts_with(c("Risky_IND")))%>%
-  #select("Risky_Hydro", "Risky_Solar", "Risky_Nuclear","urban_rural")%>%
   rowwise()%>%
   na.omit()%>%
   dplyr::mutate(riskscore = mean(c_across(Risky_Hydro:Risky_Oil))) %>%
@@ -445,15 +323,12 @@ joineddf %>%
   ggplot(aes(x= gender, y = mean))+
   geom_bar(stat="identity", position=position_dodge(), fill = "firebrick2")+
   geom_errorbar(aes(ymin=mean-sd, ymax=mean + sd), width=.2,
-                 position=position_dodge(.9))
+                 position=position_dodge(.9))+
+  labs(y = "mean risk")
 ```
 
 
-
-
-
-
-
+##Perceived Risk Scores for all individually or community owned energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by gender. 
 
 
 ```{r, echo=FALSE}
@@ -467,7 +342,6 @@ levels(joineddf$gender)
 joineddf %>%
   select(starts_with(c("Risky", "gender")))%>%
   select(starts_with(c("Risky_IND", "gender")))%>%
-  #select("Risky_Hydro", "Risky_Solar", "Risky_Nuclear","urban_rural")%>%
   rowwise()%>%
   na.omit()%>%
   dplyr::mutate(riskscore = mean(c_across(Risky_INDHydro:Risky_INDLPG))) %>%
@@ -478,15 +352,11 @@ joineddf %>%
   ggplot(aes(x= gender, y = mean))+
   geom_bar(stat="identity", position=position_dodge(), fill = "firebrick2")+
   geom_errorbar(aes(ymin=mean-sd, ymax=mean + sd), width=.2,
-                 position=position_dodge(.9))
+                 position=position_dodge(.9))+
+  labs(y = "mean risk")
 ```
 
-
-
-
-
-
-
+##Perceived Risk Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by religion
 
 
 ```{r, echo=FALSE}
@@ -516,6 +386,8 @@ joineddf %>%
   coord_flip()
 ```
 
+##Perceived Risk Scores for all individually or community owned energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by religion. 
+
 ```{r, echo=FALSE}
 
 joineddf$religion <- as.factor(joineddf$religion)
@@ -544,6 +416,8 @@ joineddf %>%
 ```
 
 
+##Perceived Risk Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by age
+
 ```{r, echo=FALSE}
 
 joineddf$age <- as.factor(joineddf$age)
@@ -570,6 +444,10 @@ joineddf %>%
                  position=position_dodge(.9))+
   coord_flip()
 ```
+
+
+
+##Perceived Risk Scores for all individually or community owned energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by age. 
 
 ```{r, echo=FALSE}
 
@@ -600,6 +478,8 @@ joineddf %>%
 
 
 
+##Perceived Risk Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by state
+
 
 ```{r, echo=FALSE}
 
@@ -609,14 +489,16 @@ levels(joineddf$State)
 
 cenrisksummary %>%
   mutate(technology = fct_reorder(technology, mean, .desc = TRUE))%>%
-  ggplot(aes(x= technology, y= mean))+
+  ggplot(aes(y= technology, x= mean, fill = technology))+
   geom_bar(stat="identity", position=position_dodge())+
-  geom_errorbar(aes(ymin=mean-sd, ymax=mean + sd), width=.2,
+  theme_minimal()+
+  geom_errorbar(aes(xmin=mean-sd, xmax=mean + sd), width=.2,
                  position=position_dodge(.9))+
-  ylim(0,5)+
-  facet_wrap(~ State)+
+  scale_fill_manual(values=c("#74238B", "#FEF102","#484349","#BA5C12", "#4D9DE0","#CFEBDF", "#FA6728"))+
+  xlim(0,5)+
+  facet_wrap(~ State)
   #scale_fill_manual(y, values =))+
-  coord_flip()
+
 
 ```
 

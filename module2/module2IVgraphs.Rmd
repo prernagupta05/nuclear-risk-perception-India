@@ -25,13 +25,10 @@ pdf_document:
 
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(readxl))
-suppressPackageStartupMessages(library(hablar))
 suppressPackageStartupMessages(library(tsibble))
 suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(DT))
 suppressPackageStartupMessages(library(ggplot2))
-suppressPackageStartupMessages(library(ggbiplot))
-suppressPackageStartupMessages(library(psych)) # psychometrics
 
 ```
 
