@@ -1,5 +1,5 @@
 ---
-title: "Survey 2 : Dependent Variable Graphs"
+title: "Dependent Variable Graphs"
 output:
   html_document:
     fig_width: 9
