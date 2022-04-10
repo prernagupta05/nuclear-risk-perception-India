@@ -37,7 +37,6 @@ suppressPackageStartupMessages(library(psych)) # psychometrics
 
 
 
-## Original Dataset
 ```{r, echo=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 moduletwo <- read_excel(here::here("thesis_surveydata/political_factors_complete.xlsx"))
@@ -45,14 +44,10 @@ save(moduletwo, file = "moduletwo.rda")
 
 module2 <- data.frame(moduletwo)
 module2[module2 == "Rather not say/ Don't know"] <- "Rather not say/Don't know"
-module2 %>%
-  filter(!row_number() %in% c(1,2))
 
 # loaded data set for module 2 eco -pol variables and removes the rows with question number and question text
 ```
 
-
-## Coded Dataset
 
 
 ```{r, eval =TRUE, echo=FALSE}
@@ -111,19 +106,74 @@ codedmodule2 <- module2 %>%
                                                                                                          . == "Neither agree nor disagree" ~3,
                                                                                                          . == "Somewhat agree" ~ 2,
                                                                                                          . == "Strongly agree" ~ 1)))
-
-codedmodule2
 ```
 
 
-## Q1. Below is a list of various centrally managed sources of energy. How risky are each of these energy technologies according to you?  Please tell me whether you see each technology as: not at all risky, slightly risky, moderately risky, very risky, or extremely risky
+```{r, eval=TRUE}
+
+moduleone <- read_excel(here::here("thesis_surveydata/livelihood_insecurity_complete.xlsx"))
+save(moduleone, file = "moduleone.rda")
+module1 <- data.frame(moduleone)
+
+# loaded data set for module 2 eco -pol variables and removes the rows with question number and question text
+```
+
+
+```{r, eval =TRUE}
+#This chunk contains the coding schemes of various scales used in survey one: eco-political factors, kahan scale and acceptance scale
+codedmodule1 <- module1 %>%
+  
+#remove row 1
+  filter(!row_number() %in% c(1,2)) %>% 
+  
+# replace risky likert scale with numbers
+  mutate_at(vars(starts_with("Risky")), funs(case_when(. =="Not at all risky" ~ 1, 
+                                                       . =="Slightly risky" ~ 2, 
+                                                       . =="Moderately risky" ~ 3, 
+                                                       . =="Very risky" ~ 4, 
+                                                       . =="Extremely risky" ~ 5))) %>%
+
+# replace beneficial likert scale with numbers  
+  mutate_at(vars(starts_with("Ben")), funs(case_when(. =="Not at all beneficial" ~ 1,
+                                                     . =="Slightly beneficial" ~ 2,
+                                                     . =="Moderately beneficial" ~ 3,
+                                                     . =="Very beneficial" ~ 4,
+                                                     . =="Extremely beneficial" ~ 5 ))) %>%
+
+# replace nuclear acceptance likert scale with numbers
+  mutate_at(vars(N_accept,N_reluctantlyaccept,N_reject), funs(case_when(. == "Strongly disagree" ~ 1, 
+                                                                        . == "Somewhat disagree" ~ 2,
+                                                                        . == "Neither agree nor disagree" ~3,
+                                                                        . == "Somewhat agree" ~ 4,
+                                                                        . == "Strongly agree" ~ 5)))
+
+
+#coded dependent variables for module 1 livelihood and income security survey
+                                            
+```
+
+
+```{r}
+
+suppressPackageStartupMessages(library(tidyselect))
+# combine codedmodule1 and codedmodule2
+
+numcol2 <- codedmodule2 %>% add_column(Respondent = 1:1099, .before = "Language") 
+numcol1 <- codedmodule1 %>% add_column(Respondent = 1099:2160, .before = "Language")
+
+joineddf <-  full_join(numcol2, numcol1, by = c("Respondent", "Language", "Survey_Date", "State", "Risky_Hydro", "Risky_Solar", "Risky_Wind", "Risky_Nuclear", "Risky_Coal", "Risky_Gas", "Risky_Oil", "Risky_INDHydro", "Risky_INDSolar", "Risky_INDWind", "Risky_INDBiogas", "Risky_INDDiesel", "Risky_INDKerosene", "Risky_INDFirewoodetc", "Risky_INDLPG", "Ben_Hydro", "Ben_Solar", "Ben_Wind", "Ben_Nuclear", "Ben_Coal", "Ben_Gas", "Ben_Oil", "Ben_INDHydro", "Ben_INDSolar", "Ben_INDWind", "Ben_INDDiesel", "Ben_INDBiogas", "Ben_INDFirewoodetc", "Ben_INDLPG", "Ben_INDKerosene", "N_accept", "N_reluctantlyaccept", "N_reject", "age", "urban_rural", "gender", "caste", "religion", "religiontext")) 
+
+```
+
+
+## Q1. Below is a list of various centrally managed sources of energy. How risky are each of these energy technologies according to you?  Please tell me whether you see each technology as: not at all risky(1), slightly risky(2), moderately risky(3), very risky(4), or extremely risky(5)
 
 ```{r, eval=TRUE, echo=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 # summary statistics for risks from different energy sources
 
-risksumcentral <- codedmodule2 %>%
+risksumcentral <- joineddf %>%
   dplyr::select(!starts_with(c("RISKY_IND")))%>%
   summarize_at(vars(starts_with(c("RISKY"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
   #add row index so later spreading indexed correctly
@@ -171,14 +221,16 @@ risksumcentral %>%
 
 
 
-## Q2. Following is a list of various individually or community-owned and managed sources of energy. How risky are each of these energy technologies according to you? Please tell me whether you see each technology as: not at all risky, slightly risky, moderately risky, very risky, or extremely risky. 
+## Q2. Following is a list of various individually or community-owned and managed sources of energy. How risky are each of these energy technologies according to you? Please tell me whether you see each technology as: not at all risky(1), slightly risky(2), moderately risky(3), very risky(4), or extremely risky(5). 
+
+prefix IND stands for individually or community-owned and managed. 
 
 ```{r, eval=TRUE, echo=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 # summary statistics for risks from different energy sources
 
-risksumIND <- codedmodule2 %>%
+risksumIND <- joineddf %>%
   summarize_at(vars(starts_with(c("RISKY_IND"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
   #add row index so later spreading indexed correctly
   add_rownames()%>%
@@ -221,14 +273,14 @@ risksumIND %>%
 ```
 
 
-## Q3. Following is a list of centrally managed sources of energy. How beneficial are each of these according to you? Please tell me whether you see each technology as: not at all beneficial, slightly beneficial, moderately beneficial, very beneficial, or extremely beneficial?
+## Q3. Following is a list of centrally managed sources of energy. How beneficial are each of these according to you? Please tell me whether you see each technology as: not at all beneficial(1), slightly beneficial(2), moderately beneficial(3), very beneficial(4), or extremely beneficial(5)?
 
 ```{r, eval=TRUE, echo=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 # summary statistics for risks from different energy sources
 
-bensumcentral <- codedmodule2 %>%
+bensumcentral <- joineddf %>%
   dplyr::select(!starts_with(c("Ben_IND")))%>%
   summarize_at(vars(starts_with(c("Ben"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
   #add row index so later spreading indexed correctly
@@ -273,14 +325,16 @@ bensumcentral %>%
 ```
 
 
-## Q4. Following is a list of various individually or community owned and managed sources of energy. How beneficial are each of these according to you? Please tell me whether you see each technology as: not at all beneficial, slightly beneficial, moderately beneficial, very beneficial or extremely beneficial ?
+## Q4. Following is a list of various individually or community owned and managed sources of energy. How beneficial are each of these according to you? Please tell me whether you see each technology as: not at all beneficial(1), slightly beneficial(2), moderately beneficial(3), very beneficial(4) or extremely beneficial(5) ?
+
+prefix IND stands for individually or community-owned and managed. 
 
 ```{r, eval=TRUE, echo=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 # summary statistics for risks from different energy sources
 
-bensumIND <- codedmodule2 %>%
+bensumIND <- joineddf %>%
   summarize_at(vars(starts_with(c("Ben_IND"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
   #add row index so later spreading indexed correctly
   add_rownames()%>%
@@ -336,6 +390,7 @@ center_barplot$level <- as.factor(center_barplot$level)
  center_barplot%>% 
   ggplot(aes(x=technology, y= mean, fill =  (factor(center_barplot$level, levels = c("perceivedrisk.mean", "perceivedbenefit.mean")))))+
   geom_bar(stat="identity", position=position_dodge())+
+   
 #geom_errorbar(aes(ymin= mean - sd, ymax= mean + sd), width =.2, position=position_dodge(.9))+
   ylim(0,4)+
   scale_fill_manual("legend", values = c("perceivedbenefit.mean" = "palegreen3","perceivedrisk.mean" = "firebrick2"))+
@@ -346,6 +401,7 @@ center_barplot$level <- as.factor(center_barplot$level)
 
 ```
 
+Prefix IND stands for individually or community-owned and managed. 
 
 
 ```{r, echo=FALSE}
