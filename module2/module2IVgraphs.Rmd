@@ -412,7 +412,7 @@ ecopolscalescores <- codedmodule2 %>%
   #dplyr::select(!c("DECISIONDECEN","DECISIONCEN", "INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL", "ECONOMYLOCAL","ENVOVERDEV",     "DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG")) %>%
     na.omit()
 
-ggplot(ecopolscalescores, aes(Pro_decentralisation, Ben_Nuclear))+
+ggplot(ecopolscalescores, aes(Pro_decentralisation, Ben_INDSolar))+
   geom_count()
 
 

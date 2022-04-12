@@ -1,11 +1,5 @@
 ---
-pdf_document:
-  toc: yes
-  number_sections: yes
-  toc_depth: 2
-  fig_width: 9
-  fig_height: 6
-  fig_caption: yes
+title: "Dependent Variable Graphs"
 output:
   html_document:
     fig_width: 9
@@ -14,8 +8,13 @@ output:
     keep_md: yes
     theme: paper
     df_print: paged
-  pdf_document: default
-title: "Dependent Variable Graphs"
+  pdf_document:
+    toc: yes
+    number_sections: yes
+    toc_depth: 2
+    fig_width: 9
+    fig_height: 6
+    fig_caption: yes
 ---
 
 

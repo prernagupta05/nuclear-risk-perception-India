@@ -174,7 +174,7 @@ castegendereffect$Gender_Caste <- as.factor(castegendereffect$Gender_Caste)
 
  # mean risk from centrally controlled energy technologies
 
-castegendereffect %>%
+a <- castegendereffect %>%
   mutate(Gender_Caste = factor(castegendereffect$Gender_Caste, levels = c("Female_Brahmin", "Female_SC", "Female_OBC", "Male_SC","Male_ST", "Male_General", "Female_General","Female_ST" ,"Male_OBC", "Male_Brahmin")))%>%
   select(!starts_with(c("Risky_IND")))%>%
   rowwise()%>%
@@ -182,14 +182,16 @@ castegendereffect %>%
   dplyr::mutate(riskscore = mean(c_across(Risky_Hydro:Risky_Oil))) %>%
   select(Gender_Caste, riskscore) %>%
   dplyr::group_by(Gender_Caste)%>%
-  summarise(mean=mean(riskscore), sd=sd(riskscore))%>%
-  arrange(desc(mean))%>%
-  ggplot(aes(y = Gender_Caste, x = mean))+
+  summarise(mean=mean(riskscore), sd=sd(riskscore), n=n(), median= median(riskscore))%>%
+  arrange(desc(mean))
+
+a %>%  ggplot(aes(y = Gender_Caste, x = mean))+
   geom_bar(stat="identity", position=position_dodge(), fill = "firebrick2")+
   geom_errorbar(aes(xmin=mean-sd, xmax=mean + sd), width=.2,
                  position=position_dodge(.9))+
   labs(x = "mean perceived risk", y = "GenderXCaste groups")
- 
+
+a %>% 
 
 
 ```
@@ -899,9 +901,9 @@ INDbensummary %>%
 
 ```{r, echo =FALSE}
 #Distribution checks 
-#joineddf %>%
-  #filter(urban_rural == "Rural") %>%
-  #ggplot(aes(x=Risky_Hydro, y = ..count..), fill = "lightgray")+
-  #geom_density()
+joineddf %>%
+  filter(urban_rural == "Urban") %>%
+  ggplot(aes(x=Risky_Hydro, y = ..count..), fill = "lightgray")+
+  geom_bar()
 ```
 
