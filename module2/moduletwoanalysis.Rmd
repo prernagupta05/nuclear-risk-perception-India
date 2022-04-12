@@ -32,7 +32,6 @@ Following is the complete data set with 1099 responses.
 ```{r, echo=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 moduletwo <- read_excel(here::here("thesis_surveydata/political_factors_complete.xlsx"))
-save(moduletwo, file = "moduletwo.rda")
 module2 <- data.frame(moduletwo)
 module2[module2 == "Rather not say/ Don't know"] <- "Rather not say/Don't know"
 module2 %>%
@@ -174,7 +173,7 @@ codedmodule2 <- module2 %>%
 
 codedmodule2
 
-write_csv(codedmodule2,"Macintosh HD\\Users\\prernagupta\\my documents\\codedmodule2.csv")
+
 ```
 
 
@@ -400,7 +399,8 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 Kscalescores %>%
   ggplot(aes(Individualism_score, Hierarchy_score))+
-  geom_point()+
+  geom_count(aes(color = ..n.., size = ..n..))+
+  guides(color = 'legend')+
   geom_hline(yintercept=2, colour="black", lwd=1)+
   geom_vline(xintercept=3, colour="black", lwd=1)
 

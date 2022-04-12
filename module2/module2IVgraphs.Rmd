@@ -1,7 +1,7 @@
 ---
 title: "module2IVgraphs"
 output: 
-html_document:
+  html_document:
     fig_width: 9
     fig_height: 6
     fig_caption: yes
@@ -10,7 +10,7 @@ html_document:
     df_print: paged
   
   
-pdf_document: 
+  pdf_document: 
     
     toc: true
     number_sections: true
@@ -39,12 +39,13 @@ moduletwo <- read_excel(here::here("thesis_surveydata/political_factors_complete
 save(moduletwo, file = "moduletwo.rda")
 module2 <- data.frame(moduletwo)
 module2[module2 == "Rather not say/ Don't know"] <- "Rather not say/Don't know"
-module2 %>%
-  filter(!row_number() %in% c(1,2))
 
 # loaded data set for module 2 eco -pol variables and removes the rows with question number and question text
 ```
 
+
+
+# **Coded Dataset for survey module 2**
 ```{r, echo = FALSE}
 
 #This chunk contains the coding schemes of various scales used in survey one: eco-political factors, kahan scale and acceptance scale
@@ -102,7 +103,7 @@ codedmodule2 <- module2 %>%
                                                                                                          . == "Somewhat agree" ~ 2,
                                                                                                          . == "Strongly agree" ~ 1)))
 
-codedmodule2
+data.frame(codedmodule2)
   
 
 ```
@@ -116,7 +117,7 @@ demorisk <- codedmodule2%>%
   filter(SYSTEMDEMO == 5)%>%
   summarize_at(vars(starts_with(c("RISKY"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
   #melt to long format
-  gather(key = "technology", value = "summary", Risky_Hydro_mean, Risky_Solar_mean, Risky_Wind_mean, Risky_Nuclear_mean, Risky_Coal_mean, Risky_Gas_mean, Risky_Oil_mean, Risky_Hydro_sd, Risky_Solar_sd, Risky_Wind_sd, Risky_Nuclear_sd, Risky_Coal_sd, Risky_Gas_sd, Risky_Oil_sd) %>%
+  gather(key = "technology", value = "summary", Risky_Hydro_mean, Risky_Solar_mean, Risky_Wind_mean, Risky_Nuclear_mean, Risky_Coal_mean, Risky_Gas_mean, Risky_Oil_mean, Risky_Hydro_sd, Risky_Solar_sd, Risky_Wind_sd, Risky_Nuclear_sd, Risky_Coal_sd, Risky_Gas_sd, Risky_Oil_sd,Risky_Hydro_n, Risky_Solar_n, Risky_Wind_n, Risky_Nuclear_n, Risky_Coal_n, Risky_Gas_n, Risky_Oil_n) %>%
   select(SYSTEMDEMO, technology, summary) %>%
   # separate risky from variable suffix
   separate(technology, c("Risky", "var"), extra = "merge", fill = "left") %>%
@@ -135,7 +136,7 @@ techrisk <- codedmodule2%>%
   filter(SYSTEMTECHNO == 5)%>%
   summarize_at(vars(starts_with(c("RISKY"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
   #melt to long format
-  gather(key = "technology", value = "summary", Risky_Hydro_mean, Risky_Solar_mean, Risky_Wind_mean, Risky_Nuclear_mean, Risky_Coal_mean, Risky_Gas_mean, Risky_Oil_mean, Risky_Hydro_sd, Risky_Solar_sd, Risky_Wind_sd, Risky_Nuclear_sd, Risky_Coal_sd, Risky_Gas_sd, Risky_Oil_sd) %>%
+  gather(key = "technology", value = "summary", Risky_Hydro_mean, Risky_Solar_mean, Risky_Wind_mean, Risky_Nuclear_mean, Risky_Coal_mean, Risky_Gas_mean, Risky_Oil_mean, Risky_Hydro_sd, Risky_Solar_sd, Risky_Wind_sd, Risky_Nuclear_sd, Risky_Coal_sd, Risky_Gas_sd, Risky_Oil_sd, Risky_Hydro_n, Risky_Solar_n, Risky_Wind_n, Risky_Nuclear_n, Risky_Coal_n, Risky_Gas_n, Risky_Oil_n) %>%
   select(SYSTEMTECHNO, technology, summary) %>%
   # separate risky from variable suffix
   separate(technology, c("Risky", "var"), extra = "merge", fill = "left") %>%
@@ -154,7 +155,7 @@ religionrisk <- codedmodule2%>%
   filter(SYSTEMRELIGION == 5)%>%
   summarize_at(vars(starts_with(c("RISKY"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
   #melt to long format
-  gather(key = "technology", value = "summary", Risky_Hydro_mean, Risky_Solar_mean, Risky_Wind_mean, Risky_Nuclear_mean, Risky_Coal_mean, Risky_Gas_mean, Risky_Oil_mean, Risky_Hydro_sd, Risky_Solar_sd, Risky_Wind_sd, Risky_Nuclear_sd, Risky_Coal_sd, Risky_Gas_sd, Risky_Oil_sd) %>%
+  gather(key = "technology", value = "summary", Risky_Hydro_mean, Risky_Solar_mean, Risky_Wind_mean, Risky_Nuclear_mean, Risky_Coal_mean, Risky_Gas_mean, Risky_Oil_mean, Risky_Hydro_sd, Risky_Solar_sd, Risky_Wind_sd, Risky_Nuclear_sd, Risky_Coal_sd, Risky_Gas_sd, Risky_Oil_sd, Risky_Hydro_n, Risky_Solar_n, Risky_Wind_n, Risky_Nuclear_n, Risky_Coal_n, Risky_Gas_n, Risky_Oil_n) %>%
   select(SYSTEMRELIGION, technology, summary) %>%
   # separate risky from variable suffix
   separate(technology, c("Risky", "var"), extra = "merge", fill = "left") %>%
@@ -173,7 +174,7 @@ totalrisk <- codedmodule2%>%
   filter(SYSTEMTOTAL == 5)%>%
   summarize_at(vars(starts_with(c("RISKY"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
   #melt to long format
-  gather(key = "technology", value = "summary", Risky_Hydro_mean, Risky_Solar_mean, Risky_Wind_mean, Risky_Nuclear_mean, Risky_Coal_mean, Risky_Gas_mean, Risky_Oil_mean, Risky_Hydro_sd, Risky_Solar_sd, Risky_Wind_sd, Risky_Nuclear_sd, Risky_Coal_sd, Risky_Gas_sd, Risky_Oil_sd) %>%
+  gather(key = "technology", value = "summary", Risky_Hydro_mean, Risky_Solar_mean, Risky_Wind_mean, Risky_Nuclear_mean, Risky_Coal_mean, Risky_Gas_mean, Risky_Oil_mean, Risky_Hydro_sd, Risky_Solar_sd, Risky_Wind_sd, Risky_Nuclear_sd, Risky_Coal_sd, Risky_Gas_sd, Risky_Oil_sd, Risky_Hydro_n, Risky_Solar_n, Risky_Wind_n, Risky_Nuclear_n, Risky_Coal_n, Risky_Gas_n, Risky_Oil_n) %>%
   select(SYSTEMTOTAL, technology, summary) %>%
   # separate risky from variable suffix
   separate(technology, c("Risky", "var"), extra = "merge", fill = "left") %>%
@@ -190,6 +191,12 @@ totalrisk <- codedmodule2%>%
 
 
 
+# **Perceived risk by Preferred Government Type**
+
+The following is a list of statements about governance. How strongly do you agree or disagree with each of these statements? Do you strongly disagree(1), somewhat disagree(2), neither agree nor disagree(3), somewhat agree(4) or strongly agree(5)?
+
+Plotted only strongly agree(5) for four government types. 
+
 ```{r, echo=FALSE}
 
 df1 <- full_join(religionrisk, totalrisk)
@@ -197,6 +204,8 @@ df2 <- full_join(demorisk, techrisk)
 govtgraph <- full_join(df1, df2) %>%
   group_by(technology)
 
+
+data.frame(govtgraph)
 
 p <- ggplot(govtgraph, aes(x = technology, y= mean, group = Govt))+
   geom_line(aes(colour = Govt, line = Govt)) +
@@ -211,6 +220,12 @@ update_labels(p, list(colour = "Preferred Government Type"))
 
 
 
+# **Perceived risk by Support for Democratic government**
+
+The following is a list of statements about governance. How strongly do you agree or disagree with each of these statements? Do you strongly disagree(1), somewhat disagree(2), neither agree nor disagree(3), somewhat agree(4) or strongly agree(5)? - It is very important to have a democratic political system because it ensures that no individual leader has too much power.
+
+Plotted only strongly disagree(1) and strongly agree(5)
+
 ```{r, echo=FALSE}
 
 demorisk2 <- codedmodule2%>%
@@ -218,7 +233,7 @@ demorisk2 <- codedmodule2%>%
   filter(SYSTEMDEMO %in% c(1, 5))%>%
   summarize_at(vars(starts_with(c("RISKY"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
   #melt to long format
-  gather(key = "technology", value = "summary", Risky_Hydro_mean, Risky_Solar_mean, Risky_Wind_mean, Risky_Nuclear_mean, Risky_Coal_mean, Risky_Gas_mean, Risky_Oil_mean, Risky_Hydro_sd, Risky_Solar_sd, Risky_Wind_sd, Risky_Nuclear_sd, Risky_Coal_sd, Risky_Gas_sd, Risky_Oil_sd) %>%
+  gather(key = "technology", value = "summary", Risky_Hydro_mean, Risky_Solar_mean, Risky_Wind_mean, Risky_Nuclear_mean, Risky_Coal_mean, Risky_Gas_mean, Risky_Oil_mean, Risky_Hydro_sd, Risky_Solar_sd, Risky_Wind_sd, Risky_Nuclear_sd, Risky_Coal_sd, Risky_Gas_sd, Risky_Oil_sd, Risky_Hydro_n, Risky_Solar_n, Risky_Wind_n, Risky_Nuclear_n, Risky_Coal_n, Risky_Gas_n, Risky_Oil_n) %>%
   select(SYSTEMDEMO, technology, summary) %>%
   # separate risky from variable suffix
   separate(technology, c("Risky", "var"), extra = "merge", fill = "left") %>%
@@ -228,17 +243,21 @@ demorisk2 <- codedmodule2%>%
   spread(meansd,summary) %>%
   #clean up
   select(-Risky)%>%
-  arrange(mean) 
+  arrange(SYSTEMDEMO) 
 
+data.frame(demorisk2)
 
-demorisk2 %>%
+d <- demorisk2 %>%
   group_by(technology) %>%
   ggplot(aes(x = technology, y= mean, group = SYSTEMDEMO))+
-  geom_line(aes(colour = SYSTEMDEMO, line = SYSTEMDEMO)) 
+  geom_line(aes(colour = SYSTEMDEMO, line = SYSTEMDEMO)) +
+   labs(y = "mean perceived risk", x = "energy technology")
+
+update_labels(d, list(colour = "Support for Democratic Government"))
 
 ```
 
-
+# **Perceived risk by Support for decentralised governance**
 
 
 ```{r, echo=FALSE}
@@ -246,12 +265,12 @@ demorisk2 %>%
 decenrisk2 <- codedmodule2%>%
     select(starts_with(c("Risky","Ben","SYSTEMDEMO","SYSTEMRELIGION","SYSTEMTECHNO","SYSTEMTOTAL","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG")))%>%
   rowwise()%>%
-  dplyr::mutate(Pro_decentralisation = sum(c_across("DECISIONDECEN":"DECISIONCEN"))) %>%
+  dplyr::mutate(Pro_decentralisation = mean(c_across("DECISIONDECEN":"DECISIONCEN"))) %>%
   group_by(Pro_decentralisation)%>%
-  filter(Pro_decentralisation %in% c(2, 10))%>%
+  filter(Pro_decentralisation %in% c(1, 5))%>%
   summarize_at(vars(starts_with(c("RISKY"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
   #melt to long format
-  gather(key = "technology", value = "summary", Risky_Hydro_mean, Risky_Solar_mean, Risky_Wind_mean, Risky_Nuclear_mean, Risky_Coal_mean, Risky_Gas_mean, Risky_Oil_mean, Risky_Hydro_sd, Risky_Solar_sd, Risky_Wind_sd, Risky_Nuclear_sd, Risky_Coal_sd, Risky_Gas_sd, Risky_Oil_sd) %>%
+  gather(key = "technology", value = "summary", Risky_Hydro_mean, Risky_Solar_mean, Risky_Wind_mean, Risky_Nuclear_mean, Risky_Coal_mean, Risky_Gas_mean, Risky_Oil_mean, Risky_Hydro_sd, Risky_Solar_sd, Risky_Wind_sd, Risky_Nuclear_sd, Risky_Coal_sd, Risky_Gas_sd, Risky_Oil_sd,Risky_Hydro_n, Risky_Solar_n, Risky_Wind_n, Risky_Nuclear_n, Risky_Coal_n, Risky_Gas_n, Risky_Oil_n ) %>%
   select(Pro_decentralisation, technology, summary) %>%
   # separate risky from variable suffix
   separate(technology, c("Risky", "var"), extra = "merge", fill = "left") %>%
@@ -261,16 +280,24 @@ decenrisk2 <- codedmodule2%>%
   spread(meansd,summary) %>%
   #clean up
   select(-Risky)%>%
-  arrange(mean) 
+  arrange(Pro_decentralisation) 
 
+data.frame(decenrisk2)
 
-
-decenrisk2 %>%
+decen <- decenrisk2 %>%
   group_by(technology) %>%
   ggplot(aes(x = technology, y= mean, group = Pro_decentralisation))+
   geom_line(aes(colour = Pro_decentralisation, line = Pro_decentralisation))+
-  ylim(1,4)
+  ylim(1,4)+
+  labs(y = "mean perceived risk", x = "energy technology")
+
+update_labels(decen, list(colour = "Pro decentralised governance"))
 ```
+
+
+
+
+# **Perceived risk by Support for large scale industry**
 
 
 ```{r, echo=FALSE}
@@ -283,7 +310,7 @@ largerisk2 <- codedmodule2%>%
   filter(Pro_largescale%in% c(2, 10))%>%
   summarize_at(vars(starts_with(c("RISKY"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
   #melt to long format
-  gather(key = "technology", value = "summary", Risky_Hydro_mean, Risky_Solar_mean, Risky_Wind_mean, Risky_Nuclear_mean, Risky_Coal_mean, Risky_Gas_mean, Risky_Oil_mean, Risky_Hydro_sd, Risky_Solar_sd, Risky_Wind_sd, Risky_Nuclear_sd, Risky_Coal_sd, Risky_Gas_sd, Risky_Oil_sd) %>%
+  gather(key = "technology", value = "summary", Risky_Hydro_mean, Risky_Solar_mean, Risky_Wind_mean, Risky_Nuclear_mean, Risky_Coal_mean, Risky_Gas_mean, Risky_Oil_mean, Risky_Hydro_sd, Risky_Solar_sd, Risky_Wind_sd, Risky_Nuclear_sd, Risky_Coal_sd, Risky_Gas_sd, Risky_Oil_sd, Risky_Hydro_n, Risky_Solar_n, Risky_Wind_n, Risky_Nuclear_n, Risky_Coal_n, Risky_Gas_n, Risky_Oil_n) %>%
   select(Pro_largescale, technology, summary) %>%
   # separate risky from variable suffix
   separate(technology, c("Risky", "var"), extra = "merge", fill = "left") %>%
@@ -293,110 +320,152 @@ largerisk2 <- codedmodule2%>%
   spread(meansd,summary) %>%
   #clean up
   select(-Risky)%>%
-  arrange(mean) 
+  arrange(Pro_largescale) 
 
+data.frame(largerisk2)
 
-
-largerisk2 %>%
+l<- largerisk2 %>%
   group_by(technology) %>%
   ggplot(aes(x = technology, y= mean, group = Pro_largescale))+
   geom_line(aes(colour = Pro_largescale, line = Pro_largescale))+
-  ylim(1,4)
+  ylim(1,4)+
+  labs(y = "mean perceived risk", x = "energy technology")
+
+update_labels(l, list(colour = "Pro large scale industry"))
 ```
 
 
 ```{r, echo=FALSE}
 
-globalrisk2 <- codedmodule2%>%
-    select(starts_with(c("Risky","Ben","SYSTEMDEMO","SYSTEMRELIGION","SYSTEMTECHNO","SYSTEMTOTAL","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG")))%>%
-  rowwise()%>%
-  dplyr::mutate(Pro_global = sum(c_across("ECONOMYGLOBAL":"ECONOMYLOCAL"))) %>%
-  group_by(Pro_global)%>%
-  filter(Pro_global%in% c(2, 10))%>%
-  summarize_at(vars(starts_with(c("RISKY"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
+#globalrisk2 <- codedmodule2%>%
+#    select(starts_with(c("Risky","Ben","SYSTEMDEMO","SYSTEMRELIGION","SYSTEMTECHNO","SYSTEMTOTAL","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG")))%>%
+#  rowwise()%>%
+#  dplyr::mutate(Pro_global = sum(c_across("ECONOMYGLOBAL":"ECONOMYLOCAL"))) %>%
+#  group_by(Pro_global)%>%
+#  filter(Pro_global%in% c(2, 10))%>%
+#  summarize_at(vars(starts_with(c("RISKY"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
   #melt to long format
-  gather(key = "technology", value = "summary", Risky_Hydro_mean, Risky_Solar_mean, Risky_Wind_mean, Risky_Nuclear_mean, Risky_Coal_mean, Risky_Gas_mean, Risky_Oil_mean, Risky_Hydro_sd, Risky_Solar_sd, Risky_Wind_sd, Risky_Nuclear_sd, Risky_Coal_sd, Risky_Gas_sd, Risky_Oil_sd) %>%
-  select(Pro_global, technology, summary) %>%
+#  gather(key = "technology", value = "summary", Risky_Hydro_mean, Risky_Solar_mean, Risky_Wind_mean, Risky_Nuclear_mean, Risky_Coal_mean, Risky_Gas_mean, Risky_Oil_mean, Risky_Hydro_sd, Risky_Solar_sd, Risky_Wind_sd, Risky_Nuclear_sd, Risky_Coal_sd, Risky_Gas_sd, Risky_Oil_sd) %>%
+#  select(Pro_global, technology, summary) %>%
   # separate risky from variable suffix
-  separate(technology, c("Risky", "var"), extra = "merge", fill = "left") %>%
+#  separate(technology, c("Risky", "var"), extra = "merge", fill = "left") %>%
   #separate mean from variable prefix
-  separate(var, c("technology", "meansd")) %>%
+#  separate(var, c("technology", "meansd")) %>%
   # spread summary values back to wide form
-  spread(meansd,summary) %>%
+#  spread(meansd,summary) %>%
   #clean up
-  select(-Risky)%>%
-  arrange(mean) 
+#  select(-Risky)%>%
+#  arrange(mean) 
 
 
 
-globalrisk2 %>%
-  group_by(technology) %>%
-  ggplot(aes(x = technology, y= mean, group = Pro_global))+
-  geom_line(aes(colour = Pro_global, line = Pro_global))+
-  ylim(1,4)
+#globalrisk2 %>%
+#  group_by(technology) %>%
+#  ggplot(aes(x = technology, y= mean, group = Pro_global))+
+#  geom_line(aes(colour = Pro_global, line = Pro_global))+
+#  ylim(1,4)
 ```
 
 
 ```{r, echo=FALSE}
 
-envrisk2 <- codedmodule2%>%
-    select(starts_with(c("Risky","Ben","SYSTEMDEMO","SYSTEMRELIGION","SYSTEMTECHNO","SYSTEMTOTAL","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG")))%>%
-  rowwise()%>%
-  group_by(ENVOVERDEV)%>%
-  filter(ENVOVERDEV%in% c(1, 5))%>%
-  summarize_at(vars(starts_with(c("RISKY"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
+#envrisk2 <- codedmodule2%>%
+#    select(starts_with(c("Risky","Ben","SYSTEMDEMO","SYSTEMRELIGION","SYSTEMTECHNO","SYSTEMTOTAL","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG")))%>%
+#  rowwise()%>%
+#  group_by(ENVOVERDEV)%>%
+#  filter(ENVOVERDEV%in% c(1, 5))%>%
+#  summarize_at(vars(starts_with(c("RISKY"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
   #melt to long format
-  gather(key = "technology", value = "summary", Risky_Hydro_mean, Risky_Solar_mean, Risky_Wind_mean, Risky_Nuclear_mean, Risky_Coal_mean, Risky_Gas_mean, Risky_Oil_mean, Risky_Hydro_sd, Risky_Solar_sd, Risky_Wind_sd, Risky_Nuclear_sd, Risky_Coal_sd, Risky_Gas_sd, Risky_Oil_sd) %>%
-  select(ENVOVERDEV, technology, summary) %>%
+#  gather(key = "technology", value = "summary", Risky_Hydro_mean, Risky_Solar_mean, Risky_Wind_mean, Risky_Nuclear_mean, Risky_Coal_mean, Risky_Gas_mean, Risky_Oil_mean, Risky_Hydro_sd, Risky_Solar_sd, Risky_Wind_sd, Risky_Nuclear_sd, Risky_Coal_sd, Risky_Gas_sd, Risky_Oil_sd) %>%
+#  select(ENVOVERDEV, technology, summary) %>%
   # separate risky from variable suffix
-  separate(technology, c("Risky", "var"), extra = "merge", fill = "left") %>%
+#  separate(technology, c("Risky", "var"), extra = "merge", fill = "left") %>%
   #separate mean from variable prefix
-  separate(var, c("technology", "meansd")) %>%
+#  separate(var, c("technology", "meansd")) %>%
   # spread summary values back to wide form
-  spread(meansd,summary) %>%
+#  spread(meansd,summary) %>%
   #clean up
-  select(-Risky)%>%
-  arrange(mean) 
+#  select(-Risky)%>%
+#  arrange(mean) 
 
 
 
-envrisk2 %>%
-  group_by(technology) %>%
-  ggplot(aes(x = technology, y= mean, group = ENVOVERDEV))+
-  geom_line(aes(colour = ENVOVERDEV, line = ENVOVERDEV))+
-  ylim(1,4)
+#envrisk2 %>%
+#  group_by(technology) %>%
+#  ggplot(aes(x = technology, y= mean, group = ENVOVERDEV))+
+#  geom_line(aes(colour = ENVOVERDEV, line = ENVOVERDEV))+
+#  ylim(1,4)
 ```
 
 ```{r, echo=FALSE}
 
-devrisk2 <- codedmodule2%>%
-    select(starts_with(c("Risky","Ben","SYSTEMDEMO","SYSTEMRELIGION","SYSTEMTECHNO","SYSTEMTOTAL","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG")))%>%
-  rowwise()%>%
-  group_by(DEVOVERENV)%>%
-  filter(DEVOVERENV%in% c(1, 5))%>%
-  summarize_at(vars(starts_with(c("RISKY"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
+#devrisk2 <- codedmodule2%>%
+#    select(starts_with(c("Risky","Ben","SYSTEMDEMO","SYSTEMRELIGION","SYSTEMTECHNO","SYSTEMTOTAL","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG")))%>%
+#  rowwise()%>%
+#  group_by(DEVOVERENV)%>%
+#  filter(DEVOVERENV%in% c(1, 5))%>%
+#  summarize_at(vars(starts_with(c("RISKY"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
   #melt to long format
-  gather(key = "technology", value = "summary", Risky_Hydro_mean, Risky_Solar_mean, Risky_Wind_mean, Risky_Nuclear_mean, Risky_Coal_mean, Risky_Gas_mean, Risky_Oil_mean, Risky_Hydro_sd, Risky_Solar_sd, Risky_Wind_sd, Risky_Nuclear_sd, Risky_Coal_sd, Risky_Gas_sd, Risky_Oil_sd) %>%
-  select(DEVOVERENV, technology, summary) %>%
+#  gather(key = "technology", value = "summary", Risky_Hydro_mean, Risky_Solar_mean, Risky_Wind_mean, Risky_Nuclear_mean, Risky_Coal_mean, Risky_Gas_mean, Risky_Oil_mean, Risky_Hydro_sd, Risky_Solar_sd, Risky_Wind_sd, Risky_Nuclear_sd, Risky_Coal_sd, Risky_Gas_sd, Risky_Oil_sd) %>%
+#  select(DEVOVERENV, technology, summary) %>%
   # separate risky from variable suffix
-  separate(technology, c("Risky", "var"), extra = "merge", fill = "left") %>%
+#  separate(technology, c("Risky", "var"), extra = "merge", fill = "left") %>%
   #separate mean from variable prefix
-  separate(var, c("technology", "meansd")) %>%
+#  separate(var, c("technology", "meansd")) %>%
   # spread summary values back to wide form
-  spread(meansd,summary) %>%
+#  spread(meansd,summary) %>%
   #clean up
-  select(-Risky)%>%
-  arrange(mean) 
+#  select(-Risky)%>%
+#  arrange(mean) 
 
 
 
-devrisk2 %>%
-  group_by(technology) %>%
-  ggplot(aes(x = technology, y= mean, group = DEVOVERENV))+
-  geom_line(aes(colour = DEVOVERENV, line = DEVOVERENV))+
-  ylim(1,4)
+#devrisk2 %>%
+#  group_by(technology) %>%
+#  ggplot(aes(x = technology, y= mean, group = DEVOVERENV))+
+#  geom_line(aes(colour = DEVOVERENV, line = DEVOVERENV))+
+#  ylim(1,4)
 ```
 
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+#calculating individualism score and hierarchy score for each respondent
+
+Kscalescores <- codedmodule2 %>%
+  select(starts_with(c("Risky","K_I","K_S", "K_H", "K_E")))%>%
+  rowwise()%>%
+  na.omit()%>%
+  dplyr::mutate(Individualism_score = mean(c_across(K_IINTRFER:K_SPROTECT)))%>%
+  dplyr::mutate(Hierarchy_score = mean(c_across(K_HEQUAL:K_ERADEQ2)))%>%
+  dplyr::select(!starts_with(c("K_I","K_S", "K_H", "K_E")))
+
+
+```
+
+
+# **Scatter plot of Kahan scale scores around the median scores on Individualism and Hierarchy scales**
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+#scatter plot of Kahan scale scores around the median scores on Individualism and Hierarchy scales. 
+
+Kscalescores %>%
+  ggplot(aes(Individualism_score, Hierarchy_score))+
+  geom_count(aes(color = ..n.., size = ..n..))+
+  guides(color = 'legend')+
+  geom_hline(yintercept=2, colour="black", lwd=1)+
+  geom_vline(xintercept=3, colour="black", lwd=1)+
+  labs(x = " Communitarianism to Individualism", y = "Egalitarianism to Hierarchy")
+
+
+```
+
+
+
+
+# **Scatter plot for pro decentralised governance against perceived risks from rooftop solar**
 
 
 ```{r, echo=FALSE}
@@ -412,8 +481,9 @@ ecopolscalescores <- codedmodule2 %>%
   #dplyr::select(!c("DECISIONDECEN","DECISIONCEN", "INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL", "ECONOMYLOCAL","ENVOVERDEV",     "DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG")) %>%
     na.omit()
 
-ggplot(ecopolscalescores, aes(Pro_decentralisation, Ben_INDSolar))+
-  geom_count()
+ggplot(ecopolscalescores, aes(Pro_decentralisation, Risky_INDSolar))+
+  geom_count()+
+  labs(x = "Pro decentralised governance", y = " Perceived risks from rooftop solar")
 
 
 

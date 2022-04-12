@@ -1,28 +1,209 @@
 ---
 title: "distributions"
-output: html_document
+output:
+  html_document:
+    fig_width: 9
+    fig_height: 6
+    fig_caption: yes
+    keep_md: yes
+    theme: paper
+    df_print: paged
+  pdf_document: 
+    
+    toc: yes
+    number_sections: yes
+    toc_depth: 2
+    fig_width: 9
+    fig_height: 6
+    fig_caption: yes
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r load packages, warning = FALSE, message = FALSE, echo=FALSE}
+  knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(readxl))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(tidyr))
+suppressPackageStartupMessages(library(ggplot2))
+
 ```
 
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+moduletwo <- read_excel(here::here("thesis_surveydata/political_factors_complete.xlsx"))
+module2 <- data.frame(moduletwo)
+module2[module2 == "Rather not say/ Don't know"] <- "Rather not say/Don't know"
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+# loaded data set for module 2 eco -pol variables and removes the rows with question number and question text
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
+```{r, eval =TRUE, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+#This chunk contains the coding schemes of various scales used in survey one: eco-political factors, kahan scale and acceptance scale
+codedmodule2 <- module2 %>%
+  
+#remove row 1
+  filter(!row_number() %in% c(1,2)) %>% 
+  
+# replace risky likert scale with numbers
+  mutate_at(vars(starts_with("Risky")), funs(case_when(. =="Not at all risky" ~ 1, 
+                                                       . =="Slightly risky" ~ 2, 
+                                                       . =="Moderately risky" ~ 3, 
+                                                       . =="Very risky" ~ 4, 
+                                                       . =="Extremely risky" ~ 5))) %>%
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+# replace beneficial likert scale with numbers  
+  mutate_at(vars(starts_with("Ben")), funs(case_when(. =="Not at all beneficial" ~ 1,
+                                                     . =="Slightly beneficial" ~ 2,
+                                                     . =="Moderately beneficial" ~ 3,
+                                                     . =="Very beneficial" ~ 4,
+                                                     . =="Extremely beneficial" ~ 5 ))) %>%
+
+# replace nuclear acceptance likert scale with numbers
+  mutate_at(vars(N_accept,N_reluctantlyaccept,N_reject), funs(case_when(. == "Strongly disagree" ~ 1, 
+                                                                        . == "Somewhat disagree" ~ 2,
+                                                                        . == "Neither agree nor disagree" ~3,
+                                                                        . == "Somewhat agree" ~ 4,
+                                                                        . == "Strongly agree" ~ 5))) %>%
+  
+# code likert scale for variables for Kahan scale into numbers
+  mutate_at(vars(starts_with (c("K_I","K_H","DISPLACE", "POLLUTE", "HEALTH", "JOBS", "BEAUTY", "PRIDE", "NPRIDE", "DEV", "PROSPER", "RELY"))), funs(case_when(. == "Strongly disagree" ~ 1, 
+               . == "Somewhat disagree" ~ 2,
+               . == "Neither agree nor disagree" ~3,
+               . == "Somewhat agree" ~ 4,
+               . == "Strongly agree" ~ 5))) %>%
+  
+# reverse code for likert scale for variables for Kahan scale into numbers
+  mutate_at(vars(starts_with (c("K_S","K_E"))), funs(case_when(. == "Strongly disagree" ~ 5, 
+                                                               . == "Somewhat disagree" ~ 4,
+                                                               . == "Neither agree nor disagree" ~3,
+                                                               . == "Somewhat agree" ~ 2,
+                                                               . == "Strongly agree" ~ 1))) %>%
+
+# code eco-pol scale variables into numbers
+  mutate_at(vars(SYSTEMDEMO,SYSTEMRELIGION,SYSTEMTECHNO,SYSTEMTOTAL,WEALTHLIM,MECHANISATION,DECISIONDECEN,INDUSTRYLARGE,ECONOMYGLOBAL,OWNERPVT,OWNERNOREG), funs(case_when(. == "Strongly disagree" ~ 1, 
+                        . == "Somewhat disagree" ~ 2,
+                        . == "Neither agree nor disagree" ~3,
+                        . == "Somewhat agree" ~ 4,
+                        . == "Strongly agree" ~ 5))) %>%
+
+# reverse code eco-pol scale variables into numbers 
+ mutate_at(vars(DECISIONCEN, INDUSTRYSMALL, ECONOMYLOCAL, ENVOVERDEV,OWNERPUB, OWNERREG), funs(case_when(. == "Strongly disagree" ~ 5, 
+                                                                                                         . == "Somewhat disagree" ~ 4,
+                                                                                                         . == "Neither agree nor disagree" ~3,
+                                                                                                         . == "Somewhat agree" ~ 2,
+                                                                                                         . == "Strongly agree" ~ 1)))
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r, eval=TRUE, echo=FALSE}
+
+moduleone <- read_excel(here::here("thesis_surveydata/livelihood_insecurity_complete.xlsx"))
+module1 <- data.frame(moduleone)
+
+# loaded data set for module 2 eco -pol variables and removes the rows with question number and question text
+```
+
+
+
+```{r, eval =TRUE, echo=FALSE}
+#This chunk contains the coding schemes of various scales used in survey one: eco-political factors, kahan scale and acceptance scale
+codedmodule1 <- module1 %>%
+  
+#remove row 1
+  filter(!row_number() %in% c(1,2)) %>% 
+  
+# replace risky likert scale with numbers
+  mutate_at(vars(starts_with("Risky")), funs(case_when(. =="Not at all risky" ~ 1, 
+                                                       . =="Slightly risky" ~ 2, 
+                                                       . =="Moderately risky" ~ 3, 
+                                                       . =="Very risky" ~ 4, 
+                                                       . =="Extremely risky" ~ 5))) %>%
+
+# replace beneficial likert scale with numbers  
+  mutate_at(vars(starts_with("Ben")), funs(case_when(. =="Not at all beneficial" ~ 1,
+                                                     . =="Slightly beneficial" ~ 2,
+                                                     . =="Moderately beneficial" ~ 3,
+                                                     . =="Very beneficial" ~ 4,
+                                                     . =="Extremely beneficial" ~ 5 ))) %>%
+
+# replace nuclear acceptance likert scale with numbers
+  mutate_at(vars(N_accept,N_reluctantlyaccept,N_reject), funs(case_when(. == "Strongly disagree" ~ 1, 
+                                                                        . == "Somewhat disagree" ~ 2,
+                                                                        . == "Neither agree nor disagree" ~3,
+                                                                        . == "Somewhat agree" ~ 4,
+                                                                        . == "Strongly agree" ~ 5)))
+
+```
+
+```{r, echo = FALSE}
+
+suppressPackageStartupMessages(library(tidyselect))
+# combine codedmodule1 and codedmodule2
+
+numcol2 <- codedmodule2 %>% add_column(Respondent = 1:1099, .before = "Language") 
+numcol1 <- codedmodule1 %>% add_column(Respondent = 1099:2160, .before = "Language")
+
+joineddf <-  full_join(numcol2, numcol1, by = c("Respondent", "Language", "Survey_Date", "State", "Risky_Hydro", "Risky_Solar", "Risky_Wind", "Risky_Nuclear", "Risky_Coal", "Risky_Gas", "Risky_Oil", "Risky_INDHydro", "Risky_INDSolar", "Risky_INDWind", "Risky_INDBiogas", "Risky_INDDiesel", "Risky_INDKerosene", "Risky_INDFirewoodetc", "Risky_INDLPG", "Ben_Hydro", "Ben_Solar", "Ben_Wind", "Ben_Nuclear", "Ben_Coal", "Ben_Gas", "Ben_Oil", "Ben_INDHydro", "Ben_INDSolar", "Ben_INDWind", "Ben_INDDiesel", "Ben_INDBiogas", "Ben_INDFirewoodetc", "Ben_INDLPG", "Ben_INDKerosene", "N_accept", "N_reluctantlyaccept", "N_reject", "age", "urban_rural", "gender", "caste", "religion", "religiontext")) 
+
+```
+
+
+#Urban population 
+
+```{r, echo =FALSE}
+#Distribution checks 
+joineddf %>%
+  filter(urban_rural == "Urban") %>%
+  ggplot(aes(x=Risky_Nuclear, y = ..count..))+
+  geom_bar(fill = "firebrick2")+
+  labs(x= "Perceived Risk from Nuclear Energy", y = "Urban population")
+```
+
+
+```{r, echo =FALSE}
+ 
+joineddf %>%
+  filter(urban_rural == "Urban") %>%
+  ggplot(aes(x=Risky_Hydro, y = ..count..))+
+  geom_bar(fill = "firebrick2")+
+  labs(x= "Perceived Risk from Hydroelectric Dams", y = "Urban population")
+```
+
+
+
+
+
+```{r, echo =FALSE}
+ 
+joineddf %>%
+  filter(urban_rural == "Rural") %>%
+  ggplot(aes(x=Risky_Hydro, y = ..count..))+
+  geom_bar(fill = "firebrick2")+
+  labs(x= "Perceived Risk from Hydroelectric Dams", y = "Rural population")
+```
+
+
+```{r, echo =FALSE}
+#Distribution checks 
+joineddf %>%
+  filter(gender == "Male") %>%
+  ggplot(aes(x=Risky_Nuclear, y = ..count..))+
+  geom_bar(fill = "firebrick2")+
+  labs(x= "Perceived Risk from Nuclear Energy", y = "male population")
+```
+
+
+```{r, echo =FALSE}
+#Distribution checks 
+joineddf %>%
+  filter(gender == "Female") %>%
+  ggplot(aes(x=Risky_Nuclear, y = ..count..))+
+  geom_bar(fill = "firebrick2")+
+  labs(x= "Perceived Risk from Nuclear Energy", y = "Female population")
+```
+
