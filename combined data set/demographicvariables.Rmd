@@ -152,7 +152,7 @@ joineddf <-  full_join(numcol2, numcol1, by = c("Respondent", "Language", "Surve
 
 ```
 
-
+\newpage
 
 ## Perceived Risk Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by gender and caste groups 
 
@@ -198,6 +198,8 @@ caste_gender %>%  ggplot(aes(y = Gender_Caste, x = mean))+
 
 ```
 
+\newpage
+
 ## Perceived Benefit Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by gender and caste groups 
 
 OBC = Other Backward Classes;
@@ -238,6 +240,7 @@ caste_gender2 %>%
 
 ```
 
+\newpage
 
 ## Perceived Risk Scores for all individually or community owned energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by gender and caste groups 
 
@@ -280,6 +283,8 @@ caste_gender3%>%
 
 ```
 
+\newpage 
+
 ## Perceived Benefit Scores for all individually or community owned energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by gender and caste groups 
 
 OBC = Other Backward Classes;
@@ -316,6 +321,7 @@ caste_gender4%>%
 
 ```
 
+\newpage
 ## Perceived Risk Scores for centrally managed hydroelectric dams by gender and caste groups 
 
 OBC = Other Backward Classes;
@@ -343,6 +349,9 @@ caste_genderh%>%
                  position=position_dodge(.9))+
   labs(x = "mean perceived risk", y = "GenderXCaste groups")
 ```
+
+\newpage
+
 ## Perceived Benefit Scores for centrally managed hydroelectric dams by gender and caste groups 
 
 OBC = Other Backward Classes;
@@ -371,7 +380,7 @@ caste_genderh2 %>%
   labs(x = "mean perceived benefit", y = "GenderXCaste groups")
 ```
 
-
+\newpage
 ## Perceived Risk Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by urban or rural location of the respondent 
 
 ```{r, echo=FALSE}
@@ -402,6 +411,7 @@ urbanrural%>%
   labs(x = "urban or rural", y = "mean risk")
 ```
 
+\newpage
 ## Perceived Benefit Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by urban or rural location of the respondent 
 
 
@@ -428,6 +438,8 @@ urbanrural2%>%
                  position=position_dodge(.9))+
   labs(x = "urban or rural", y = "mean benefit")
 ```
+
+\newpage
 
 ## Perceived Risk Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by gender
 
@@ -460,6 +472,7 @@ genderrisk%>%
   labs(y = "mean risk")
 ```
 
+\newpage
 
 ## Perceived Benefit Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by gender
 
@@ -486,6 +499,8 @@ genderben %>%
                  position=position_dodge(.9))+
   labs(y = "mean benefit")
 ```
+
+\newpage
 
 ## Perceived Risk Scores for all individually or community owned energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by gender. 
 
@@ -519,7 +534,9 @@ genderrisk2%>%
   labs(y = "mean risk")
 ```
 
-## Perceived Risk Scores for all individually or community owned energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by gender. 
+\newpage
+
+## Perceived Benefit Scores for all individually or community owned energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by gender. 
 
 ```{r, echo=FALSE}
 
@@ -544,6 +561,7 @@ genderben2%>%
   labs(y = "mean benefit")
 ```
 
+\newpage
 
 ## Perceived Risk Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by religion
 
@@ -580,6 +598,7 @@ religionrisk1%>%
   coord_flip()
 ```
 
+\newpage
 
 ## Perceived Benefit Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by religion
 
@@ -609,6 +628,7 @@ religionben1%>%
   coord_flip()
 ```
 
+\newpage
 
 ## Perceived Risk Scores for all individually or community owned energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by religion. 
 
@@ -644,6 +664,7 @@ religionrisk2%>%
   coord_flip()
 ```
 
+\newpage
 ## Perceived Benefit Scores for all individually or community owned energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by religion. 
 
 
@@ -673,6 +694,8 @@ religionben2%>%
   coord_flip()
 ```
 
+
+\newpage
 
 ## Perceived Risk Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by age
 
@@ -708,6 +731,8 @@ agerisk1%>%
   coord_flip()
 ```
 
+\newpage
+
 ## Perceived Benefit Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by age
 ```{r, echo=FALSE}
 
@@ -736,6 +761,8 @@ ageben1%>%
   coord_flip()
 ```
 
+
+\newpage
 
 ## Perceived Risk Scores for all individually or community owned energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by age. 
 
@@ -766,9 +793,9 @@ agerisk2%>%
   coord_flip()
 ```
 
+\newpage
 
-
-## Perceived Risk Scores for all individually or community owned energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by age. 
+## Perceived Benefit Scores for all individually or community owned energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by age. 
 
 ```{r, echo=FALSE}
 
@@ -797,7 +824,7 @@ ageben2%>%
   coord_flip()
 ```
 
-
+\newpage
 
 ## Perceived Risk Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by state
 
@@ -848,6 +875,7 @@ cenrisksummary %>%
 
 ```
 
+\newpage
 ## Perceived Benefit Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by state
 
 

@@ -35,7 +35,7 @@ output:
 
 
 
-
+\newpage
 
 ## Perceived Risk Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by gender and caste groups 
 
@@ -49,6 +49,8 @@ ST = Scheduled Tribes
   </script>
 </div>![](demographicvariables_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
 
+\newpage
+
 ## Perceived Benefit Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by gender and caste groups 
 
 OBC = Other Backward Classes;
@@ -61,6 +63,7 @@ ST = Scheduled Tribes;
   </script>
 </div>![](demographicvariables_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
 
+\newpage
 
 ## Perceived Risk Scores for all individually or community owned energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by gender and caste groups 
 
@@ -75,6 +78,8 @@ ST = Scheduled Tribes
   </script>
 </div>![](demographicvariables_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
 
+\newpage 
+
 ## Perceived Benefit Scores for all individually or community owned energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by gender and caste groups 
 
 OBC = Other Backward Classes;
@@ -87,6 +92,7 @@ ST = Scheduled Tribes
   </script>
 </div>![](demographicvariables_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
 
+\newpage
 ## Perceived Risk Scores for centrally managed hydroelectric dams by gender and caste groups 
 
 OBC = Other Backward Classes;
@@ -99,6 +105,9 @@ ST = Scheduled Tribes
 {"columns":[{"label":["Gender_Caste"],"name":[1],"type":["fct"],"align":["left"]},{"label":["hydro_m"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["hydro_sd"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["nuclear_m"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["nuclear_sd"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["coal_m"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["coal_sd"],"name":[7],"type":["dbl"],"align":["right"]}],"data":[{"1":"Female_Brahmin","2":"3.210526","3":"1.2727463","4":"3.631579","5":"1.0651305","6":"3.315789","7":"1.0568628"},{"1":"Male_ST","2":"2.750000","3":"1.4823523","4":"3.350000","5":"1.1821034","6":"3.450000","7":"0.8255779"},{"1":"Male_Brahmin","2":"2.680851","3":"1.1629495","4":"2.851064","5":"1.1029353","6":"2.808511","7":"0.9472683"},{"1":"Male_SC","2":"2.662791","3":"1.2612829","4":"3.313953","5":"1.2391803","6":"3.255814","7":"1.0080388"},{"1":"Female_General","2":"2.418803","3":"1.1237201","4":"3.367521","5":"1.1187916","6":"3.153846","7":"0.9703837"},{"1":"Male_General","2":"2.393443","3":"1.2541774","4":"3.688525","5":"1.1300750","6":"3.282787","7":"1.0213517"},{"1":"Female_OBC","2":"2.384615","3":"0.9469079","4":"3.107692","5":"1.0476622","6":"3.276923","7":"0.9271545"},{"1":"Female_ST","2":"2.352941","3":"1.0571883","4":"3.294118","5":"0.9851844","6":"2.647059","7":"0.8617697"},{"1":"Female_SC","2":"2.340909","3":"1.0984806","4":"3.431818","5":"1.1693315","6":"3.431818","7":"1.0652596"},{"1":"Male_OBC","2":"2.064748","3":"1.2348129","4":"3.489209","5":"1.0925764","6":"3.424460","7":"0.9998436"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>![](demographicvariables_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
+
+\newpage
+
 ## Perceived Benefit Scores for centrally managed hydroelectric dams by gender and caste groups 
 
 OBC = Other Backward Classes;
@@ -112,7 +121,7 @@ ST = Scheduled Tribes
   </script>
 </div>![](demographicvariables_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
 
-
+\newpage
 ## Perceived Risk Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by urban or rural location of the respondent 
 
 <div data-pagedtable="false">
@@ -121,6 +130,7 @@ ST = Scheduled Tribes
   </script>
 </div>![](demographicvariables_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
 
+\newpage
 ## Perceived Benefit Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by urban or rural location of the respondent 
 
 
@@ -130,6 +140,8 @@ ST = Scheduled Tribes
   </script>
 </div>![](demographicvariables_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
 
+\newpage
+
 ## Perceived Risk Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by gender
 
 <div data-pagedtable="false">
@@ -138,6 +150,7 @@ ST = Scheduled Tribes
   </script>
 </div>![](demographicvariables_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
 
+\newpage
 
 ## Perceived Benefit Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by gender
 
@@ -148,6 +161,8 @@ ST = Scheduled Tribes
   </script>
 </div>![](demographicvariables_files/figure-html/unnamed-chunk-15-1.png)<!-- -->
 
+\newpage
+
 ## Perceived Risk Scores for all individually or community owned energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by gender. 
 
 
@@ -157,7 +172,9 @@ ST = Scheduled Tribes
   </script>
 </div>![](demographicvariables_files/figure-html/unnamed-chunk-16-1.png)<!-- -->
 
-## Perceived Risk Scores for all individually or community owned energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by gender. 
+\newpage
+
+## Perceived Benefit Scores for all individually or community owned energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by gender. 
 
 <div data-pagedtable="false">
   <script data-pagedtable-source type="application/json">
@@ -165,6 +182,7 @@ ST = Scheduled Tribes
   </script>
 </div>![](demographicvariables_files/figure-html/unnamed-chunk-17-1.png)<!-- -->
 
+\newpage
 
 ## Perceived Risk Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by religion
 
@@ -175,6 +193,7 @@ ST = Scheduled Tribes
   </script>
 </div>![](demographicvariables_files/figure-html/unnamed-chunk-18-1.png)<!-- -->
 
+\newpage
 
 ## Perceived Benefit Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by religion
 
@@ -184,6 +203,7 @@ ST = Scheduled Tribes
   </script>
 </div>![](demographicvariables_files/figure-html/unnamed-chunk-19-1.png)<!-- -->
 
+\newpage
 
 ## Perceived Risk Scores for all individually or community owned energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by religion. 
 
@@ -193,6 +213,7 @@ ST = Scheduled Tribes
   </script>
 </div>![](demographicvariables_files/figure-html/unnamed-chunk-20-1.png)<!-- -->
 
+\newpage
 ## Perceived Benefit Scores for all individually or community owned energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by religion. 
 
 
@@ -203,6 +224,8 @@ ST = Scheduled Tribes
 </div>![](demographicvariables_files/figure-html/unnamed-chunk-21-1.png)<!-- -->
 
 
+\newpage
+
 ## Perceived Risk Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by age
 
 <div data-pagedtable="false">
@@ -210,6 +233,8 @@ ST = Scheduled Tribes
 {"columns":[{"label":["age"],"name":[1],"type":["fct"],"align":["left"]},{"label":["mean"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["sd"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["median"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["n"],"name":[5],"type":["int"],"align":["right"]}],"data":[{"1":"75 years or older","2":"3.619048","3":"0.8611020","4":"3.714286","5":"3"},{"1":"65-74 years old","2":"3.301587","3":"1.0459944","4":"3.857143","5":"9"},{"1":"55-64 years old","2":"3.043290","3":"0.8387041","4":"3.285714","5":"33"},{"1":"25-34 years old","2":"2.811409","3":"0.7284906","4":"2.714286","5":"581"},{"1":"45-54 years old","2":"2.779592","3":"0.7647114","4":"2.714286","5":"105"},{"1":"35-44 years old","2":"2.771863","3":"0.7271083","4":"2.714286","5":"263"},{"1":"18-24 years old","2":"2.708207","3":"0.6497813","4":"2.642857","5":"282"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>![](demographicvariables_files/figure-html/unnamed-chunk-22-1.png)<!-- -->
+
+\newpage
 
 ## Perceived Benefit Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by age
 <div data-pagedtable="false">
@@ -219,6 +244,8 @@ ST = Scheduled Tribes
 </div>![](demographicvariables_files/figure-html/unnamed-chunk-23-1.png)<!-- -->
 
 
+\newpage
+
 ## Perceived Risk Scores for all individually or community owned energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by age. 
 
 <div data-pagedtable="false">
@@ -227,9 +254,9 @@ ST = Scheduled Tribes
   </script>
 </div>![](demographicvariables_files/figure-html/unnamed-chunk-24-1.png)<!-- -->
 
+\newpage
 
-
-## Perceived Risk Scores for all individually or community owned energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by age. 
+## Perceived Benefit Scores for all individually or community owned energy technologies(small hydro, rooftop solar, windmill, biogas, diesel, kerosene,Firewood/cow dung/crop residue/ coal/charcoal, LPG) by age. 
 
 <div data-pagedtable="false">
   <script data-pagedtable-source type="application/json">
@@ -237,7 +264,7 @@ ST = Scheduled Tribes
   </script>
 </div>![](demographicvariables_files/figure-html/unnamed-chunk-25-1.png)<!-- -->
 
-
+\newpage
 
 ## Perceived Risk Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by state
 
@@ -251,6 +278,7 @@ ST = Scheduled Tribes
 
 ![](demographicvariables_files/figure-html/unnamed-chunk-27-1.png)<!-- -->
 
+\newpage
 ## Perceived Benefit Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by state
 
 

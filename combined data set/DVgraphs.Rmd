@@ -1,13 +1,6 @@
 ---
 title: "Dependent Variable Graphs"
 output:
-  html_document:
-    fig_width: 9
-    fig_height: 6
-    fig_caption: yes
-    keep_md: yes
-    theme: paper
-    df_print: paged
   pdf_document:
     toc: yes
     number_sections: yes
@@ -15,6 +8,13 @@ output:
     fig_width: 9
     fig_height: 6
     fig_caption: yes
+  html_document:
+    fig_width: 9
+    fig_height: 6
+    fig_caption: yes
+    keep_md: yes
+    theme: paper
+    df_print: paged
 ---
 
 ```{r load packages, warning = FALSE, message = FALSE, echo=FALSE}
@@ -27,7 +27,6 @@ suppressPackageStartupMessages(library(tsibble))
 suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(DT))
 suppressPackageStartupMessages(library(ggplot2))
-suppressPackageStartupMessages(library(ggbiplot))
 suppressPackageStartupMessages(library(psych)) # psychometrics
 
 ```
@@ -152,7 +151,7 @@ codedmodule1 <- module1 %>%
 ```{r, echo=FALSE}
 
 suppressPackageStartupMessages(library(tidyselect))
-# combine codedmodule1 and codedmodule2
+# combine codedmodule1 and codedmodule2. Therefore these graphs are made on the combined data set from both the surveys. 
 
 numcol2 <- codedmodule2 %>% add_column(Respondent = 1:1099, .before = "Language") 
 numcol1 <- codedmodule1 %>% add_column(Respondent = 1099:2160, .before = "Language")
@@ -161,6 +160,7 @@ joineddf <-  full_join(numcol2, numcol1, by = c("Respondent", "Language", "Surve
 
 ```
 
+\newpage
 
 ## Q1. Below is a list of various centrally managed sources of energy. How risky are each of these energy technologies according to you?  Please tell me whether you see each technology as: not at all risky(1), slightly risky(2), moderately risky(3), very risky(4), or extremely risky(5)
 
@@ -215,7 +215,7 @@ risksumcentral %>%
 
 ```
 
-
+\newpage
 
 ## Q2. Following is a list of various individually or community-owned and managed sources of energy. How risky are each of these energy technologies according to you? Please tell me whether you see each technology as: not at all risky(1), slightly risky(2), moderately risky(3), very risky(4), or extremely risky(5). 
 
@@ -267,7 +267,7 @@ risksumIND %>%
 
 
 ```
-
+\newpage
 
 ## Q3. Following is a list of centrally managed sources of energy. How beneficial are each of these according to you? Please tell me whether you see each technology as: not at all beneficial(1), slightly beneficial(2), moderately beneficial(3), very beneficial(4), or extremely beneficial(5)?
 
@@ -320,6 +320,7 @@ bensumcentral %>%
 
 ```
 
+\newpage
 
 ## Q4. Following is a list of various individually or community owned and managed sources of energy. How beneficial are each of these according to you? Please tell me whether you see each technology as: not at all beneficial(1), slightly beneficial(2), moderately beneficial(3), very beneficial(4) or extremely beneficial(5) ?
 
@@ -372,6 +373,8 @@ bensumIND %>%
 
 ```
 
+\newpage
+
 ```{r, echo=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
@@ -380,11 +383,13 @@ center_barplot <- full_join( bensumcentral,risksumcentral, by = NULL, copy = FAL
  dplyr::select(technology, perceivedbenefit.mean, perceivedrisk.mean, perceivedbenefit.sd, perceivedrisk.sd) %>%
   mutate(technology = fct_reorder(technology, perceivedbenefit.mean, .desc = FALSE))%>%
    gather(key = "level", value = "mean", perceivedbenefit.mean, perceivedrisk.mean)
+   
   
-center_barplot$level <- as.factor(center_barplot$level)                                          
+center_barplot$level <- as.factor(center_barplot$level)  
+
 
  center_barplot%>% 
-  ggplot(aes(x=technology, y= mean, fill =  (factor(center_barplot$level, levels = c("perceivedrisk.mean", "perceivedbenefit.mean")))))+
+  ggplot(aes(x=technology, y= mean, fill =  (factor(level, levels = c("perceivedrisk.mean", "perceivedbenefit.mean")))))+
   geom_bar(stat="identity", position=position_dodge())+
    
 #geom_errorbar(aes(ymin= mean - sd, ymax= mean + sd), width =.2, position=position_dodge(.9))+
@@ -393,6 +398,8 @@ center_barplot$level <- as.factor(center_barplot$level)
   labs(y = "Mean Values", x = "Energy Technologies")+
   ggtitle("Perceived risk and benefit from centrally owned energy technologies")+
   coord_flip()
+
+ 
 
 
 ```
@@ -418,6 +425,267 @@ IND_barplot%>%  ggplot(aes(x=technology, y= mean, fill = (factor(IND_barplot$lev
   labs(y = "Mean Values", x = "Energy Technologies")+
   ggtitle("Perceived risk and benefit from individually owned energy technologies")+
   coord_flip()
+
+```
+
+```{r, echo=FALSE}
+
+library(dplyr)
+library(tidyr)
+
+perceivedrisk <-joineddf %>% select(starts_with("Risky")) %>%
+  gather(key = "technology", value = "perceived_risk") %>% 
+  mutate(technology = gsub("Risky_", "", technology)) %>%
+  na.omit()
+
+
+perceivedrisk
+
+```
+
+
+
+```{r}
+# checking assumptions for kruskal wallis test
+
+duplicated(joineddf)
+sum(duplicated(joineddf))
+
+# there are no duplicate responses in our dataframe :). 
+
+ggplot(perceivedrisk, aes(x = perceived_risk, y = technology)) + 
+  geom_boxplot()
+ 
+
+levels(perceivedrisk$technology)
+
+
+bartlett.test(perceived_risk ~ technology, data = perceivedrisk)
+
+str(perceivedrisk)
+
+
+```
+
+
+```{r, echo=FALSE}
+# create a list of technology levels
+tech_levels <- unique(perceivedrisk$technology)
+
+# perform Shapiro test for each technology
+shapiro_results <- lapply(tech_levels, function(x) {
+  shapiro.test(perceivedrisk$perceived_risk[perceivedrisk$technology == x])
+})
+
+#extract the W and p-value from the htest object 
+shapiro_results_df <- data.frame(W = sapply(shapiro_results, function(x) x$statistic),
+                                  p.value = sapply(shapiro_results, function(x) x$p.value), 
+                                  technology = tech_levels)
+
+
+
+
+```
+
+
+
+```{r}
+# load the stats package
+library(stats)
+
+perceivedrisk$technology <- factor(perceivedrisk$technology)
+
+# perform the Kruskal-Wallis H-test, the technologies are treated as independent groups and the mean of perceived risk is of interest. 
+kruskal_result <- kruskal.test(perceived_risk ~ technology, data = perceivedrisk)
+
+# print the test statistic and p-value
+print(kruskal_result) 
+
+library(emmeans)
+emm_results <- emmeans(kruskal_results, ~ technology)
+summary(emm_results, infer = c(T, T))
+
+
+
+```
+
+
+
+```{r}
+
+library(dplyr)
+ggplot(perceivedrisk %>%
+  mutate(technology = reorder(technology, perceived_risk, FUN = median)), 
+         aes(x = technology, y = perceived_risk)) +
+  geom_boxplot(width = 0.5) +
+  geom_hline(aes(yintercept = median(perceived_risk)), linetype = "dashed", color = "red") +
+  coord_flip()
+
+
+
+
+```
+
+
+
+```{r}
+library(dplyr)
+perceivedrisk %>%
+  group_by(technology) %>%
+  summarise(
+    count = n(),
+    mean = mean(perceived_risk, na.rm = TRUE),
+    sd = sd(perceived_risk, na.rm = TRUE),
+    median = median(perceived_risk, na.rm = TRUE),
+    IQR = IQR(perceived_risk, na.rm = TRUE)
+  )
+
+```
+```{r}
+
+pairwise.wilcox.test(perceivedrisk$perceived_risk, perceivedrisk$technology, p.adjust.method = "BH")
+
+
+```
+
+```{r}
+
+# visualising the pairwaise wilcox test results. the non significant pairs are grey 
+
+library(broom)
+result <- pairwise.wilcox.test(perceivedrisk$perceived_risk, perceivedrisk$technology, p.adjust.method = "BH")
+tidy_result <- tidy(result)
+
+library(ggplot2)
+ggplot(tidy_result, aes(x = group1, y = group2, fill = p.value)) + 
+  geom_tile(color = "white") + 
+  scale_fill_gradient2(low = "red", high = "white", midpoint = 0.025, 
+                       limits = c(0, 0.05), space = "Lab", 
+                       name = "P-value") + 
+  theme_classic() + 
+  labs(x = "Technology 1", y = "Technology 2") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+```
+
+```{r}
+#now do the same for perceived benefit
+#null hypothesis - no sognificant difference between perceived benefit from technologies. 
+#push to github - figure out what happened! why not pushing anymore yaar 
+#
+
+
+```
+
+```{r, echo=FALSE}
+library(dplyr)
+library(tidyr)
+
+perceivedbenefit <-joineddf %>% select(starts_with("Ben")) %>%
+  gather(key = "technology", value = "perceived_benefit") %>% 
+  mutate(technology = gsub("Ben_", "", technology)) %>%
+  na.omit()
+
+
+perceivedbenefit
+
+```
+
+```{r}
+# checking assumptions for kruskal wallis test
+
+duplicated(joineddf)
+sum(duplicated(joineddf))
+
+# there are no duplicate responses in our dataframe :). 
+
+
+#what was I doing here - check again ? assumptions for running it on perceived benefit 
+
+ggplot(perceivedbenefit, aes(x = perceived_benefit, y = technology)) + 
+  geom_boxplot()
+ 
+
+levels(perceivedbenefit$technology)
+
+
+bartlett.test(perceived_benefit ~ technology, data = perceivedbenefit)
+
+str(perceivedbenefit)
+
+
+```
+
+```{r}
+# load the stats package
+library(stats)
+
+perceivedbenefit$technology <- factor(perceivedbenefit$technology)
+
+# perform the Kruskal-Wallis H-test, the technologies are treated as independent groups and the mean of perceived risk is of interest. 
+kruskal_resultben <- kruskal.test(perceived_benefit ~ technology, data = perceivedbenefit)
+
+# print the test statistic and p-value
+print(kruskal_resultben) 
+
+
+```
+
+```{r}
+
+library(dplyr)
+ggplot(perceivedbenefit %>%
+  mutate(technology = reorder(technology, perceived_benefit, FUN = median)), 
+         aes(x = technology, y = perceived_benefit)) +
+  geom_boxplot(width = 0.5) +
+  geom_hline(aes(yintercept = median(perceived_benefit)), linetype = "dashed", color = "red") +
+  coord_flip()
+
+
+
+```
+```{r}
+library(dplyr)
+perceivedbenefit %>%
+  group_by(technology) %>%
+  summarise(
+    count = n(),
+    mean = mean(perceived_benefit, na.rm = TRUE),
+    sd = sd(perceived_benefit, na.rm = TRUE),
+    median = median(perceived_benefit, na.rm = TRUE),
+    IQR = IQR(perceived_benefit, na.rm = TRUE)
+  )
+
+```
+
+
+```{r}
+
+pairwise.wilcox.test(perceivedbenefit$perceived_benefit, perceivedbenefit$technology, p.adjust.method = "BH")
+
+
+```
+
+
+```{r}
+
+# visualising the pairwaise wilcox test results. the non significant pairs are grey 
+
+library(broom)
+result <- pairwise.wilcox.test(perceivedbenefit$perceived_benefit, perceivedbenefit$technology, p.adjust.method = "BH")
+tidy_result <- tidy(result)
+
+library(ggplot2)
+ggplot(tidy_result, aes(x = group1, y = group2, fill = p.value)) + 
+  geom_tile(color = "white") + 
+  scale_fill_gradient2(low = "green", high = "white", midpoint = 0.025, 
+                       limits = c(0, 0.05), space = "Lab", 
+                       name = "P-value") + 
+  theme_classic() + 
+  labs(x = "Technology 1", y = "Technology 2") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
 
 ```
 

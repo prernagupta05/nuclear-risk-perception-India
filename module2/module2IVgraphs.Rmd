@@ -1,13 +1,6 @@
 ---
 title: "module2IVgraphs"
 output: 
-  html_document:
-    fig_width: 9
-    fig_height: 6
-    fig_caption: yes
-    keep_md: yes
-    theme: paper
-    df_print: paged
   
   
   pdf_document: 
@@ -18,6 +11,13 @@ output:
     fig_width: 9
     fig_height: 6
     fig_caption: yes
+  html_document:
+    fig_width: 9
+    fig_height: 6
+    fig_caption: yes
+    keep_md: yes
+    theme: paper
+    df_print: paged
 ---
 
 ```{r load packages, warning = FALSE, message = FALSE, echo=FALSE}
@@ -45,7 +45,6 @@ module2[module2 == "Rather not say/ Don't know"] <- "Rather not say/Don't know"
 
 
 
-# **Coded Dataset for survey module 2**
 ```{r, echo = FALSE}
 
 #This chunk contains the coding schemes of various scales used in survey one: eco-political factors, kahan scale and acceptance scale
@@ -103,7 +102,7 @@ codedmodule2 <- module2 %>%
                                                                                                          . == "Somewhat agree" ~ 2,
                                                                                                          . == "Strongly agree" ~ 1)))
 
-data.frame(codedmodule2)
+
   
 
 ```
@@ -189,7 +188,7 @@ totalrisk <- codedmodule2%>%
   dplyr::rename(Govt = SYSTEMTOTAL)
 ```
 
-
+\newpage
 
 # **Perceived risk by Preferred Government Type**
 
@@ -218,6 +217,7 @@ update_labels(p, list(colour = "Preferred Government Type"))
 
 ```
 
+\newpage
 
 
 # **Perceived risk by Support for Democratic government**
@@ -257,6 +257,8 @@ update_labels(d, list(colour = "Support for Democratic Government"))
 
 ```
 
+
+\newpage
 # **Perceived risk by Support for decentralised governance**
 
 
@@ -295,7 +297,7 @@ update_labels(decen, list(colour = "Pro decentralised governance"))
 ```
 
 
-
+\newpage
 
 # **Perceived risk by Support for large scale industry**
 
@@ -442,7 +444,7 @@ Kscalescores <- codedmodule2 %>%
 
 
 ```
-
+\newpage
 
 # **Scatter plot of Kahan scale scores around the median scores on Individualism and Hierarchy scales**
 
@@ -463,7 +465,7 @@ Kscalescores %>%
 ```
 
 
-
+\newpage
 
 # **Scatter plot for pro decentralised governance against perceived risks from rooftop solar**
 

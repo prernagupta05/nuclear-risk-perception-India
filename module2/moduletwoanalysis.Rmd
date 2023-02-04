@@ -461,7 +461,7 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 ecopolscalepca <- ecopolscalescores %>%
   select(!starts_with(c("Risky","Gender","Caste","Religion","State")))%>%
-  prcomp(center = TRUE,scale. = TRUE)
+  prcomp(center = TRUE, scale. = TRUE)
 
 
 var_explained_ecopol = ecopolscalepca$sdev^2 / sum(ecopolscalepca$sdev^2)
