@@ -1,0 +1,279 @@
+---
+title: "demographicvariablesregression"
+
+output:
+  html_document:
+    fig_width: 9
+    fig_height: 6
+    fig_caption: yes
+    keep_md: yes
+    theme: paper
+    df_print: paged
+  pdf_document: 
+    
+    toc: yes
+    number_sections: yes
+    toc_depth: 2
+    fig_width: 9
+    fig_height: 6
+    fig_caption: yes
+---
+
+```{r load packages, warning = FALSE, message = FALSE, echo=FALSE}
+  knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(readxl))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(tidyr))
+suppressPackageStartupMessages(library(ggplot2))
+
+```
+
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+moduletwo <- read_excel(here::here("thesis_surveydata/political_factors_complete.xlsx"))
+module2 <- data.frame(moduletwo)
+module2[module2 == "Rather not say/ Don't know"] <- "Rather not say/Don't know"
+
+# loaded data set for module 2 eco -pol variables and removes the rows with question number and question text
+```
+
+
+```{r, eval =TRUE, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+#This chunk contains the coding schemes of various scales used in survey one: eco-political factors, kahan scale and acceptance scale
+codedmodule2 <- module2 %>%
+  
+#remove row 1
+  filter(!row_number() %in% c(1,2)) %>% 
+  
+# replace risky likert scale with numbers
+  mutate_at(vars(starts_with("Risky")), funs(case_when(. =="Not at all risky" ~ 1, 
+                                                       . =="Slightly risky" ~ 2, 
+                                                       . =="Moderately risky" ~ 3, 
+                                                       . =="Very risky" ~ 4, 
+                                                       . =="Extremely risky" ~ 5))) %>%
+
+# replace beneficial likert scale with numbers  
+  mutate_at(vars(starts_with("Ben")), funs(case_when(. =="Not at all beneficial" ~ 1,
+                                                     . =="Slightly beneficial" ~ 2,
+                                                     . =="Moderately beneficial" ~ 3,
+                                                     . =="Very beneficial" ~ 4,
+                                                     . =="Extremely beneficial" ~ 5 ))) %>%
+
+# replace nuclear acceptance likert scale with numbers
+  mutate_at(vars(N_accept,N_reluctantlyaccept,N_reject), funs(case_when(. == "Strongly disagree" ~ 1, 
+                                                                        . == "Somewhat disagree" ~ 2,
+                                                                        . == "Neither agree nor disagree" ~3,
+                                                                        . == "Somewhat agree" ~ 4,
+                                                                        . == "Strongly agree" ~ 5))) %>%
+  
+# code likert scale for variables for Kahan scale into numbers
+  mutate_at(vars(starts_with (c("K_I","K_H","DISPLACE", "POLLUTE", "HEALTH", "JOBS", "BEAUTY", "PRIDE", "NPRIDE", "DEV", "PROSPER", "RELY"))), funs(case_when(. == "Strongly disagree" ~ 1, 
+               . == "Somewhat disagree" ~ 2,
+               . == "Neither agree nor disagree" ~3,
+               . == "Somewhat agree" ~ 4,
+               . == "Strongly agree" ~ 5))) %>%
+  
+# reverse code for likert scale for variables for Kahan scale into numbers
+  mutate_at(vars(starts_with (c("K_S","K_E"))), funs(case_when(. == "Strongly disagree" ~ 5, 
+                                                               . == "Somewhat disagree" ~ 4,
+                                                               . == "Neither agree nor disagree" ~3,
+                                                               . == "Somewhat agree" ~ 2,
+                                                               . == "Strongly agree" ~ 1))) %>%
+
+# code eco-pol scale variables into numbers
+  mutate_at(vars(SYSTEMDEMO,SYSTEMRELIGION,SYSTEMTECHNO,SYSTEMTOTAL,WEALTHLIM,MECHANISATION,DECISIONDECEN,INDUSTRYLARGE,ECONOMYGLOBAL,OWNERPVT,OWNERNOREG), funs(case_when(. == "Strongly disagree" ~ 1, 
+                        . == "Somewhat disagree" ~ 2,
+                        . == "Neither agree nor disagree" ~3,
+                        . == "Somewhat agree" ~ 4,
+                        . == "Strongly agree" ~ 5))) %>%
+
+# reverse code eco-pol scale variables into numbers 
+ mutate_at(vars(DECISIONCEN, INDUSTRYSMALL, ECONOMYLOCAL, ENVOVERDEV,OWNERPUB, OWNERREG), funs(case_when(. == "Strongly disagree" ~ 5, 
+                                                                                                         . == "Somewhat disagree" ~ 4,
+                                                                                                         . == "Neither agree nor disagree" ~3,
+                                                                                                         . == "Somewhat agree" ~ 2,
+                                                                                                         . == "Strongly agree" ~ 1)))
+
+```
+
+
+```{r, eval=TRUE, echo=FALSE}
+
+moduleone <- read_excel(here::here("thesis_surveydata/livelihood_insecurity_complete.xlsx"))
+module1 <- data.frame(moduleone)
+
+# loaded data set for module 2 eco -pol variables and removes the rows with question number and question text
+```
+
+
+
+```{r, eval =TRUE, echo=FALSE}
+#This chunk contains the coding schemes of various scales used in survey one: eco-political factors, kahan scale and acceptance scale
+codedmodule1 <- module1 %>%
+  
+#remove row 1
+  filter(!row_number() %in% c(1,2)) %>% 
+  
+# replace risky likert scale with numbers
+  mutate_at(vars(starts_with("Risky")), funs(case_when(. =="Not at all risky" ~ 1, 
+                                                       . =="Slightly risky" ~ 2, 
+                                                       . =="Moderately risky" ~ 3, 
+                                                       . =="Very risky" ~ 4, 
+                                                       . =="Extremely risky" ~ 5))) %>%
+
+# replace beneficial likert scale with numbers  
+  mutate_at(vars(starts_with("Ben")), funs(case_when(. =="Not at all beneficial" ~ 1,
+                                                     . =="Slightly beneficial" ~ 2,
+                                                     . =="Moderately beneficial" ~ 3,
+                                                     . =="Very beneficial" ~ 4,
+                                                     . =="Extremely beneficial" ~ 5 ))) %>%
+
+# replace nuclear acceptance likert scale with numbers
+  mutate_at(vars(N_accept,N_reluctantlyaccept,N_reject), funs(case_when(. == "Strongly disagree" ~ 1, 
+                                                                        . == "Somewhat disagree" ~ 2,
+                                                                        . == "Neither agree nor disagree" ~3,
+                                                                        . == "Somewhat agree" ~ 4,
+                                                                        . == "Strongly agree" ~ 5)))
+
+```
+
+```{r, echo = FALSE}
+
+suppressPackageStartupMessages(library(tidyselect))
+# combine codedmodule1 and codedmodule2
+
+numcol2 <- codedmodule2 %>% add_column(Respondent = 1:1099, .before = "Language") 
+numcol1 <- codedmodule1 %>% add_column(Respondent = 1099:2160, .before = "Language")
+
+joineddf <-  full_join(numcol2, numcol1, by = c("Respondent", "Language", "Survey_Date", "State", "Risky_Hydro", "Risky_Solar", "Risky_Wind", "Risky_Nuclear", "Risky_Coal", "Risky_Gas", "Risky_Oil", "Risky_INDHydro", "Risky_INDSolar", "Risky_INDWind", "Risky_INDBiogas", "Risky_INDDiesel", "Risky_INDKerosene", "Risky_INDFirewoodetc", "Risky_INDLPG", "Ben_Hydro", "Ben_Solar", "Ben_Wind", "Ben_Nuclear", "Ben_Coal", "Ben_Gas", "Ben_Oil", "Ben_INDHydro", "Ben_INDSolar", "Ben_INDWind", "Ben_INDDiesel", "Ben_INDBiogas", "Ben_INDFirewoodetc", "Ben_INDLPG", "Ben_INDKerosene", "N_accept", "N_reluctantlyaccept", "N_reject", "age", "urban_rural", "gender", "caste", "religion", "religiontext")) 
+
+
+summary(joineddf)
+
+```
+
+
+
+```{r}
+library(dplyr)
+
+demovars <- joineddf %>%
+  select(starts_with("Risky"), starts_with("Ben"),urban_rural, gender, caste, religion, age, State)%>%
+  mutate(religion = ifelse(religion == "Other (Please mention)", "Other", religion))
+
+summary(demovars)
+table(demovars$gender)
+
+
+```
+
+
+```{r}
+library(dplyr)
+
+demovars_frisk <- demovars %>%
+  select(starts_with("Risky"), gender) %>%
+  filter(gender == "Female")%>%
+  na.omit()
+
+
+demovars_mrisk <- demovars %>%
+  select(starts_with("Risky"), gender) %>%
+  filter(gender == "Male") %>%
+  na.omit()
+
+  
+sum_frisk <- demovars_frisk %>% 
+    summarise(across(starts_with("Risky"), list(mean = mean, sd = sd, median = median, n = nrow))) %>%
+    pivot_longer(cols = starts_with("Risky"), 
+                                          names_to = c("Risky", "Technology", "stat"), 
+                                          names_sep =  "_",
+                                          values_to = "Value")%>%
+    select(-Risky) %>%
+    pivot_wider(names_from = stat, values_from = Value)%>%
+    mutate(gender = "f")
+
+
+sum_mrisk <- demovars_mrisk %>% 
+    summarise(across(starts_with("Risky"), list(mean = mean, sd = sd, median = median, n = nrow))) %>%
+    pivot_longer(cols = starts_with("Risky"), 
+                                          names_to = c("Risky", "Technology", "stat"), 
+                                          names_sep =  "_",
+                                          values_to = "Value")%>%
+                                         
+    select(-Risky) %>%
+    pivot_wider(names_from = stat, values_from = Value)%>%
+    mutate(gender = "m")
+
+
+
+
+
+
+```
+
+```{r}
+library(ggplot2)
+
+# Combine the two datasets
+sum_gender <- rbind(sum_frisk, sum_mrisk)
+
+# Plot
+
+p1 <- sum_gender%>% 
+  filter(Technology %in% c("Wind","Nuclear","Solar","Oil","Hydro","Gas","Coal")) %>%
+  ggplot(aes(x=Technology, y= mean, fill = gender))+
+  geom_bar(stat="identity", position=position_dodge())+
+  #geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=0.2, position=position_dodge(0.9)) +
+  ylim(0,5)+
+  scale_fill_manual(values=c("red", "blue"), name="legend")+
+  labs(y = "Mean perceivd risk", x = "Energy Technologies")+
+  ggtitle("Perceived risk and benefit from centrally owned energy technologies by gender")+
+  theme(axis.text.x = element_text(angle=90, hjust=1, vjust=0.5))
+
+
+p2 <- sum_gender%>% 
+  filter(Technology %in% c("INDHydro", "INDSolar", "INDWind", "INDBiogas","INDDiesel", "INDKerosene","INDFirewoodetc","INDLPG")) %>%
+  ggplot(aes(x=Technology, y= mean, fill = gender))+
+  geom_bar(stat="identity", position=position_dodge())+
+  #geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=0.2, position=position_dodge(0.9)) +
+  ylim(0,5)+
+  scale_fill_manual(values=c("red", "blue"), name="legend")+
+  labs(y = "Mean perceived risk", x = "Energy Technologies")+
+  ggtitle("Perceived risk and benefit from individually owned energy technologies by gender")+
+  theme(axis.text.x = element_text(angle=90, hjust=1, vjust=0.5))
+
+
+library(gridExtra)
+grid.arrange(p1, p2, ncol = 2)
+
+```
+
+
+```{r}
+
+# conducting 
+library(stats)
+
+male_risk <- demovars[demovars$gender == "Male",]$Risky_Nuclear
+female_risk <- demovars[demovars$gender == "Female",]$Risky_Nuclear
+
+wilcox.test(male_risk, female_risk, alternative = "two.sided")
+
+
+library(dplyr)
+library(purrr)
+
+demovars %>% 
+  filter(gender %in% c("Male", "Female"))%>%
+  select(starts_with("Risky")) %>% 
+  lapply(function(col) wilcox.test(col ~ gender, data = demovars))
+
+
+
+```
+

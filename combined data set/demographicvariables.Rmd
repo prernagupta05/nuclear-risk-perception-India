@@ -152,6 +152,23 @@ joineddf <-  full_join(numcol2, numcol1, by = c("Respondent", "Language", "Surve
 
 ```
 
+
+```{r}
+#checking distribution of age 
+
+library(ggplot2)
+
+ggplot(joineddf, aes(x = age)) +
+  geom_bar(fill = "blue", alpha = 0.5) +
+  labs(x = "Age", y = "Frequency") +
+  ggtitle("Distribution of Age")
+
+
+```
+
+
+
+
 \newpage
 
 ## Perceived Risk Scores for all centrally managed energy technologies(nuclear energy, hydroelectric dam, solar energy, wind energy, coal, gas and oil) by gender and caste groups 
@@ -234,7 +251,7 @@ caste_gender2 %>%
   geom_bar(stat="identity", position=position_dodge(), fill = "palegreen3")+
   geom_errorbar(aes(xmin=mean-sd, xmax=mean + sd), width=.2,
                  position=position_dodge(.9))+
-  labs(x = "mean perceived risk", y = "GenderXCaste groups")
+  labs(x = "mean perceived benefit", y = "GenderXCaste groups")
  
 
 
@@ -949,6 +966,9 @@ cenbensummary %>%
   #dplyr::rename(technology= perceivedrisk.technology)
 
 ```
+
+
+
 
 
 ```{r, echo=FALSE}
