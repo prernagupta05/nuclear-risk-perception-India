@@ -216,6 +216,12 @@ sum_mrisk <- demovars_mrisk %>%
 
 ```
 
+
+
+
+
+
+
 ```{r}
 library(ggplot2)
 
@@ -226,24 +232,24 @@ sum_gender <- rbind(sum_frisk, sum_mrisk)
 
 p1 <- sum_gender%>% 
   filter(Technology %in% c("Wind","Nuclear","Solar","Oil","Hydro","Gas","Coal")) %>%
-  ggplot(aes(x=Technology, y= mean, fill = gender))+
+  ggplot(aes(x=Technology, y= median, fill = gender))+
   geom_bar(stat="identity", position=position_dodge())+
   #geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=0.2, position=position_dodge(0.9)) +
   ylim(0,5)+
   scale_fill_manual(values=c("red", "blue"), name="legend")+
-  labs(y = "Mean perceivd risk", x = "Energy Technologies")+
+  labs(y = "Median perceivd risk", x = "Energy Technologies")+
   ggtitle("Perceived risk and benefit from centrally owned energy technologies by gender")+
   theme(axis.text.x = element_text(angle=90, hjust=1, vjust=0.5))
 
 
 p2 <- sum_gender%>% 
   filter(Technology %in% c("INDHydro", "INDSolar", "INDWind", "INDBiogas","INDDiesel", "INDKerosene","INDFirewoodetc","INDLPG")) %>%
-  ggplot(aes(x=Technology, y= mean, fill = gender))+
+  ggplot(aes(x=Technology, y= median, fill = gender))+
   geom_bar(stat="identity", position=position_dodge())+
   #geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=0.2, position=position_dodge(0.9)) +
   ylim(0,5)+
   scale_fill_manual(values=c("red", "blue"), name="legend")+
-  labs(y = "Mean perceived risk", x = "Energy Technologies")+
+  labs(y = "Median perceived risk", x = "Energy Technologies")+
   ggtitle("Perceived risk and benefit from individually owned energy technologies by gender")+
   theme(axis.text.x = element_text(angle=90, hjust=1, vjust=0.5))
 
@@ -256,24 +262,41 @@ grid.arrange(p1, p2, ncol = 2)
 
 ```{r}
 
-# conducting 
+# conducting non-parametric procedure : "Wilcoxon rank-sum test" to see how perception of risk may differ according to gender. 
 library(stats)
+library(dplyr)
+library(purrr)
+library(broom)
 
 male_risk <- demovars[demovars$gender == "Male",]$Risky_Nuclear
 female_risk <- demovars[demovars$gender == "Female",]$Risky_Nuclear
 
+
 wilcox.test(male_risk, female_risk, alternative = "two.sided")
 
-
-library(dplyr)
-library(purrr)
-
-demovars %>% 
+wilcox_gender <- demovars %>% 
   filter(gender %in% c("Male", "Female"))%>%
   select(starts_with("Risky")) %>% 
   lapply(function(col) wilcox.test(col ~ gender, data = demovars))
 
+wilcox_gender <- do.call(rbind, wilcox_gender)
+
+wilcox_gender
 
 
+```
+```{r}
+
+# for making a data frame from wilcox test
+#wilcox_gender <- demovars %>% 
+  #filter(gender %in% c("Male", "Female"))%>%
+  #select(starts_with("Risky")) %>% 
+  #lapply(function(col) broom::tidy(wilcox.test(col ~ gender, data = demovars)))
+
+#wilcox_gender <- do.call(rbind, wilcox_gender)
+
+#wilcox_gender$variable <- rownames(wilcox_gender)
+
+#wilcox_gender <- as.data.frame(wilcox_gender)
 ```
 
