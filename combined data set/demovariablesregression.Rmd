@@ -152,7 +152,7 @@ numcol1 <- codedmodule1 %>% add_column(Respondent = 1099:2160, .before = "Langua
 joineddf <-  full_join(numcol2, numcol1, by = c("Respondent", "Language", "Survey_Date", "State", "Risky_Hydro", "Risky_Solar", "Risky_Wind", "Risky_Nuclear", "Risky_Coal", "Risky_Gas", "Risky_Oil", "Risky_INDHydro", "Risky_INDSolar", "Risky_INDWind", "Risky_INDBiogas", "Risky_INDDiesel", "Risky_INDKerosene", "Risky_INDFirewoodetc", "Risky_INDLPG", "Ben_Hydro", "Ben_Solar", "Ben_Wind", "Ben_Nuclear", "Ben_Coal", "Ben_Gas", "Ben_Oil", "Ben_INDHydro", "Ben_INDSolar", "Ben_INDWind", "Ben_INDDiesel", "Ben_INDBiogas", "Ben_INDFirewoodetc", "Ben_INDLPG", "Ben_INDKerosene", "N_accept", "N_reluctantlyaccept", "N_reject", "age", "urban_rural", "gender", "caste", "religion", "religiontext")) 
 
 
-summary(joineddf)
+
 
 ```
 
@@ -165,8 +165,7 @@ demovars <- joineddf %>%
   select(starts_with("Risky"), starts_with("Ben"),urban_rural, gender, caste, religion, age, State)%>%
   mutate(religion = ifelse(religion == "Other (Please mention)", "Other", religion))
 
-summary(demovars)
-table(demovars$gender)
+
 
 
 ```
@@ -211,12 +210,7 @@ sum_mrisk <- demovars_mrisk %>%
 
 
 
-
-
-
 ```
-
-
 
 
 
@@ -239,7 +233,9 @@ p1 <- sum_gender%>%
   scale_fill_manual(values=c("red", "blue"), name="legend")+
   labs(y = "Median perceivd risk", x = "Energy Technologies")+
   ggtitle("Perceived risk and benefit from centrally owned energy technologies by gender")+
-  theme(axis.text.x = element_text(angle=90, hjust=1, vjust=0.5))
+  theme(axis.text.x = element_text(angle=90, hjust=1, vjust=0.5))+
+  annotate("text", x=c("Solar", "Nuclear", "Coal"), y=4.8, label="*", size=10, fontface="bold") +
+  theme(axis.text.x = element_text(angle=90, hjust=1, vjust=0.5, size=12, margin=margin(l=50)))
 
 
 p2 <- sum_gender%>% 
@@ -251,52 +247,250 @@ p2 <- sum_gender%>%
   scale_fill_manual(values=c("red", "blue"), name="legend")+
   labs(y = "Median perceived risk", x = "Energy Technologies")+
   ggtitle("Perceived risk and benefit from individually owned energy technologies by gender")+
-  theme(axis.text.x = element_text(angle=90, hjust=1, vjust=0.5))
+  theme(axis.text.x = element_text(angle=90, hjust=1, vjust=0.5)) +
+  annotate("text", x=c("INDSolar", "INDBiogas", "INDDiesel"), y=4.8, label="*", size=10, fontface="bold") +
+  theme(axis.text.x = element_text(angle=90, hjust=1, vjust=0.5, size=12, margin=margin(l=50)))
 
 
 library(gridExtra)
-grid.arrange(p1, p2, ncol = 2)
+grid.arrange(p1, p2, ncol = 2, widths = NULL)
 
 ```
-
 
 ```{r}
 
 # conducting non-parametric procedure : "Wilcoxon rank-sum test" to see how perception of risk may differ according to gender. 
+
+library(broom)
 library(stats)
 library(dplyr)
-library(purrr)
-library(broom)
 
-male_risk <- demovars[demovars$gender == "Male",]$Risky_Nuclear
-female_risk <- demovars[demovars$gender == "Female",]$Risky_Nuclear
-
+male_risk<- demovars[demovars$gender == "Male",]$Risky_Nuclear 
+female_risk <- demovars[demovars$gender == "Female",]$Risky_Nuclear 
 
 wilcox.test(male_risk, female_risk, alternative = "two.sided")
 
-wilcox_gender <- demovars %>% 
-  filter(gender %in% c("Male", "Female"))%>%
-  select(starts_with("Risky")) %>% 
-  lapply(function(col) wilcox.test(col ~ gender, data = demovars))
 
-wilcox_gender <- do.call(rbind, wilcox_gender)
+Cmale_risk<- demovars[demovars$gender == "Male",]$Risky_Coal 
+Cfemale_risk <- demovars[demovars$gender == "Female",]$Risky_Coal 
 
-wilcox_gender
+wilcox.test(Cmale_risk, Cfemale_risk, alternative = "two.sided")
+
+demovars_mf <- demovars %>% 
+  filter(gender %in% c("Male", "Female"))
+
+
+wilcox_gender <- demovars_mf %>%
+  select(starts_with("Risky")) %>%
+  lapply(function(col) wilcox.test(col ~ gender, data = demovars_mf))
+
+
+wilcox_mf <- do.call(rbind, wilcox_gender)
+
+# results from this are used to mark significant differences in the bar graph above. 
+
+
+
+```
+
+
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+demovars_caste_long <- demovars_caste %>%
+  pivot_longer(cols = starts_with("Risky_"), names_to = "technology", values_to = "perceived_risk") %>%
+  mutate(technology = gsub("Risky_", "", technology)) %>%
+        mutate(caste = ifelse(grepl("SC|Scheduled caste", caste), "SC", caste),
+              caste = ifelse(grepl("ST|Scheduled Tribe", caste), "ST", caste),
+              caste = ifelse(grepl("OBC|Other Backward Classes", caste), "OBC", caste))
+
+
+
+```
+
+
+
+```{r}
+
+library(ggplot2)
+
+
+# Subset dataframe with IND prefix
+demovars_caste_long_ind <- demovars_caste_long %>% 
+  filter(str_starts(technology, "IND"))%>%
+   group_by(caste, technology) %>% 
+  summarize(median_perceived_risk = median(perceived_risk))
+
+table(demovars_caste_long_ind)
+
+# Create bar graph with IND prefix 
+ggplot(demovars_caste_long_ind, aes(x = technology, y = median_perceived_risk, fill = caste)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Median Perceived Risk by Caste Groups for Technologies with IND Prefix",
+       x = "Technology", y = "Median Perceived Risk") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) # Rotate x-axis labels
+
+# Subset dataframe without IND prefix
+demovars_caste_long_not_ind <- demovars_caste_long %>% 
+  filter(!str_starts(technology, "IND"))%>%
+   group_by(caste, technology) %>% 
+  summarize(median_perceived_risk = median(perceived_risk))
+
+# Create bar graph without IND prefix 
+
+ggplot(demovars_caste_long_not_ind, aes(x = technology, y = median_perceived_risk, fill = caste)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Median Perceived Risk by Caste Groups for Technologies without IND Prefix",
+       x = "Technology", y = "Median Perceived Risk") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) # Rotate x-axis labels
 
 
 ```
 ```{r}
 
-# for making a data frame from wilcox test
-#wilcox_gender <- demovars %>% 
-  #filter(gender %in% c("Male", "Female"))%>%
-  #select(starts_with("Risky")) %>% 
-  #lapply(function(col) broom::tidy(wilcox.test(col ~ gender, data = demovars)))
+# print the head of the file
+head(demovars_caste_long)
 
-#wilcox_gender <- do.call(rbind, wilcox_gender)
 
-#wilcox_gender$variable <- rownames(wilcox_gender)
+# Show the group/caste levels
 
-#wilcox_gender <- as.data.frame(wilcox_gender)
+demovars_caste_long$caste <- factor(demovars_caste_long$caste)
+levels(demovars_caste_long$caste)
+
+# compute summary statistic by groups 
+library(dplyr)
+summary_caste <- group_by(demovars_caste_long, caste) %>%
+  summarise(
+    count = n(),
+    mean = mean(perceived_risk, na.rm = TRUE),
+    sd = sd(perceived_risk, na.rm = TRUE),
+    median = median(perceived_risk, na.rm = TRUE),
+    IQR = IQR(perceived_risk, na.rm = TRUE)
+  )
+
+
+summary(summary_caste)
+
+library(ggplot2)
+
+# Create the box plot with median values
+
+
+
 ```
+
+```{r}
+
+demovars_caste_long$technology <- factor(demovars_caste_long$technology)
+levels(demovars_caste_long$technology)
+
+
+kruskal.test(perceived_risk ~ caste, data = demovars_caste_long)
+
+pairwise.wilcox.test(demovars_caste_long$perceived_risk, demovars_caste_long$caste,
+                 p.adjust.method = "BH")
+
+library(dplyr)
+#for Nuclear
+Nuclear_caste <- demovars_caste_long %>%
+  filter(technology == "Nuclear")
+
+pairwise.wilcox.test(Nuclear_caste$perceived_risk, Nuclear_caste$caste,
+                 p.adjust.method = "BH")
+
+
+# For Coal
+Coal_caste <- demovars_caste_long %>%
+  filter(technology == "Coal")
+pairwise.wilcox.test(Coal_caste$perceived_risk, Coal_caste$caste, p.adjust.method = "BH")
+
+# For Gas
+Gas_caste <- demovars_caste_long %>%
+  filter(technology == "Gas")
+pairwise.wilcox.test(Gas_caste$perceived_risk, Gas_caste$caste, p.adjust.method = "BH")
+
+# For Hydro
+Hydro_caste <- demovars_caste_long %>%
+  filter(technology == "Hydro")
+pairwise.wilcox.test(Hydro_caste$perceived_risk, Hydro_caste$caste, p.adjust.method = "BH")
+
+# For INDBiogas
+INDBiogas_caste <- demovars_caste_long %>%
+  filter(technology == "INDBiogas")
+pairwise.wilcox.test(INDBiogas_caste$perceived_risk, INDBiogas_caste$caste, p.adjust.method = "BH")
+
+# For INDDiesel
+INDDiesel_caste <- demovars_caste_long %>%
+  filter(technology == "INDDiesel")
+pairwise.wilcox.test(INDDiesel_caste$perceived_risk, INDDiesel_caste$caste, p.adjust.method = "BH")
+
+# For INDFirewoodetc
+INDFirewoodetc_caste <- demovars_caste_long %>%
+  filter(technology == "INDFirewoodetc")
+pairwise.wilcox.test(INDFirewoodetc_caste$perceived_risk, INDFirewoodetc_caste$caste, p.adjust.method = "BH")
+
+# For INDHydro
+INDHydro_caste <- demovars_caste_long %>%
+  filter(technology == "INDHydro")
+pairwise.wilcox.test(INDHydro_caste$perceived_risk, INDHydro_caste$caste, p.adjust.method = "BH")
+
+# For INDKerosene
+INDKerosene_caste <- demovars_caste_long %>%
+  filter(technology == "INDKerosene")
+pairwise.wilcox.test(INDKerosene_caste$perceived_risk, INDKerosene_caste$caste, p.adjust.method = "BH")
+
+# For INDLPG
+INDLPG_caste <- demovars_caste_long %>%
+  filter(technology == "INDLPG")
+pairwise.wilcox.test(INDLPG_caste$perceived_risk, INDLPG_caste$caste, p.adjust.method = "BH")
+
+# For INDSolar
+INDSolar_caste <- demovars_caste_long %>%
+  filter(technology == "INDSolar")
+pairwise.wilcox.test(INDSolar_caste$perceived_risk, INDSolar_caste$caste, p.adjust.method = "BH")
+
+# For INDWind
+INDWind_caste <- demovars_caste_long %>%
+  filter(technology == "INDWind")
+pairwise.wilcox.test(INDWind_caste$perceived_risk, INDWind_caste$caste, p.adjust.method = "BH")
+
+# For Oil
+Oil_caste <- demovars_caste_long %>%
+  filter(technology == "Oil")
+pairwise.wilcox.test(Oil_caste$perceived_risk, Oil_caste$caste, p.adjust.method = "BH")
+
+
+# For Solar
+Solar_caste <- demovars_caste_long %>%
+  filter(technology == "Solar")
+pairwise.wilcox.test(Solar_caste$perceived_risk, Solar_caste$caste, p.adjust.method = "BH")
+
+
+
+# For Wind
+Wind_caste <- demovars_caste_long %>%
+  filter(technology == "Wind")
+pairwise.wilcox.test(Wind_caste$perceived_risk, Wind_caste$caste, p.adjust.method = "BH")
+
+
+
+#not finding any significant differences in the medians 
+
+```
+```{r}
+
+demovars_urban_rural <-  demovars %>%
+  select(starts_with("Risky"), urban_rural) %>%
+  pivot_longer(cols = starts_with("Risky_"), names_to = "technology", values_to = "perceived_risk") %>%
+  mutate(technology = gsub("Risky_", "", technology)) %>%
+  na.omit()
+
+
+pairwise.wilcox.test(demovars_urban_rural$perceived_risk, demovars_urban_rural$urban_rural, p.adjust.method = "BH")
+
+```
+
 

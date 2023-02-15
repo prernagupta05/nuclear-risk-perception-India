@@ -456,6 +456,9 @@ sum(duplicated(joineddf))
 ggplot(perceivedrisk, aes(x = perceived_risk, y = technology)) + 
   geom_boxplot()
  
+ggplot(perceivedrisk, aes(x = perceived_risk, y = technology)) + 
+  geom_violin()
+#the violin graph shows that the data is definitely not normally distributed 
 
 levels(perceivedrisk$technology)
 
