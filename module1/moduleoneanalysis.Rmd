@@ -11,7 +11,7 @@ output:
     df_print: paged
 ---
 
-```{r load packages, warning = FALSE, message = FALSE}
+```{r load packages, warning = FALSE, message = FALSE, echo=FALSE}
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(readxl))
 suppressPackageStartupMessages(library(dplyr))
@@ -222,7 +222,6 @@ codedmodule1$gender <- factor(codedmodule1$gender, levels = c("Male","Female"))
 
 ```{r, echo=FALSE}
 
-colnames(codedmodule1)
 addedcols <- codedmodule1 %>%
   mutate_at(vars(Lassociation, Lboat, Iassociation, totalincome, otherincome, govtscheme, education, subsidyknow, drinkingwater, cookingwater, wateravail, toilet, house, houseown, cook1, cook2, cook3, cook4, vehicle1, vehicle2, vehicle3, vehicle4, vehicletext, polposition, polparty, food1, food2, food3, food4, foodadequacy, foodtrouble, illness, severeillness, Llenght, Lfarmbigha, Lanimalcowbull, Lanimalcattle, Lanimalhorses, Lanimalgoats, Lanimalsheep, Lanimalpoultry, Ilenght, Ipropvalue, farwatermins, healthdist), as.numeric) %>%
   mutate(stove = cook1 + cook2 + cook3 + cook4, 
@@ -287,22 +286,22 @@ num_NAs2 <- colSums(is.na(assetcheck))
 
 #print(num_NAs2)
 
-codedmodule1 %>% count(Livelihood_Income)
-addedcols %>% count(Livelihood_Income)
-codedmodule1 %>% count(Lfarmbigha)
-codedmodule1 %>% filter(Livelihood_Income == "LSI") %>% count(Lfarmland)
-addedcols %>% filter(Livelihood_Income == "LSI") %>% count(animals)
-codedmodule1 %>% count(Lboat)
+#codedmodule1 %>% count(Livelihood_Income)
+#addedcols %>% count(Livelihood_Income)
+#codedmodule1 %>% count(Lfarmbigha)
+#codedmodule1 %>% filter(Livelihood_Income == "LSI") %>% count(Lfarmland)
+#addedcols %>% filter(Livelihood_Income == "LSI") %>% count(animals)
+#codedmodule1 %>% count(Lboat)
 
 
-addedcols %>% filter(Livelihood_Income == "LSI") %>% filter(Lfarmland == "Doesn't apply") %>% count(Lboat)
-addedcols %>% filter(Livelihood_Income == "LSI") %>% filter(Lfarmland == "Doesn't apply") %>% count(animals)
+#addedcols %>% filter(Livelihood_Income == "LSI") %>% filter(Lfarmland == "Doesn't apply") %>% count(Lboat)
+#addedcols %>% filter(Livelihood_Income == "LSI") %>% filter(Lfarmland == "Doesn't apply") %>% count(animals)
 
-addedcols %>% filter(Livelihood_Income == "ISI") %>% count(Iproperty)
+#addedcols %>% filter(Livelihood_Income == "ISI") %>% count(Iproperty)
 
 # checking NAs in ISI part 
 
-module1 %>% filter(!row_number() %in% c(1,2)) %>% filter(Livelihood_Income != "(a) own farming/fishing/animal rearing/business") %>% count(Iproperty)
+#module1 %>% filter(!row_number() %in% c(1,2)) %>% filter(Livelihood_Income != "(a) own farming/fishing/animal rearing/business") %>% count(Iproperty)
 
 # there are only 4 people who said they own a boat but not a farmland when looking at those people who answered LSI part of the survey. So we will just look at boat as  another livelihood asset and remove the 4 responses by removing Doesn't apply values in the Lfarmland part. 
 
@@ -340,8 +339,6 @@ nuclear_LI[cols_to_convert] <- lapply(nuclear_LI[cols_to_convert], standardize)
 
 
 # first make two different groups in the data by Livelihood_Income variable. - homemaker, ISI, LSI, other (retired, student, unable to work, unemployed)
-
-str(nuclear_LI)
 
 
 # For 'homemaker'
@@ -511,8 +508,6 @@ nuclearLI_lm <- lm(Risky_Nuclear ~ caste + gender + urban_rural + human_asset + 
 nuclearLI_lm2 <- lm(Risky_Nuclear ~ caste + gender + urban_rural + LIscore , data = nuclear_model)
 
 
-summary(nuclearLI_lm)
-summary(nuclearLI_lm2)
 #plot(nuclearLI_lm)
 
 
@@ -539,7 +534,6 @@ standardize <- function(x) {
 solar_LI[cols_to_convert] <- lapply(solar_LI[cols_to_convert], standardize)
 
 # Displaying the first few rows of the dataframe
-head(solar_LI)
 
 
 solar_model <- solar_LI %>%  
@@ -564,8 +558,6 @@ solar_model <- solar_LI %>%
 solarLI_lm <- lm(Risky_Solar ~ caste + gender + urban_rural + human_asset + physical_asset + social_asset + financial_asset + food_security + health_status , data = solar_model)
 
 solarLI_lm2 <- lm(Risky_Solar ~ caste + gender + urban_rural + LIscore , data = solar_model)
-summary(solarLI_lm)
-summary(solarLI_lm2)
 #plot(solarLI_lm)
 
 
@@ -622,8 +614,6 @@ coalLI_lm <- lm(Risky_Coal ~ caste + gender + urban_rural + human_asset + physic
 
 coalLI_lm2 <- lm(Risky_Coal ~ caste + gender + urban_rural + LIscore, data = coal_model)
 
-summary(coalLI_lm)
-summary(coalLI_lm2)
 #plot(coalLI_lm)
 
 
@@ -700,7 +690,7 @@ JIS_fas <- '
 JIS_cfa <- cfa(JIS_fas, data = JIS , std.lv = TRUE)
 
 # Print the summary of the CFA results, including fit measures
-summary(JIS_cfa, fit.measure= TRUE, standardized = TRUE)
+#summary(JIS_cfa, fit.measure= TRUE, standardized = TRUE)
 
 
 # RMSEA - between 0.05 and 0.08 (reasonable fit), less than 0.05 close fit and greater than 0.10 is poor fit 
@@ -720,7 +710,6 @@ JIS_Jscores <- cbind(JIS_data, JIS_scores)
 
 JIS_lm1 <- lm(Risky_Nuclear ~ caste + gender + urban_rural+ JIS_scores, data = JIS_Jscores)
 
-summary(JIS_lm1) 
 
 
 
@@ -762,28 +751,20 @@ cat("\\endgroup")
 
 
 
-
-\newpage
-
-#Extra
-
-
 ```{r, echo = FALSE}
 
 ##checking stuff
-codedmodule1 
 
-codedmodule1 %>%
-  filter(Livelihood_Income == "LSI") %>%
-  count(Lfarmland)
-codedmodule1 %>%
-  count(Iproperty)
 
-lapply(codedmodule1, unique)
-ncol(codedmodule1)
-colnames(codedmodule1)
+#codedmodule1 %>%
+  #filter(Livelihood_Income == "LSI") %>%
+  #count(Lfarmland)
+#codedmodule1 %>%
+  #count(Iproperty)
 
-str(codedmodule1)
+#lapply(codedmodule1, unique)
+
+#str(codedmodule1)
 
 
 
@@ -792,7 +773,7 @@ str(codedmodule1)
 
 
 
-
+\newpage
 
 
 # Livelihood/Income Security scale adapted from Kamaruddin and Samsudin(2014)
