@@ -1,0 +1,100 @@
+---
+title: "Extra"
+output: html_document
+---
+
+```{r}
+
+#FA on LSI/ISI components 
+
+df_FA <- addedcols %>% 
+  dplyr::select(LIlenght,LIassociation, govtscheme,education, workknowledge, subsidyknow, drinkingwater, cookingwater,farwatermins, wateravail, toilet, house, houseown, polposition, polparty,  foodadequacy, foodtrouble, healthdist, illness, severeillness, stove, vehicle, food, income)%>%
+  na.omit()
+
+df_FA_numeric <- data.frame(lapply(df_FA, as.numeric))
+
+# Print the new dataframe
+print(df_FA_numeric)
+ 
+lapply(df_FA, unique)
+
+
+df_FA_cor <- cor(df_FA_numeric)
+PCA_LI <- principal(df_FA_numeric, nfactors = 24, rotate = "none") # no rotation to start with. 
+
+print(PCA_LI)
+
+PCA_LI$loadings
+
+
+
+PCA_LI6 <- principal(df_FA_numeric, nfactors = 6, rotate = "varimax") # no rotation to start with. 
+
+print(PCA_LI6)
+
+PCA_LI6$loadings
+
+# Extract the loadings
+loadings <- PCA_LI6$loadings
+
+# Set loadings less than 0.4 to NA
+loadings[abs(loadings) < 0.4] <- NA
+
+# Print the updated loadings
+print(loadings)
+```
+
+
+```{r}
+## Now PCA on my SLI and LVI scales
+
+SLI <-  addedcols %>%
+  filter(Livelihood_Income == "LSI") %>%
+  dplyr::select(Lconfidence, Llenght, Lassociation, animals, income, govtscheme,education, workknowledge, drinkingwater,
+         cookingwater, farwatermins, wateravail,toilet, house, houseown, stove, vehicle, polposition, polparty, food, foodadequacy, foodtrouble, healthdist,          illness, severeillness) %>%
+          na.omit()
+
+# questions about coding the data - ask milind tomorrow 
+
+
+addedcols %>%
+ filter(Livelihood_Income == "LSI") %>%
+ summarise(n=n())
+
+SLI %>%
+  summarise_all(~sum(is.na(.)))
+
+
+
+str(SLI)
+
+# Convert all columns to numeric
+SLI_numeric <- data.frame(lapply(SLI, function(x) as.numeric(as.factor(x))))
+
+# Determine the number of factors to retain using parallel analysis
+
+SLI_cor <- cor(SLI_numeric)
+PCA25 <- principal(SLI_numeric, nfactors = 25 , rotate = "none") # no rotation to start with. 
+
+print(PCA25)
+
+PCA25$loadings
+
+fa.parallel(SLI_cor)
+
+
+
+SLI.pca <- principal(SLI_numeric, nfactors = 9, rotate = "varimax")
+
+print.psych(SLI.pca, cut = 0.40, sort = TRUE)
+
+fa.diagram(SLI.fa)
+
+
+
+
+
+
+
+
+```

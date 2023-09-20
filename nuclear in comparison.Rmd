@@ -1,0 +1,638 @@
+---
+title: 'nuclear energy in comparison'
+output:
+  pdf_document:
+    toc: yes
+    toc_depth: 2
+    keep_tex: yes
+  header-includes:
+  - \usepackage{dcolumn}
+  - \usepackage{array}
+  keep_md: yes
+---
+
+
+```{r load packages, warning = FALSE, message = FALSE, echo=FALSE}
+  knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(readxl))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(tidyr))
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(lavaan))
+suppressPackageStartupMessages(library(tsibble))
+suppressPackageStartupMessages(library(DT))
+suppressPackageStartupMessages(library(knitr))
+suppressPackageStartupMessages(library(psych)) 
+```
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+moduletwo <- read_excel(here::here("thesis_surveydata/political_factors_complete.xlsx"))
+module2 <- data.frame(moduletwo)
+module2[module2 == "Rather not say/ Don't know"] <- "Rather not say/Don't know"
+
+# loaded data set for module 2 eco -pol variables and removes the rows with question number and question text
+```
+
+```{r, eval =TRUE, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+#This chunk contains the coding schemes of various scales used in survey one: eco-political factors, kahan scale and acceptance scale
+codedmodule2 <- module2 %>%
+  
+#remove row 1
+  filter(!row_number() %in% c(1,2)) %>% 
+  
+# replace risky likert scale with numbers
+  mutate_at(vars(starts_with("Risky")), funs(case_when(. =="Not at all risky" ~ 1, 
+                                                       . =="Slightly risky" ~ 2, 
+                                                       . =="Moderately risky" ~ 3, 
+                                                       . =="Very risky" ~ 4, 
+                                                       . =="Extremely risky" ~ 5))) %>%
+
+# replace beneficial likert scale with numbers  
+  mutate_at(vars(starts_with("Ben")), funs(case_when(. =="Not at all beneficial" ~ 1,
+                                                     . =="Slightly beneficial" ~ 2,
+                                                     . =="Moderately beneficial" ~ 3,
+                                                     . =="Very beneficial" ~ 4,
+                                                     . =="Extremely beneficial" ~ 5 ))) %>%
+
+# replace nuclear acceptance likert scale with numbers
+  mutate_at(vars(N_accept,N_reluctantlyaccept,N_reject), funs(case_when(. == "Strongly disagree" ~ 1, 
+                                                                        . == "Somewhat disagree" ~ 2,
+                                                                        . == "Neither agree nor disagree" ~3,
+                                                                        . == "Somewhat agree" ~ 4,
+                                                                        . == "Strongly agree" ~ 5))) %>%
+  
+# code likert scale for variables for Kahan scale into numbers
+  mutate_at(vars(starts_with (c("K_I","K_H","DISPLACE", "POLLUTE", "HEALTH", "JOBS", "BEAUTY", "PRIDE", "NPRIDE", "DEV", "PROSPER", "RELY"))), funs(case_when(. == "Strongly disagree" ~ 1, 
+               . == "Somewhat disagree" ~ 2,
+               . == "Neither agree nor disagree" ~3,
+               . == "Somewhat agree" ~ 4,
+               . == "Strongly agree" ~ 5))) %>%
+  
+# reverse code for likert scale for variables for Kahan scale into numbers
+  mutate_at(vars(starts_with (c("K_S","K_E"))), funs(case_when(. == "Strongly disagree" ~ 5, 
+                                                               . == "Somewhat disagree" ~ 4,
+                                                               . == "Neither agree nor disagree" ~3,
+                                                               . == "Somewhat agree" ~ 2,
+                                                               . == "Strongly agree" ~ 1))) %>%
+
+# code eco-pol scale variables into numbers
+  mutate_at(vars(SYSTEMDEMO,SYSTEMRELIGION,SYSTEMTECHNO,SYSTEMTOTAL,WEALTHLIM,MECHANISATION,DECISIONDECEN,INDUSTRYLARGE,ECONOMYGLOBAL,OWNERPVT,OWNERNOREG), funs(case_when(. == "Strongly disagree" ~ 1, 
+                        . == "Somewhat disagree" ~ 2,
+                        . == "Neither agree nor disagree" ~3,
+                        . == "Somewhat agree" ~ 4,
+                        . == "Strongly agree" ~ 5))) %>%
+
+# reverse code eco-pol scale variables into numbers 
+ mutate_at(vars(DECISIONCEN, INDUSTRYSMALL, ECONOMYLOCAL, ENVOVERDEV,OWNERPUB, OWNERREG), funs(case_when(. == "Strongly disagree" ~ 5, 
+                                                                                                         . == "Somewhat disagree" ~ 4,
+                                                                                                         . == "Neither agree nor disagree" ~3,
+                                                                                                         . == "Somewhat agree" ~ 2,
+                                                                                                         . == "Strongly agree" ~ 1))) %>%
+  mutate_all(~ifelse(. == "Rather not say/ Don't know", "Rather not say/Don't know", .))%>%
+  mutate_all(~ifelse(. == "West bengal", "West Bengal", .))%>%
+  mutate_all(~ifelse(. == "WEST BENGAL", "West Bengal", .))%>%
+  mutate_all(~ifelse(. == "Up", "Uttar Pradesh", .))%>%
+  mutate_all(~ifelse(. == "Tamilnadu", "Tamil Nadu", .))%>%
+  mutate_all(~ifelse(. == "UP", "Uttar Pradesh", .))
+  
+
+```
+
+
+```{r, eval=TRUE, echo=FALSE}
+
+moduleone <- read_excel(here::here("thesis_surveydata/livelihood_insecurity_complete.xlsx"))
+module1 <- data.frame(moduleone)
+# loaded data set for module 2 eco -pol variables and removes the rows with question number and question text
+```
+
+
+```{r, eval =TRUE, echo=FALSE}
+#This chunk contains the coding schemes of various scales used in survey one: eco-political factors, kahan scale and acceptance scale
+codedmodule1 <- module1 %>%
+
+#remove row 1 and 2 
+  filter(!row_number() %in% c(1,2)) %>% 
+  
+# replace risky likert scale with numbers
+  mutate_at(vars(starts_with("Risky")), funs(case_when(. =="Not at all risky" ~ 1, 
+                                                       . =="Slightly risky" ~ 2, 
+                                                       . =="Moderately risky" ~ 3, 
+                                                       . =="Very risky" ~ 4, 
+                                                       . =="Extremely risky" ~ 5))) %>%
+
+# replace beneficial likert scale with numbers  
+  mutate_at(vars(starts_with("Ben")), funs(case_when(. =="Not at all beneficial" ~ 1,
+                                                     . =="Slightly beneficial" ~ 2,
+                                                     . =="Moderately beneficial" ~ 3,
+                                                     . =="Very beneficial" ~ 4,
+                                                     . =="Extremely beneficial" ~ 5 ))) %>%
+
+# replace nuclear acceptance likert scale with numbers
+  mutate_at(vars(N_accept,N_reluctantlyaccept,N_reject), funs(case_when(. == "Strongly disagree" ~ 1, 
+                                                                        . == "Somewhat disagree" ~ 2,
+                                                                        . == "Neither agree nor disagree" ~3,
+                                                                        . == "Somewhat agree" ~ 4,
+                                                                        . == "Strongly agree" ~ 5)))%>%
+  mutate_all(~ifelse(. == "Rather not say/ Don't know", "Rather not say/Don't know", .))%>%
+  mutate_all(~ifelse(. == "West bengal", "West Bengal", .))%>%
+  mutate_all(~ifelse(. == "WEST BENGAL", "West Bengal", .))%>%
+  mutate_all(~ifelse(. == "Up", "Uttar Pradesh", .))%>%
+  mutate_all(~ifelse(. == "Tamilnadu", "Tamil Nadu", .))%>%
+  mutate_all(~ifelse(. == "UP", "Uttar Pradesh", .))
+
+```
+
+
+```{r, echo = FALSE}
+
+suppressPackageStartupMessages(library(tidyselect))
+# combine codedmodule1 and codedmodule2
+
+numcol2 <- codedmodule2 %>% add_column(Respondent = 1:1099, .before = "Language") 
+numcol1 <- codedmodule1 %>% add_column(Respondent = 1099:2160, .before = "Language")
+
+joineddf <-  full_join(numcol2, numcol1, by = c("Respondent", "Language", "Survey_Date", "State", "Risky_Hydro", "Risky_Solar", "Risky_Wind", "Risky_Nuclear", "Risky_Coal", "Risky_Gas", "Risky_Oil", "Risky_INDHydro", "Risky_INDSolar", "Risky_INDWind", "Risky_INDBiogas", "Risky_INDDiesel", "Risky_INDKerosene", "Risky_INDFirewoodetc", "Risky_INDLPG", "Ben_Hydro", "Ben_Solar", "Ben_Wind", "Ben_Nuclear", "Ben_Coal", "Ben_Gas", "Ben_Oil", "Ben_INDHydro", "Ben_INDSolar", "Ben_INDWind", "Ben_INDDiesel", "Ben_INDBiogas", "Ben_INDFirewoodetc", "Ben_INDLPG", "Ben_INDKerosene", "N_accept", "N_reluctantlyaccept", "N_reject", "age", "urban_rural", "gender", "caste", "religion", "religiontext")) 
+
+numcolb <- module2 %>%   filter(!row_number() %in% c(1,2))%>% 
+                        add_column(Respondent = 1:1099, .before = "Language") 
+numcola <- module1 %>%   filter(!row_number() %in% c(1,2)) %>% 
+                        add_column(Respondent = 1099:2160, .before = "Language")
+
+uncodedjoineddf <- full_join(numcolb, numcola, by = c("Respondent", "Language", "Survey_Date", "State", "Risky_Hydro", "Risky_Solar", "Risky_Wind", "Risky_Nuclear", "Risky_Coal", "Risky_Gas", "Risky_Oil", "Risky_INDHydro", "Risky_INDSolar", "Risky_INDWind", "Risky_INDBiogas", "Risky_INDDiesel", "Risky_INDKerosene", "Risky_INDFirewoodetc", "Risky_INDLPG", "Ben_Hydro", "Ben_Solar", "Ben_Wind", "Ben_Nuclear", "Ben_Coal", "Ben_Gas", "Ben_Oil", "Ben_INDHydro", "Ben_INDSolar", "Ben_INDWind", "Ben_INDDiesel", "Ben_INDBiogas", "Ben_INDFirewoodetc", "Ben_INDLPG", "Ben_INDKerosene", "N_accept", "N_reluctantlyaccept", "N_reject", "age", "urban_rural", "gender", "caste", "religion", "religiontext")) %>%
+  mutate_all(~ifelse(. == "Rather not say/ Don't know", "Rather not say/Don't know", .))%>%
+  mutate_all(~ifelse(. == "West bengal", "West Bengal", .))%>%
+  mutate_all(~ifelse(. == "WEST BENGAL", "West Bengal", .))%>%
+  mutate_all(~ifelse(. == "Up", "Uttar Pradesh", .))%>%
+  mutate_all(~ifelse(. == "Tamilnadu", "Tamil Nadu", .))%>%
+  mutate_all(~ifelse(. == "UP", "Uttar Pradesh", .))
+
+  
+
+```
+
+\newpage
+# State Specific Differences. 
+
+We see huge differences for perceived risk and perceived benefit for each technology from state to state. These graphs explore that. 
+The number of respondents from each state are also reported below. 
+
+## Perceived risk by State
+
+
+```{r, echo=FALSE, fig.width=11, fig.height=14, out.width='80%', out.height='80%'}
+
+# part 2: state specific data on perceived risk
+state_risk <- uncodedjoineddf %>%
+    dplyr::select(starts_with(c("RISKY", "State")))%>%
+    gather(Technology, Perceived_Risk, Risky_Hydro:Risky_INDLPG, factor_key = TRUE)%>%
+    separate(Technology, c("Risky", "Technology"), extra = "merge", fill = "left")%>%
+    dplyr::select(-Risky) %>% 
+    group_by(State, Technology, Perceived_Risk) %>%
+    dplyr::summarise(n=n())
+
+count<- uncodedjoineddf %>%
+  dplyr::select(starts_with(c("RISKY", "State")))%>%
+   group_by(State) %>%
+  dplyr::summarise(n=n())
+
+ state_risk_percent <- state_risk %>%
+    group_by(Technology, State) %>%
+    mutate(Percentage = round(n/sum(n)*100, 0)) %>%
+    ungroup()
+ 
+ # Create a named vector with the number of respondents for each state
+respondents_per_state <- c("Maharashtra" = 653, "Rajasthan" = 677, "Tamil Nadu" = 320, "Uttar Pradesh" = 125, "West Bengal" = 386)
+
+respondents_per_state
+
+  
+state_risk %>% ggplot(aes(fill= fct_rev(factor(Perceived_Risk, levels=c("Extremely risky", "Very risky","Moderately risky","Slightly risky","Not at all risky","Rather not say/Don't know"))), y=n , x=Technology)) + 
+    geom_bar(position="fill",stat="identity")+
+     geom_text(data = state_risk_percent, aes(label=paste0(Percentage, "%"), y=n), position = position_fill(vjust=0.5), size=5) +
+    scale_x_discrete(limits = c("Solar", "Wind" ,"Hydro", "Oil", "Coal","Gas", "Nuclear"))+
+    scale_fill_manual("legend", values = c("Extremely risky" = "#8C4646", "Very risky" = "#D9695F", "Moderately risky" = "#F2A679", "Slightly risky" = "#F2D091","Not at all risky" = "#5D8C7B", "Rather not say/Don't know" = "grey94"))+
+    theme_classic()+ 
+    facet_wrap(~ State, ncol = 2)+
+    labs(x = "mean perceived risk", y = "energy technologies")+
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, size=12),  # Increase x-axis text size
+        axis.text.y = element_text(size=12),  # Increase y-axis text size
+        strip.text = element_text(size=12))  # Increase facet label text size
+
+
+
+
+```
+
+
+
+
+
+\newpage
+
+## Perceived Benefit by State
+
+```{r, echo=FALSE, fig.width=12, fig.height=15, out.width='100%', out.height='100%'}
+# part 2: state specific data on perceived benefit
+
+state_ben <- uncodedjoineddf %>%
+  dplyr::select(starts_with(c("Ben", "State")))%>%
+  gather(Technology, Perceived_Benefit, Ben_Hydro:Ben_INDKerosene, factor_key = TRUE)%>%
+  separate(Technology, c("Ben", "Technology"), extra = "merge", fill = "left")%>%
+  dplyr::select(-Ben) %>% 
+  group_by(State, Technology, Perceived_Benefit) %>%
+  dplyr::summarise(n=n())
+
+countben<- uncodedjoineddf %>%
+  dplyr::select(starts_with(c("Ben", "State")))%>%
+   group_by(State) %>%
+  dplyr::summarise(n=n())
+
+ 
+ # Create a named vector with the number of respondents for each state
+respondents_per_state <- c("Maharashtra" = 653, "Rajasthan" = 677, "Tamil Nadu" = 320, "Uttar Pradesh" = 125, "West Bengal" = 386)
+
+respondents_per_state
+
+# Calculate percentages in each group
+state_ben_percent <- state_ben %>%
+  group_by(Technology, State) %>%
+  mutate(Percentage = round(n/sum(n)*100, 0)) %>%
+  ungroup()
+
+#perceived benefit centrally owned technologies by state
+state_ben %>% ggplot(aes(fill= factor(Perceived_Benefit, levels=c("Rather not say/Don't know","Not at all beneficial","Slightly beneficial","Moderately beneficial","Very beneficial", "Extremely beneficial")), y=n , x=Technology)) + 
+  geom_bar(position="fill", stat = "identity")+
+  geom_text(data = state_ben_percent, aes(label=paste0(Percentage, "%"), y=n), position = position_fill(vjust=0.5), size=5) +
+  scale_fill_manual("legend", values = c("Rather not say/Don't know" = "grey94" ,"Not at all beneficial" = "orange","Slightly beneficial"="yellow" ,"Moderately beneficial" = "palegreen","Very beneficial"= "green3", "Extremely beneficial"= "green4"))+
+  scale_x_discrete(limits = c("Solar", "Wind", "Hydro", "Oil", "Coal","Gas","Nuclear"))+
+  theme_classic()+
+  facet_wrap(~ State, ncol = 2)+
+  labs(x = "mean perceived benefit", y = "energy technologies")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size=12), 
+        axis.text.y = element_text(size=12), 
+        strip.text = element_text(size=12))
+
+```
+
+
+```{r}
+staterisky <- joineddf %>%
+  dplyr::select(!starts_with(c("Ben_IND", "Risky_IND")))%>%
+  dplyr::select(starts_with("Risky"), State)
+
+staterisky_mean <- staterisky %>%
+  group_by(State) %>%
+  summarise(
+    Mean_Risky_Hydro = mean(Risky_Hydro, na.rm = TRUE),
+    Mean_Risky_Solar = mean(Risky_Solar, na.rm = TRUE),
+    Mean_Risky_Wind = mean(Risky_Wind, na.rm = TRUE),
+    Mean_Risky_Nuclear = mean(Risky_Nuclear, na.rm = TRUE),
+    Mean_Risky_Coal = mean(Risky_Coal, na.rm = TRUE),
+    Mean_Risky_Gas = mean(Risky_Gas, na.rm = TRUE),
+    Mean_Risky_Oil = mean(Risky_Oil, na.rm = TRUE)
+  )
+ 
+
+str(staterisky_mean)
+
+# Load required packages
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+# Convert to long format
+long_data <- staterisky_mean %>%
+  gather(Technology, Mean_Score, -State) %>%
+  mutate(Technology = gsub("Mean_Risky_", "", Technology))
+
+# Order Technologies
+technology_order <- c("Nuclear", "Gas", "Coal", "Oil", "Hydro", "Wind", "Solar")
+long_data$Technology <- factor(long_data$Technology, levels = technology_order)
+
+# Plot the graph
+ggplot(long_data, aes(x = Technology, y = Mean_Score, color = State, group = State)) +
+  geom_line(size = 1) +
+  geom_point(size = 3) +
+  labs(title = "Mean Perceived Risk by State",
+       x = "Technology", y = "Mean Score") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+
+```
+
+
+
+
+
+```{r}
+# Using dplyr and tidyr
+
+standardized_data <- long_data %>%
+  group_by(Technology) %>%
+  mutate(
+    Overall_Mean = mean(Mean_Score, na.rm = TRUE),
+    Std_Dev = sd(Mean_Score, na.rm = TRUE)
+  ) %>%
+  ungroup() %>%
+  mutate(Standardized_Score = (Mean_Score - Overall_Mean) / Std_Dev) %>%
+  dplyr::select(-Overall_Mean, -Std_Dev)  # 
+
+# Order Technologies
+technology_order <- c("Nuclear", "Gas", "Coal", "Oil", "Hydro", "Wind", "Solar")
+standardized_data$Technology <- factor(standardized_data$Technology, levels = technology_order)
+
+# Plot the graph
+ggplot(standardized_data, aes(x = Technology, y = Standardized_Score, color = State, group = State)) +
+  geom_line(size = 1) +
+  geom_point(size = 3) +
+  labs(title = "Standardised Scores of Technologies by State",
+       x = "Technology", y = "Z Score") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+
+```{r}
+# Switch roles of State and Technology for plotting
+ggplot(standardized_data, aes(x = State, y = Standardized_Score, color = Technology, group = Technology)) +
+  geom_line(size = 1) +
+  geom_point(size = 3) +
+  labs(title = "Standardised Scores of Technologies by State",
+       x = "State", y = "Z Score") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+
+```{r, echo = FALSE}
+
+
+# combining risk and benefit from each energy technology 
+
+acceptance <- joineddf_subset %>%
+  na.omit()%>%
+  mutate(Nuclear = Ben_Nuclear - Risky_Nuclear,
+         Hyrdo = Ben_Hydro - Risky_Hydro,
+         Wind = Ben_Wind - Risky_Wind,
+         Solar = Ben_Solar - Risky_Solar,
+         Coal = Ben_Coal - Risky_Coal,
+         Gas = Ben_Gas - Risky_Gas,
+         Oil = Ben_Oil - Risky_Oil)%>%
+  select(-starts_with(c("Risky", "Ben")))
+
+#str(acceptance)
+
+
+# Compute the mean of each column
+mean_acceptance <- data.frame(col = names(acceptance), mean_val = sapply(acceptance, mean))
+
+# Compute standard error (not deviation)(divided by root of n)
+sem <- function(x) sqrt(var(x, na.rm = TRUE) / length(na.omit(x)))
+sem_acceptance <- data.frame(col = names(acceptance), sem_val = sapply(acceptance, sem))
+
+mean_acceptance <- merge(mean_acceptance, sem_acceptance, by = "col")
+
+
+# Plot
+ggplot(mean_acceptance, aes(x = col, y = mean_val, fill = ifelse(mean_val >= 0, 'Above 0', 'Below 0'))) + 
+  geom_bar(stat = "identity") +
+  geom_errorbar(aes(ymin = mean_val - sem_val, ymax = mean_val + sem_val), width = 0.2) +
+  geom_text(aes(label = round(mean_val, 2)), vjust = -0.9) +
+  scale_fill_manual(values = c('Above 0' = 'palegreen3', 'Below 0' = 'firebrick2')) +
+  labs(fill = "Legend") +
+  xlab("Energy Technologies") +
+  ylab("Mean Value") +
+  ggtitle("Benefit- Risk for Each Energy Technology") +
+  theme_minimal()+
+  ylim(-0.5, 1.75)
+
+
+
+
+```
+\newpage
+
+# Solar Energy - Linear Regression models 
+
+```{r, echo=FALSE}
+
+salldemos <- joineddf %>%
+            dplyr::select(Risky_Solar,Uppercaste, Male, Hindu, Urban, age, State)%>%
+            na.omit()
+
+salldemoslm1 <- lm(Risky_Solar ~ Uppercaste + Male + Hindu + Urban, data = salldemos)
+# Print model summary
+#summary(salldemoslm1)
+#plot(alldemoslm1)
+
+# lm suggests there is no significant white male effect or upper caste male effect for risk perception from nuclear energy in India. 
+# the coefficients are very small and so is the r squared - rsquared is minimal. 
+
+# 2) lm with all demographic variables
+salldemoslm2<- lm(Risky_Solar ~ Uppercaste + Male + Hindu + Urban + age + State, data = salldemos)
+# Print model summary
+#summary(salldemoslm2)
+#plot(alldemoslm1)
+
+
+```
+
+
+## Only demographic variables
+
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
+
+#stargazer code for all demographic variable lms 
+
+
+cat("\\begingroup")
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(salldemoslm1, salldemoslm2, 
+          title = "Results from 2 linear regression models",
+          type = "latex"
+)
+cat("\\endgroup")
+
+
+```
+
+
+
+## Kahan Scale 
+
+
+```{r, echo = FALSE}
+# kahan scores for solar 
+sfascales <- codedmodule2 %>%
+  dplyr::select(starts_with(c("K_","Risky_Solar","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACESOLAR",  "POLLUTESOLAR", "HEALTHSOLAR", "JOBSSOLAR", "BEAUTYSOLAR", "PRIDESOLAR", "NPRIDESOLAR", "DEVSOLAR", "PROSPERSOLAR", "RELYSOLAR", "Uppercaste", "Male", "Hindu", "Urban", "State","age")))%>%
+  na.omit()
+
+sKahan_fas <- '
+  KahanS =~ K_SHARM + K_SLIMCHOI + K_SPROTECT 
+  KahanH =~ K_HEQUAL+ K_ERADEQ1 + K_EWEALTH + K_ERADEQ2
+'
+
+# Run CFA
+sKahan_cfa <- cfa(sKahan_fas, data = sfascales, std.lv = TRUE)
+
+# Print the summary of the CFA results, including fit measures
+#summary(sKahan_cfa, fit.measure= TRUE, standardized = TRUE)
+
+# RMSEA - between 0.05 and 0.08 (reasonable fit), less than 0.05 close fit and greater than 0.10 is poor fit 
+# CFI - greater than 0.90 or 0.95 indicates good fit
+#TFI - CFI>TFI >0.90 - indicates good fit
+#pvalue should be greater than 0.05 p > 0.0.5
+
+# creating table of factor scores 
+
+sKahan_scores <- predict(sKahan_cfa, newdata = sfascales)
+
+sKahan_Kscores <- cbind(sfascales, sKahan_scores)
+
+
+# 3) lm with kahan 
+sm1_kahan <- lm(Risky_Solar ~ Uppercaste + Male + Hindu + Urban + age + State + KahanS + KahanH , data = sKahan_Kscores)
+# Print model summary
+#summary(sm1_kahan)
+#plot(sm1_kahan)
+
+```
+
+
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
+
+
+cat("\\begingroup")
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(salldemoslm1, salldemoslm2, sm1_kahan,
+          title = "Results from 3 linear regression models",
+          type = "latex"
+)
+cat("\\endgroup")
+
+
+```
+
+
+\newpage
+
+# Coal 
+
+
+```{r, echo=FALSE}
+
+calldemos <- joineddf %>%
+            dplyr::select(Risky_Coal,Uppercaste, Male, Hindu, Urban, age, State)%>%
+            na.omit()
+
+calldemoslm1 <- lm(Risky_Coal ~ Uppercaste + Male + Hindu + Urban, data = calldemos)
+# Print model summary
+#summary(salldemoslm1)
+#plot(alldemoslm1)
+
+# lm suggests there is no significant white male effect or upper caste male effect for risk perception from nuclear energy in India. 
+# the coefficients are very small and so is the r squared - rsquared is minimal. 
+
+# 2) lm with all demographic variables
+calldemoslm2<- lm(Risky_Coal ~ Uppercaste + Male + Hindu + Urban + age + State, data = calldemos)
+# Print model summary
+#summary(salldemoslm2)
+#plot(alldemoslm1)
+
+
+```
+
+
+## Only demographic variables
+
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
+
+#stargazer code for all demographic variable lms 
+
+
+cat("\\begingroup")
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(calldemoslm1, calldemoslm2, 
+          title = "Results from 2 linear regression models",
+          type = "latex"
+)
+cat("\\endgroup")
+
+
+```
+
+
+
+## Kahan Scale 
+
+
+```{r, echo = FALSE}
+# kahan scores for solar 
+cfascales <- codedmodule2 %>%
+  dplyr::select(starts_with(c("K_","Risky_Coal","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACESOLAR",  "POLLUTESOLAR", "HEALTHSOLAR", "JOBSSOLAR", "BEAUTYSOLAR", "PRIDESOLAR", "NPRIDESOLAR", "DEVSOLAR", "PROSPERSOLAR", "RELYSOLAR", "Uppercaste", "Male", "Hindu", "Urban", "State","age")))%>%
+  na.omit()
+
+cKahan_fas <- '
+  KahanS =~ K_SHARM + K_SLIMCHOI + K_SPROTECT 
+  KahanH =~ K_HEQUAL+ K_ERADEQ1 + K_EWEALTH + K_ERADEQ2
+'
+
+# Run CFA
+cKahan_cfa <- cfa(cKahan_fas, data = cfascales, std.lv = TRUE)
+
+# Print the summary of the CFA results, including fit measures
+#summary(sKahan_cfa, fit.measure= TRUE, standardized = TRUE)
+
+# RMSEA - between 0.05 and 0.08 (reasonable fit), less than 0.05 close fit and greater than 0.10 is poor fit 
+# CFI - greater than 0.90 or 0.95 indicates good fit
+#TFI - CFI>TFI >0.90 - indicates good fit
+#pvalue should be greater than 0.05 p > 0.0.5
+
+# creating table of factor scores 
+
+cKahan_scores <- predict(cKahan_cfa, newdata = cfascales)
+
+cKahan_Kscores <- cbind(cfascales, cKahan_scores)
+
+
+# 3) lm with kahan 
+cm1_kahan <- lm(Risky_Coal ~ Uppercaste + Male + Hindu + Urban + age + State + KahanS + KahanH , data = cKahan_Kscores)
+# Print model summary
+#summary(cm1_kahan)
+#plot(cm1_kahan)
+
+```
+
+
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
+
+
+cat("\\begingroup")
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(calldemoslm1, calldemoslm2, cm1_kahan,
+          title = "Results from 3 linear regression models",
+          type = "latex"
+)
+cat("\\endgroup")
+
+
+```

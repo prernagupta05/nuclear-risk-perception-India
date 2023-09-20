@@ -1,19 +1,24 @@
 ---
-title: "PCAs"
-output: word_document
-
+title: "Cronchbach's alpha and FAs on scales"
+output:
+  pdf_document:
+    toc: yes
+    toc_depth: 2
+    keep_tex: yes
+  header-includes:
+  - \usepackage{dcolumn}
+  - \usepackage{array}
+  keep_md: yes
 ---
 
 ```{r load packages, warning = FALSE, message = FALSE, echo=FALSE}
   knitr::opts_chunk$set(warning = FALSE, message = FALSE)
-
+suppressPackageStartupMessages(library(lavaan))
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(readxl))
-
 suppressPackageStartupMessages(library(tsibble))
 suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(DT))
-
 suppressPackageStartupMessages(library(knitr))
 suppressPackageStartupMessages(library(psych)) # psychometrics
 
@@ -70,26 +75,31 @@ codedmodule2 <- module2 %>%
                . == "Strongly agree" ~ 5))) %>%
   
 # reverse code for likert scale for variables for Kahan scale into numbers
-mutate_at(vars(starts_with (c("K_S","K_E"))), funs(case_when(. == "Strongly disagree" ~ 1, 
-                                                               . == "Somewhat disagree" ~ 2,
+mutate_at(vars(starts_with (c("K_S","K_E"))), funs(case_when(. == "Strongly disagree" ~ 5, 
+                                                               . == "Somewhat disagree" ~ 4,
                                                                . == "Neither agree nor disagree" ~3,
-                                                               . == "Somewhat agree" ~ 4,
-                                                               . == "Strongly agree" ~ 5))) %>%
+                                                               . == "Somewhat agree" ~ 2,
+                                                               . == "Strongly agree" ~ 1))) %>%
 
 # code eco-pol scale variables into numbers
-  mutate_at(vars(SYSTEMDEMO,SYSTEMRELIGION,SYSTEMTECHNO,SYSTEMTOTAL,WEALTHLIM,MECHANISATION,DECISIONDECEN,INDUSTRYLARGE,ECONOMYGLOBAL,OWNERPVT,OWNERNOREG), funs(case_when(. == "Strongly disagree" ~ 1, 
+  mutate_at(vars(SYSTEMDEMO,SYSTEMRELIGION,SYSTEMTECHNO,SYSTEMTOTAL,WEALTHLIM,MECHANISATION,DECISIONDECEN,INDUSTRYSMALL,ECONOMYLOCAL,ENVOVERDEV,OWNERPUB, OWNERREG), funs(case_when(. == "Strongly disagree" ~ 1, 
                         . == "Somewhat disagree" ~ 2,
                         . == "Neither agree nor disagree" ~3,
                         . == "Somewhat agree" ~ 4,
                         . == "Strongly agree" ~ 5))) %>%
 
 # reverse code eco-pol scale variables into numbers 
- mutate_at(vars(DECISIONCEN, INDUSTRYSMALL, ECONOMYLOCAL, ENVOVERDEV,OWNERPUB, OWNERREG), funs(case_when(. == "Strongly disagree" ~ 1, 
-                                                                                                         . == "Somewhat disagree" ~ 2,
+ mutate_at(vars(DECISIONCEN,INDUSTRYLARGE,ECONOMYGLOBAL,OWNERPVT,OWNERNOREG), funs(case_when(. == "Strongly disagree" ~ 5, 
+                                                                                                         . == "Somewhat disagree" ~ 4,
                                                                                                          . == "Neither agree nor disagree" ~3,
-                                                                                                         . == "Somewhat agree" ~ 4,
-                                                                                                         . == "Strongly agree" ~ 5)))
+                                                                                                         . == "Somewhat agree" ~ 2,
+                                                                                                         . == "Strongly agree" ~ 1)))
 ```
+\newpage
+
+# Kahan et al (2007) scale
+
+## Cronbach's alpha test on the Kahan et al (2007) scale
 
 **Kahan et al (2007) scale**
 
@@ -97,8 +107,8 @@ Individualism - Communitarinism
 
 - **K_IINTRFER**	The government interferes far too much in our everyday lives.
 - **K_IPRIVACY**	The government should stop telling people how to live their lives.
-- **K_SHARM**	    Sometimes the government needs to make laws that keep people from hurting themselves.
 - **K_IPROTECT**	It’s not the government’s business to try to protect people from themselves.
+- **K_SHARM**	    Sometimes the government needs to make laws that keep people from hurting themselves.
 - **K_SLIMCHOI**	The government should put limits on the choices individuals can make so they don’t get in the way of what’s good for society.
 - **K_SPROTECT**	The government should do more to advance society’s goals, even if that means limiting the freedom and choices of individuals.
 
@@ -112,17 +122,39 @@ Hierarchy -Egalitarianism
 - **K_ERADEQ2**	  We need to dramatically reduce inequalities between men and women.
 
 
-Cronbach's alpha test on the Kahan et al (2007) scale
+KahanI weak alpha = 0.29, KahanS strong alpha = 0.71
+Hierarchy -Egalitarianism strong alpha = 0.71
+reasons for this could be that the individualism items are not well adapted to the Indian population 
+final items alpha =  0.75
 
 ```{r, echo=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 library(ltm)
 
-#cronbach alpha
+#cronbach's alpha for the entire Kahan scale
+
+
+Kahan <- codedmodule2 %>%
+  dplyr::select(starts_with(c("K_S", "K_I", "K_H", "K_E")))%>%
+  na.omit()
+
+Kahan.alpha <- psych::alpha(Kahan, check.keys = TRUE)
+
+#summary(Kahan.alpha)
+
+#cronbach's alpha for Individualism - Communitarinism scale
+
+KahanSI <- codedmodule2 %>%
+  dplyr::select(starts_with(c("K_S", "K_I")))%>%
+  na.omit()
+
+KahanSI.alpha <- psych::alpha(KahanSI, check.keys = TRUE) #Alpha = 0.49
+
+#summary(KahanSI.alpha)
 
 KahanS <- codedmodule2 %>%
-  dplyr::select(starts_with(c("K_S", "K_I")))%>%
+  dplyr::select(starts_with(c("K_S")))%>%
   na.omit()
 
 
@@ -130,108 +162,86 @@ KahanI <- codedmodule2 %>%
   dplyr::select(starts_with(c("K_I")))%>%
   na.omit()
 
-#K_S items produce a strong alpha but not K_I
 
-KahanI.alpha <- psych::alpha(KahanI)
+KahanI.alpha <- psych::alpha(KahanI, check.keys = TRUE)
 
 KahanS.alpha <- psych::alpha(KahanS, check.keys = TRUE)
 
-KahanE <- codedmodule2 %>%
+# KahanI weak alpha = 0.29, KahanS strong alpha = 0.71
+# reasons for this could be that the individualism items are not well adapted to the Indian population 
+
+
+KahanHE <- codedmodule2 %>%
   dplyr::select(starts_with(c("K_H", "K_E")))%>%
   na.omit()
 
-KahanE.alpha <- psych::alpha(KahanE, check.keys = TRUE)
+
+KahanHE.alpha <- psych::alpha(KahanHE, check.keys = TRUE)
+
+#summary(KahanHE.alpha)
+
+Kahanfas <- codedmodule2 %>%
+  dplyr::select(K_SLIMCHOI, K_SPROTECT, K_SHARM, K_HEQUAL, K_ERADEQ1, K_EWEALTH, K_ERADEQ2)%>%
+  na.omit()
+
+Kahanfas.alpha <- psych::alpha(Kahanfas, check.keys = TRUE)
+
+#summary(Kahanfas.alpha)
+#Alpha 0.75
+
+# Hierarchy -Egalitarianism strong alpha = 0.71
 
 ```
 
+\newpage
 
-Factor Analysis on Kahan et al (2007) scale: 2 factor spaces
+# CFA on the Kahan scale 
 
+Since this a well used scale with theoretical basis for factor distinctions and there are also previous studies that used the same scale I did CFA not exploratory FA. 
 ```{r, echo=FALSE}
 
+# CFA for Kahan scale. We shouldn't do FA here since this a well used scale with theoretical basis for factor distinctions and there are also previous studies that used the same scale 
 
-#factor analysis on Kahan scale: 2 factor spaces
 Kahan <- codedmodule2 %>%
   dplyr::select(starts_with(c("K_")))%>%
   na.omit()
 
-Kahan.fa <- fa(Kahan, nfactors=2, scores=TRUE, rotate="varimax", fm="pa")
-#print.psych(Kahan.fa, cut = 0.3, sort = TRUE)
-#fa.diagram(Kahan.fa)
+Kahan_fas <- '
+  KahanS =~ K_SHARM + K_SLIMCHOI + K_SPROTECT 
+  KahanH =~ K_ERADEQ1 + K_EWEALTH + K_ERADEQ2
+'
 
-loadingskahan <- unclass(Kahan.fa$loadings)
+# Run CFA with standardization all method - gives standardized loadings 
+# The factors are assumed to be correlated 
 
-loadingstablekahan <- cbind(loadingskahan) 
+Kahan_cfa <- cfa(Kahan_fas, data = Kahan, std.lv = TRUE)
 
-twofakahan <- as_tibble(loadingstablekahan) %>%
-add_column("Items" = c("The government interferes far too much in our everyday lives", 
-"The government should stop telling people how to live their lives", 
-"Sometimes the government needs to make laws that keep people from hurting themselves" , 
-"It’s not the government’s business to try to protect people from themselves", 
-"The government should put limits on the choices individuals can make so they don’t get in the way of what’s good for society", 
-"The government should do more to advance society’s goals, even if that means limiting the freedom and choices of individuals", 
-"We have gone too far in pushing equal rights in this country",
-"Nowadays it seems like there is just as much discrimination against upper castes as there is against Dalits",
-"Discrimination against minorities is still a very serious problem in our society", 
-"We need to dramatically reduce inequalities between the rich and the poor",
-"Our society would be better off if the distribution of wealth was more equal",
-"We need to dramatically reduce inequalities between men and women")) %>%
-dplyr::select("Items",  PA1, PA2) %>%
-  arrange(desc(PA1))
-  
-knitr::kable(twofakahan, digits = 2)
-  
-VarexplK <- unclass(Kahan.fa$Vaccounted)
+# Print the summary of the CFA results, including fit measures
+summary(Kahan_cfa, fit.measure= TRUE, standardized = TRUE)
 
-knitr::kable(VarexplK, digits = 2)
+# RMSEA - between 0.05 and 0.08 (reasonable fit), less than 0.05 close fit and greater than 0.10 is poor fit 
+# CFI - greater than 0.90 or 0.95 indicates good fit
+#TFI - CFI>TFI >0.90 - indicates good fit
+
+
+# after having removed a few variables that had very low loading, the model is now a good fit, we have two latent variables - Hierarchy- egalitarian and Communitarian. Again we see that individualistic variables just don't fit here. 
+
+# creating table of factor scores 
+
+Kahan_scores <- predict(Kahan_cfa, newdata = Kahan)
+
+Kahan_Kscores <- cbind(Kahan, Kahan_scores)
+
+
+
+
+
 ```
+\newpage
 
+# Eco-pol value scale
 
-Factor Analysis on Kahan et al (2007) scale: 4 factor spaces
-
-```{r, echo=FALSE}
-#factor analysis on Kahan scale: 4 factor spaces 
-Kahan <- codedmodule2 %>%
-  dplyr::select(starts_with(c("K_")))%>%
-  na.omit()
-
-fourKahan.fa <- fa(Kahan, nfactors=4, scores=TRUE, rotate="varimax", fm="pa")
-#print.psych(Kahan.fa, cut = 0.3, sort = TRUE)
-#fa.diagram(Kahan.fa)
-
-
-fourloadingskahan <- unclass(fourKahan.fa$loadings)
-
-fourloadingstablekahan <- cbind(fourloadingskahan) 
-
-fourfakahan <- as_tibble(fourloadingstablekahan) %>%
-add_column("Items" = c("The government interferes far too much in our everyday lives", 
-"The government should stop telling people how to live their lives", 
-"Sometimes the government needs to make laws that keep people from hurting themselves" , 
-"It’s not the government’s business to try to protect people from themselves", 
-"The government should put limits on the choices individuals can make so they don’t get in the way of what’s good for society", 
-"The government should do more to advance society’s goals, even if that means limiting the freedom and choices of individuals", 
-"We have gone too far in pushing equal rights in this country",
-"Nowadays it seems like there is just as much discrimination against upper castes as there is against Dalits",
-"Discrimination against minorities is still a very serious problem in our society", 
-"We need to dramatically reduce inequalities between the rich and the poor",
-"Our society would be better off if the distribution of wealth was more equal",
-"We need to dramatically reduce inequalities between men and women")) %>%
-dplyr::select("Items",  PA1, PA2, PA3, PA4)%>%
-  arrange(desc(PA1))
-
-  
-knitr::kable(fourfakahan, digits= 2)
-  
-VarexplK <- unclass(fourKahan.fa$Vaccounted)
-
-knitr::kable(VarexplK, digits = 2)
-```
-
-
-
-**The economic -political values of the perceiver scale**
-
+**Scale 1 : The economic -political values of the perceiver**
 
 - **DECISIONDECEN**	 Local politicians shouldn't have to ask permission from the central government to implement policies
 - **DECISIONCEN**	   Laws and policies would be implemented more smoothly if more power lay with the central government.
@@ -253,16 +263,13 @@ knitr::kable(VarexplK, digits = 2)
 - **MECHANISATION**	 Rapid mechanization of work is taking away jobs from workers in this country
 
 
-
-
-Cronbach's alpha test on the economic -political values of the perceiver
+## Cronbach's Alpha Test on Scale 1: Economic -Political Values of the Perceiver
 
 
 ```{r, echo= FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 ecopolscalescores <- codedmodule2 %>%
  dplyr::select(starts_with(c("SYSTEMDEMO","SYSTEMRELIGION","SYSTEMTECHNO","SYSTEMTOTAL","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG")))%>%
-  rowwise()%>%
   na.omit()#%>%
   #dplyr::mutate(Pro_decentralisation = mean(c_across("DECISIONDECEN":"DECISIONCEN")))%>%
    #dplyr::mutate(Pro_largescale = mean(c_across("INDUSTRYLARGE":"INDUSTRYSMALL")))%>%
@@ -273,192 +280,58 @@ ecopolscalescores <- codedmodule2 %>%
 
 #cronbach alpha
 
-psych::alpha(ecopolscalescores, check.keys = TRUE)
+ecopol_alpha <- psych::alpha(ecopolscalescores, check.keys = TRUE)
+
+summary(ecopol_alpha)
+
+# Alpha for eco-pol values scale is good at 0.76- the scale has good inner consistency. 
 
 ```
 
-
-
-Factor Analysis on the economic and political values scale: 2 factor spaces
-
-
-```{r, echo=FALSE}
-
-#factor analysis with 2, 4 and 6 factor spaces
-
-ecopolscale.fa <- fa(ecopolscalescores, nfactors=2, scores=TRUE, rotate="varimax", fm="pa")
-#print.psych(ecopolscale.fa, cut = 0.3, sort = TRUE)
-#fa.diagram(ecopolscale.fa)
-
-loadingsecopol <- unclass(ecopolscale.fa$loadings)
-
-loadingstableecopol <- cbind(loadingsecopol) 
-
-twofaecopol <- as_tibble(loadingstableecopol) %>%
-add_column("Items" = c("Local politicians shouldn't have to ask permission from the central government to implement policies",
- "Laws and policies would be implemented more smoothly if more power lay with the central government",
-"It is good to have a strong leader who does not have to bother with elections", 
- "Experts, not the government, should make decisions according to what they think is best for the country" , 
-"It is very important to have a democratic political system because it ensures that no individual leader has too much power" , 
-"There should be a system governed by religious law" , 
-"Large corporations are destroying the local industries in India and benefiting only a handful of people" , 
-"Large scale industries are required for the development of the country that will benefit everyone" , 
-"India would be better off if foreign companies didn't come to here" , 
-"Foreign companies have led to a range of benefits for the Indian people and society", 
-"Economic growth and creating jobs should be prioritized over environmental protection" , 
-"Polluting industries that spoil the environment should be shut down even if it costs people their jobs", 
-"All businesses and industries should be owned privately", 
-"The government should own most large businesses and industries", 
-"Regardless of ownership, the government should pass strong regulations and implement them", 
-"There is too much red-tape and the government should not interfere with businesses and industries" , 
-"A limit should be put to how much wealth a person can amass",
- "Rapid mechanization of work is taking away jobs from workers in this country"))%>%
-dplyr::select("Items",PA1, PA2)%>%
-arrange(desc(PA1))
-  
-knitr::kable(twofaecopol, digits= 2)
-  
-Varexplecopol <- unclass(ecopolscale.fa$Vaccounted)
-
-knitr::kable(Varexplecopol, digits = 2)
+\newpage
 
 
 
+**Scale 2 : Economic and Political characteristics of the energy technology scale -  Nuclear energy**
 
-```
+- **DISPLACENUCLER** Nuclear energy is leading to displacement of people from their land
+- **POLLUTENUCLEAR** Nuclear energy increases pollution of air/water/land
+- **HEALTHNUCLEAR**	 Nuclear energy poses a great risk to the health of people living around it
+- **JOBSNUCLEAR**	   Nuclear energy will bring jobs to the local community
+- **BEAUTYNUCLEAR**	 Nuclear energy spoils the natural beauty of the landscape
+- **PRIDENUCLEAR**	 I would be proud if my community used nuclear energy
+- **NPRIDENUCLEAR**	 Nuclear energy is a mark of pride for our nation
+- **DEVNUCLEAR**	   Nuclear energy pushes forward the country's development
+- **PROSPERNUCLEAR** Nuclear energy brings economic prosperity to the surrounding regions
+- **RELYNUCLEAR**	   I don't like the idea that I have to rely on the government for electricity from nuclear energy
 
-Factor Analysis on the economic and political values scale: 4 factor spaces
-
-```{r, echo=FALSE}
-#factor analysis with 4 factor spaces
-
-ecopolscale4.fa <- fa(ecopolscalescores, nfactors=4, scores=TRUE, rotate="varimax", fm="pa")
-#print.psych(ecopolscale.fa, cut = 0.3, sort = TRUE)
-#fa.diagram(ecopolscale.fa)
-
-loadingsecopol4 <- unclass(ecopolscale4.fa$loadings)
-
-loadingstableecopol4 <- cbind(loadingsecopol4) 
-
-faecopol4 <- as_tibble(loadingstableecopol4) %>%
-add_column("Items" = c("Local politicians shouldn't have to ask permission from the central government to implement policies",
- "Laws and policies would be implemented more smoothly if more power lay with the central government",
-"It is good to have a strong leader who does not have to bother with elections", 
- "Experts, not the government, should make decisions according to what they think is best for the country" , 
-"It is very important to have a democratic political system because it ensures that no individual leader has too much power" , 
-"There should be a system governed by religious law" , 
-"Large corporations are destroying the local industries in India and benefiting only a handful of people" , 
-"Large scale industries are required for the development of the country that will benefit everyone" , 
-"India would be better off if foreign companies didn't come to here" , 
-"Foreign companies have led to a range of benefits for the Indian people and society", 
-"Economic growth and creating jobs should be prioritized over environmental protection" , 
-"Polluting industries that spoil the environment should be shut down even if it costs people their jobs", 
-"All businesses and industries should be owned privately", 
-"The government should own most large businesses and industries", 
-"Regardless of ownership, the government should pass strong regulations and implement them", 
-"There is too much red-tape and the government should not interfere with businesses and industries" , 
-"A limit should be put to how much wealth a person can amass",
- "Rapid mechanization of work is taking away jobs from workers in this country"))%>%
-dplyr::select("Items",PA1, PA2, PA3, PA4) %>%
-  arrange(desc(PA1))
-  
-knitr::kable(faecopol4, digits= 2)
-  
-Varexplecopol4 <- unclass(ecopolscale4.fa$Vaccounted)
-
-knitr::kable(Varexplecopol4, digits = 2)
-
-
-```
-
-
-
-Factor Analysis on the economic and political values scale: 6 factor spaces
-
-
-```{r, echo=FALSE}
-
-ecopolscale6.fa <- fa(ecopolscalescores, nfactors=6, scores=TRUE, rotate="varimax", fm="pa")
-#print.psych(ecopolscale.fa, cut = 0.3, sort = TRUE)
-#fa.diagram(ecopolscale.fa)
-
-loadingsecopol6 <- unclass(ecopolscale6.fa$loadings)
- 
-loadingstableecopol6 <- cbind(loadingsecopol6) 
-
-faecopol6 <- as_tibble(loadingstableecopol6) %>%
-add_column("Items" = c("Local politicians shouldn't have to ask permission from the central government to implement policies",
- "Laws and policies would be implemented more smoothly if more power lay with the central government",
-"It is good to have a strong leader who does not have to bother with elections", 
- "Experts, not the government, should make decisions according to what they think is best for the country" , 
-"It is very important to have a democratic political system because it ensures that no individual leader has too much power" , 
-"There should be a system governed by religious law" , 
-"Large corporations are destroying the local industries in India and benefiting only a handful of people" , 
-"Large scale industries are required for the development of the country that will benefit everyone" , 
-"India would be better off if foreign companies didn't come to here" , 
-"Foreign companies have led to a range of benefits for the Indian people and society", 
-"Economic growth and creating jobs should be prioritized over environmental protection" , 
-"Polluting industries that spoil the environment should be shut down even if it costs people their jobs", 
-"All businesses and industries should be owned privately", 
-"The government should own most large businesses and industries", 
-"Regardless of ownership, the government should pass strong regulations and implement them", 
-"There is too much red-tape and the government should not interfere with businesses and industries" , 
-"A limit should be put to how much wealth a person can amass",
- "Rapid mechanization of work is taking away jobs from workers in this country"))%>%
-dplyr::select("Items",PA1, PA2, PA3, PA4, PA5, PA6) %>%
-  arrange(desc(PA1))
-  
-knitr::kable(faecopol6, digits= 2)
-  
-Varexplecopol6 <- unclass(ecopolscale6.fa$Vaccounted)
-
-knitr::kable(Varexplecopol6, digits = 2)
-```
-
-
-
-
-
-**Economic and Political characteristics of the energy technology scale -  Solar Energy and rooftop solar energy**
-
-
-- **DISPLACESOLAR**	 Solar energy is leading to displacement of people from their land
-- **POLLUTESOLAR**	 Solar energy increases pollution of air/water/land
-- **HEALTHSOLAR**	   Solar energy poses a great risk to the health of people living around it
-- **JOBSSOLAR**	     Solar energy will bring jobs to the local community
-- **BEAUTYSOLAR**	   Solar energy spoils the natural beauty of the landscape
-- **PRIDESOLAR**	   I would be proud if my community used solar energy
-- **NPRIDESOLAR**	   Solar energy is a mark of pride for our nation
-- **DEVSOLAR**	     Solar energy pushes forward the country's development
-- **PROSPERSOLAR**	 Solar energy brings economic prosperity to the surrounding regions
-- **RELYSOLAR**	     I don't like the idea that I have to rely on the government for electricity from (large scale) solar energy
-
-
-
-
-Cronbach's alpha test on the Eco-Pol characteristics of the technology -  Solar Energy
+## Cronbach's alpha test on Scale 2 : Eco-Pol Characteristics of the Technology -  Nuclear Energy
 
 ```{r, echo=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 #alpha test on Eco-pol characteristics of the technology
 
-Solar <- codedmodule2 %>%
-dplyr::select("DISPLACESOLAR":"RELYSOLAR") %>%
-dplyr::rename("Solar energy is leading to displacement of people from their land" = "DISPLACESOLAR") %>%
-dplyr::rename("Solar energy increases pollution of air/water/land" = "POLLUTESOLAR")%>%
-dplyr::rename("Solar energy poses a great risk to the health of people living around it" = "HEALTHSOLAR")%>%
-dplyr::rename("Solar energy will bring jobs to the local community" = "JOBSSOLAR")%>%
-dplyr::rename("Solar energy spoils the natural beauty of the landscape" = "BEAUTYSOLAR")%>%
-dplyr::rename("I would be proud if my community used solar energy" = "PRIDESOLAR")%>%
-dplyr::rename("Solar energy is a mark of pride for our nation" = "NPRIDESOLAR") %>%
-dplyr::rename("Solar energy pushes forward the country's development" = "DEVSOLAR")%>%
-dplyr::rename("Solar energy brings economic prosperity to the surrounding regions" = "PROSPERSOLAR")%>%
-dplyr::rename("I don't like the idea that I have to rely on the government for electricity from (large scale solar energy)" = "RELYSOLAR")%>%
+Nuclear <- codedmodule2 %>%
+dplyr::select("DISPLACENUCLEAR":"RELYNUCLEAR") %>%
+dplyr::rename("Nuclear energy is leading to displacement of people from their land" = "DISPLACENUCLEAR") %>%
+dplyr::rename("Nuclear energy increases pollution of air/water/land" = "POLLUTENUCLEAR")%>%
+dplyr::rename("Nuclear energy poses a great risk to the health of people living around it" = "HEALTHNUCLEAR")%>%
+dplyr::rename("Nuclear energy will bring jobs to the local community" = "JOBSNUCLEAR")%>%
+dplyr::rename("Nuclear energy spoils the natural beauty of the landscape" = "BEAUTYNUCLEAR")%>%
+dplyr::rename("I would be proud if my community used solar nuclear" = "PRIDENUCLEAR")%>%
+dplyr::rename("Nuclear energy is a mark of pride for our nation" = "NPRIDENUCLEAR") %>%
+dplyr::rename("Nuclear energy pushes forward the country's development" = "DEVNUCLEAR")%>%
+dplyr::rename("Nuclear energy brings economic prosperity to the surrounding regions" = "PROSPERNUCLEAR")%>%
+dplyr::rename("I don't like the idea that I have to rely on the government for electricity from (large scale nuclear energy)" = "RELYNUCLEAR")%>%
   na.omit()
 
 
-psych::alpha(Solar, check.keys = TRUE)
+nuclear_alpha <- psych::alpha(Nuclear, check.keys = TRUE)
+
+summary(nuclear_alpha)
+
+# std.alpha 0.68 - not very good 
 
 
 
@@ -466,133 +339,401 @@ psych::alpha(Solar, check.keys = TRUE)
 ```
 
 
+## Cronbach's Alpha Test on the Combined Scale. 
 
-Factor Analysis on the eco- pol characteristics of the technology, Solar Energy : 2 factor spaces
+```{r, echo = FALSE}
 
+# we combined both the scales, since we are interested in eco-pol factors at large - values of the perceiver and the values perceived in an energy technology.Here I have removed the variables on systems of government.  
+
+ecopolall <- codedmodule2 %>%
+        dplyr::select("WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACENUCLEAR",  "POLLUTENUCLEAR", "HEALTHNUCLEAR", "JOBSNUCLEAR", "BEAUTYNUCLEAR", "PRIDENUCLEAR", "NPRIDENUCLEAR", "DEVNUCLEAR", "PROSPERNUCLEAR", "RELYNUCLEAR", "SYSTEMDEMO")%>%
+  na.omit()#%>%
+  #dplyr::mutate(Pro_decentralisation = mean(c_across("DECISIONDECEN":"DECISIONCEN")))%>%
+   #dplyr::mutate(Pro_largescale = mean(c_across("INDUSTRYLARGE":"INDUSTRYSMALL")))%>%
+  #dplyr::select(!c("DECISIONDECEN","DECISIONCEN", "INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL", "ECONOMYLOCAL","ENVOVERDEV",     "DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG"))
+
+ecopolall_alpha <- psych::alpha(ecopolall, check.keys = TRUE)
+
+summary(ecopolall_alpha)
+
+# when we combine both the scales the alpha is high at 0.785 (almost 0.8)
+
+```
+
+
+
+\newpage 
+
+# FA on All Ecopol Variables (except systems of governance) 
+
+## Two factor solution : MR1 people centered development and MR2 nationalist development
+
+**MR1 People Centered Development: Pdevelop**
+
+HEALTHNUCLEAR	-  Nuclear energy poses a great risk to the health of people living around it.
+
+BEAUTYNUCLEAR	-  Nuclear energy spoils the natural beauty of the landscape.
+
+MECHANISATION	-  Rapid mechanization of work is taking away jobs from workers in this country.
+
+INDUSTRYSMALL	-  Large corporations are destroying the local industries in India and benefiting only a handful of people.
+
+DISPLACENUCLEAR- Nuclear energy is leading to displacement of people from their land.
+
+POLLUTENUCLEAR-  Nuclear energy increases pollution of air/water/land. 
+
+OWNERREG-        Regardless of ownership, the government should pass strong regulations and implement them.
+
+
+**MR2 Nationalist Development: Ndevelop**
+
+DEVNUCLEAR	-  Nuclear energy pushes forward the country's development.
+
+PRIDENUCLEAR-  I would be proud if my community used nuclear energy.
+
+NPRIDENUCLEAR- Nuclear energy is a mark of pride for our nation.
+
+PROSPERNUCLEAR-Nuclear energy brings economic prosperity to the surrounding regions.
+
+INDUSTRYLARGE- Large scale industries are required for the development of the country that will benefit everyone.
+ 
+```{r, echo = FALSE}
+# FA on all ecopol variables except systems of governance 
+
+#ecopolall_cor <- cor(ecopolall)
+#PCA24 <- principal(ecopolall, nfactors = 24, rotate = "none") # no rotation to start with. 
+
+#print(PCA24)
+
+#PCA24$loadings
+
+#fa.parallel(ecopolall_cor)
+
+
+#PCA2 <- principal(ecopolall, nfactors = 2, rotate = "none") # no rotation to start with. 
+
+#print(PCA2)
+
+#PCA2$loadings
+
+
+# this suggests 2 factors if we go by FA or 8 by PCA. let's try both and see how they look conceptually 
+
+ecopolall2.fa <- fa(ecopolall, nfactors = 2, rotate = "varimax")
+
+print.psych(ecopolall2.fa, cut = 0.50, sort = TRUE)
+
+#fa.diagram(ecopolall2.fa)
+
+#cor(ecopolall)
+
+# So I am going to extract factor scores and bind them to the dataset
+
+ecopolall_scores <- psych::factor.scores(ecopolall, ecopolall2.fa)
+
+# The factor scores will be stored in the scores element of the returned list
+scores1 <- ecopolall_scores$scores
+
+
+```
+
+\newpage
+
+# FA on Scale 1 - only eco-pol values of the perceiver scale. 
+
+Four Factor Solution -
+
+
+**MR1 Problems of industrialisation**
+
+MECHANISATION-   Rapid mechanization of work is taking away jobs from workers in this country
+
+OWNERREG-        Regardless of ownership, the government should pass strong regulations and implement them.
+
+WEALTHLIM-	     A limit should be put to how much wealth a person can amass
+
+
+**MR3 Local Economy And Decision Making**
+
+INDUSTRYSMALL-  Large corporations are destroying the local industries in India and benefiting only a handful of people
+
+ECONOMYLOCAL-   India would be better off if foreign companies didn’t come to here
+
+DECISIONDECEN-  Local politicians shouldn’t have to ask permission from the central government to implement policies
+
+
+**MR4 Centralised and Large Industry**
+
+DECISIONCEN-   Laws and policies would be implemented more smoothly if more power lay with the central government
+
+ECONOMYGLOBAL- Foreign companies have led to a range of benefits for the Indian people and society
+
+OWNERNOREG- 	 There is too much red-tape and the government should not interfere with businesses and industries
+
+INDUSTRYLARGE- Large scale industries are required for the development of the country that will benefit everyone
+
+**MR2 Development and Business Ownership**
+
+DEVOVERENV-	   Economic growth and creating jobs should be prioritized over environmental protection
+
+OWNERPVT-	     All businesses and industries should be owned privately
+
+OWNERPUB-	     The government should own most large businesses and industries
+
+ENVOVERDEV-	   Polluting industries that spoil the environment should be shut down even if it costs people their jobs
+
+
+```{r, echo = FALSE}
+
+# below are only eco-pol values of the perceiver scale. 
+
+ecopolval <- codedmodule2 %>%
+        dplyr::select("WEALTHLIM","MECHANISATION","INDUSTRYSMALL","ECONOMYGLOBAL", "ENVOVERDEV","OWNERNOREG","OWNERPUB", "OWNERREG", "DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","ECONOMYLOCAL", "DEVOVERENV","OWNERPVT")%>%
+  na.omit()
+
+alpha(ecopolval, check.keys = TRUE) # 0.71
+
+#ncol(ecopolval)  number of cols is 14 
+
+#ecopolval_cor <- cor(ecopolval)
+#PCA14 <- principal(ecopolval, nfactors = 14, rotate = "none") # no rotation to start with. 
+
+#print(PCA14)
+
+#PCA14$loadings
+
+#fa.parallel(ecopolval_cor)
+
+
+# based on the PCA and scree plot we have two options : 
+# 1 - we do a factor analysis for 3 factors as suggested by the scree plot 
+# 2 - we do factor analysis for 8 components with eigen values for 8 being above 1
+
+#1 
+ecopolval4.fa <- fa(ecopolval, nfactors = 4, rotate = "varimax")
+
+print.psych(ecopolval4.fa, cut = 0.40, sort = TRUE)
+
+fa.diagram(ecopolval4.fa)
+
+#cor(ecopolval)
+
+# questions for Terre , 2) 4 factors/3 factors/2 factors - variation explained how should i deal with that. 
+# four factor analysis - MR1 - problems of industrialisation MR2 - local economy and decision making MR3 - centralised and large industry MR4- dev/ownership
+```
+
+\newpage
+
+# Factor analysis on Scale 2 -  Eco-Pol characteristics of the technology -  Nuclear Energy
+
+Two Factor Solution - positive versus negative characteristics 
+
+**MR1 Negative Characteristics**
+
+HEALTHNUCLEAR	-  Nuclear energy poses a great risk to the health of people living around it.
+
+BEAUTYNUCLEAR	-  Nuclear energy spoils the natural beauty of the landscape.
+
+DISPLACENUCLEAR- Nuclear energy is leading to displacement of people from their land.
+
+POLLUTENUCLEAR-  Nuclear energy increases pollution of air/water/land. 
+
+**MR2 Positive Characteristics**
+
+DEVNUCLEAR-     Nuclear energy pushes forward the country's development.
+
+PRIDENUCLEAR-   I would be proud if my community used nuclear energy.
+
+NPRIDENUCLEAR-  Nuclear energy is a mark of pride for our nation.
+
+PROSPERNUCLEAR- Nuclear energy brings economic prosperity to the surrounding regions.
+
+JOBSNUCLEAR-    Nuclear energy will bring jobs to the local community.
+
+RELYNUCLEAR-    I don't like the idea that I have to rely on the government for electricity from nuclear energy.
 
 ```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
-#factor analysis with 2 factor spaces
+#alpha test on Eco-pol characteristics of the technology
 
-solar.fa <- fa(Solar, nfactors=2, scores=TRUE, rotate="varimax", fm="pa")
-#print.psych(solar.fa, cut = 0.4, sort = TRUE)
-#fa.diagram(solar.fa)
+Nuclear <- codedmodule2 %>%
+dplyr::select("DISPLACENUCLEAR":"RELYNUCLEAR") %>%
+  na.omit()
 
-loadingssolar <- unclass(solar.fa$loadings)
+nuclear_alpha <- psych::alpha(Nuclear, check.keys = TRUE)
 
-loadingstablesolar <- cbind(loadingssolar) 
+summary(nuclear_alpha)
 
-fasolar <- as_tibble(loadingstablesolar) %>%
-add_column("Items" = c("Solar energy is leading to displacement of people from their land",
-"Solar energy increases pollution of air/water/land",
-"Solar energy poses a great risk to the health of people living around it",
-"Solar energy will bring jobs to the local community",
-"Solar energy spoils the natural beauty of the landscape",
-"I would be proud if my community used solar energy",
-"Solar energy is a mark of pride for our nation",
-"Solar energy pushes forward the country's development",
-"Solar energy brings economic prosperity to the surrounding regions",
-"I don't like the idea that I have to rely on the government for electricity from (large scale) solar energy"))%>%
-dplyr::select("Items",PA1, PA2)%>%
-arrange(desc(PA1))
-  
-knitr::kable(fasolar, digits= 2)
-  
-Varexplsolar <- unclass(solar.fa$Vaccounted)
-
-knitr::kable(Varexplsolar, digits = 2)
-```
+# std.alpha 0.68 - not very good 
 
 
+#ncol(Nuclear)
 
-Factor Analysis on the eco- pol characteristics of the technology, Solar Energy : 4 factor spaces
+#Nuclear_cor <- cor(Nuclear)
+#PCA10 <- principal(Nuclear, nfactors = 10, rotate = "none") # no rotation to start with. 
 
+#print(PCA10)
 
-```{r, echo=FALSE}
+#fa.parallel(Nuclear_cor)
 
-#factor analysis with  4 a factor spaces
+Nuclear.fa <- fa(Nuclear, nfactors = 2, rotate = "varimax")
 
-solar4.fa <- fa(Solar, nfactors=4, scores=TRUE, rotate="varimax", fm="pa")
-#print.psych(solar.fa, cut = 0.4, sort = TRUE)
-#fa.diagram(solar.fa)
+print.psych(Nuclear.fa, cut = 0.40, sort = TRUE)
 
-loadingssolar4 <- unclass(solar4.fa$loadings)
-
-loadingstablesolar4 <- cbind(loadingssolar4) 
-
-fasolar4 <- as_tibble(loadingstablesolar4) %>%
-add_column("Items" = c("Solar energy is leading to displacement of people from their land",
-"Solar energy increases pollution of air/water/land",
-"Solar energy poses a great risk to the health of people living around it",
-"Solar energy will bring jobs to the local community",
-"Solar energy spoils the natural beauty of the landscape",
-"I would be proud if my community used solar energy",
-"Solar energy is a mark of pride for our nation",
-"Solar energy pushes forward the country's development",
-"Solar energy brings economic prosperity to the surrounding regions",
-"I don't like the idea that I have to rely on the government for electricity from (large scale) solar energy"))%>%
-dplyr::select("Items",PA1, PA2, PA3, PA4) %>%
-  arrange(desc(PA1))
-  
-knitr::kable(fasolar4, digits= 2)
-  
-Varexplsolar4 <- unclass(solar4.fa$Vaccounted)
-
-knitr::kable(Varexplsolar4, digits = 2)
-```
+fa.diagram(Nuclear.fa)
 
 
+# two options 2 factors or three factors. 2 factors translate to -  positive versus negative characteristics 
 
-```{r, echo=FALSE}
-ROOFS<- codedmodule2 %>%
- dplyr::select("DISPLACEROOFS":"RELYROOFS")
+# So I am going to extract factor scores an add them bind them to the dataset
 
-psych::alpha(ROOFS, check.keys = TRUE)
+Nuclear_scores <- psych::factor.scores(Nuclear, Nuclear.fa)
+
+# The factor scores will be stored in the scores element of the returned list
+scores2 <- Nuclear_scores$scores
+
+#binding factor scores to the dataset
+
+Nuclear_with_scores <- cbind(Nuclear, scores2)
+
+
 
 ```
+\newpage
+
+# Solar - FA 2 factor solution 
+
+
+here I'll make the same chart with Coal as well - 2 factor solution and explore the 4 factor solution. Talk to Terre about the Slovic study and how they did it. 
+
+```{r, echo = FALSE}
+
+secopolall <- codedmodule2 %>%
+        dplyr::select("WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACESOLAR",  "POLLUTESOLAR", "HEALTHSOLAR", "JOBSSOLAR", "BEAUTYSOLAR", "PRIDESOLAR", "NPRIDESOLAR", "DEVSOLAR", "PROSPERSOLAR", "RELYSOLAR", "SYSTEMDEMO")%>%
+  na.omit()
+secopolall_alpha <- psych::alpha(secopolall, check.keys = TRUE)
+
+summary(secopolall_alpha) # 0.78
 
 
 
-```{r, echo=FALSE}
-#factor analysis with 2, 4 and 6 factor spaces
+# PCA on all 
+#secopolall_cor <- cor(secopolall)
+#sPCA24 <- principal(secopolall, nfactors = 24, rotate = "none") # no rotation to start with. 
 
-roofs.fa <- fa(ROOFS, nfactors=2, scores=TRUE, rotate="varimax", fm="pa")
-#print.psych(roofs.fa, cut = 0.4, sort = TRUE)
-#fa.diagram(roofs.fa)
+#print(sPCA24)
 
-loadingsroofs <- unclass(roofs.fa$loadings)
+#sPCA24$loadings
 
-loadingstableroofs <- cbind(loadingsroofs) 
+#fa.parallel(secopolall_cor)
 
-faroofs <- as_tibble(loadingstableroofs) %>%
-add_column("Items" = c("Rooftop solar is leading to displacement of people from their land",
-"Rooftop solar increases pollution of air/water/land", 
-"Rooftop solar poses a great risk to the health of people living around it",
-"Rooftop solar will bring jobs to the local community",
-"Rooftop solar spoils the natural beauty of the landscape" , 
-"I would be proud if my community used Rooftop solar" , 
-"Rooftop solar is a mark of pride for our nation", 
-"Rooftop solar pushes forward the country's development" , 
-"Rooftop solar brings economic prosperity to the surrounding regions" , 
-"I don't like the idea that I have to rely on the government for electricity from (large scale) Rooftop solar")) %>%
-dplyr::select("Items",  PA1, PA2)%>%
-  arrange(desc(PA1))
-  
-knitr::kable(faroofs, digits = 2)
-  
+# this suggests 2 factors if we go by FA or 8 by PCA. let's try both and see how they look conceptually 
 
-Varexplroofs <- unclass(roofs.fa$Vaccounted)
+secopolall2.fa <- fa(secopolall, nfactors = 2, rotate = "varimax")
 
-knitr::kable(Varexplroofs, digits = 2)
+print.psych(secopolall2.fa, cut = 0.40,  sort = TRUE)
+
+#fa.diagram(secopolall2.fa)
+
+#cor(secopolall)
+
+
 
 ```
 
 
+\newpage
+
+# Coal - FA 2 factor solution
+
+```{r, echo = FALSE}
+
+cecopolall <- codedmodule2 %>%
+        dplyr::select("WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACECOAL", "POLLUTECOAL", "HEALTHCOAL", "JOBSCOAL", "BEAUTYCOAL", "PRIDECOAL", "NPRIDECOAL", "DEVCOAL", "PROSPERCOAL", "RELYCOAL", "SYSTEMDEMO")%>%
+  na.omit()
+cecopolall_alpha <- psych::alpha(cecopolall, check.keys = TRUE)
+
+summary(cecopolall_alpha) 
+
+
+# PCA on all 
+#secopolall_cor <- cor(secopolall)
+#sPCA24 <- principal(secopolall, nfactors = 24, rotate = "none") # no rotation to start with. 
+
+#print(sPCA24)
+
+#sPCA24$loadings
+
+#fa.parallel(secopolall_cor)
+
+# this suggests 2 factors if we go by FA or 8 by PCA. let's try both and see how they look conceptually 
+
+cecopolall2.fa <- fa(cecopolall, nfactors = 2, rotate = "varimax")
+
+print.psych(cecopolall2.fa, cut = 0.40,  sort = TRUE)
+
+#fa.diagram(cecopolall2.fa)
+
+#cor(cecopolall)
 
 
 
+```
 
 
+\newpage
+# Appendix1 
 
+**Kahan et al (2007) scale**
+
+Individualism - Communitarinism 
+
+- **K_IINTRFER**	The government interferes far too much in our everyday lives.
+- **K_IPRIVACY**	The government should stop telling people how to live their lives.
+- **K_IPROTECT**	It’s not the government’s business to try to protect people from themselves.
+- **K_SHARM**	    Sometimes the government needs to make laws that keep people from hurting themselves.
+- **K_SLIMCHOI**	The government should put limits on the choices individuals can make so they don’t get in the way of what’s good for society.
+- **K_SPROTECT**	The government should do more to advance society’s goals, even if that means limiting the freedom and choices of individuals.
+
+Hierarchy -Egalitarianism
+
+- **K_HEQUAL**	  We have gone too far in pushing equal rights in this country.
+- **K_HREVDIS1**	Nowadays it seems like there is just as much discrimination against upper castes as there is against Dalits.
+- **K_EDISCRIM**	Discrimination against minorities is still a very serious problem in our society.
+- **K_ERADEQ1**	  We need to dramatically reduce inequalities between the rich and the poor.
+- **K_EWEALTH**	  Our society would be better off if the distribution of wealth was more equal.
+- **K_ERADEQ2**	  We need to dramatically reduce inequalities between men and women.
+
+\newpage
+# Appendix2 
+
+ **New Eco-pol values scale**
+ 
+- **DISPLACENUCLEAR**Nuclear energy is leading to displacement of people from their land
+- **BEAUTYNUCLEAR**	 Nuclear energy spoils the natural beauty of the landscape
+- **POLLUTENUCLEAR** Nuclear energy increases pollution of air/water/land
+- **HEALTHNUCLEAR**	 Nuclear energy poses a great risk to the health of people living around it
+- **JOBSNUCLEAR**	   Nuclear energy will bring jobs to the local community
+- **PRIDENUCLEAR**	 I would be proud if my community used nuclear energy
+- **NPRIDENUCLEAR**	 Nuclear energy is a mark of pride for our nation
+- **DEVNUCLEAR**	   Nuclear energy pushes forward the country's development
+- **PROSPERNUCLEAR** Nuclear energy brings economic prosperity to the surrounding regions
+- **RELYNUCLEAR**	   I don't like the idea that I have to rely on the government for electricity from nuclear energy
+
+- **DECISIONDECEN**	 Local politicians shouldn't have to ask permission from the central government to implement policies
+- **DECISIONCEN**	   Laws and policies would be implemented more smoothly if more power lay with the central government.
+- **INDUSTRYLARGE**	 Large scale industries are required for the development of the country that will benefit everyone
+- **ECONOMYLOCAL**	 India would be better off if foreign companies didn't come to here
+- **DEVOVERENV**	   Economic growth and creating jobs should be prioritized over environmental protection
+- **INDUSTRYSMALL**	 Large corporations are destroying the local industries in India and benefiting only a handful of people.
+- **WEALTHLIM**	     A limit should be put to how much wealth a person can amass
+- **ECONOMYGLOBAL**	 Foreign companies have led to a range of benefits for the Indian people and society
+- **OWNERPVT**	     All businesses and industries should be owned privately
+- **OWNERPUB**	     The government should own most large businesses and industries
+- **ENVOVERDEV**	   Polluting industries that spoil the environment should be shut down even if it costs people their jobs
+- **OWNERREG**	     Regardless of ownership, the government should pass strong regulations and implement them
+- **MECHANISATION**	 Rapid mechanization of work is taking away jobs from workers in this country
+- **OWNERNOREG**	   There is too much red-tape and the government should not interfere with businesses and industries
 
 

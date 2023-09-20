@@ -36,6 +36,8 @@ moduletwo <- read_excel(here::here("thesis_surveydata/political_factors_complete
 module2 <- data.frame(moduletwo)
 module2[module2 == "Rather not say/ Don't know"] <- "Rather not say/Don't know"
 
+
+
 # loaded data set for module 2 eco -pol variables and removes the rows with question number and question text
 ```
 
@@ -104,6 +106,8 @@ codedmodule2 <- module2 %>%
 
 moduleone <- read_excel(here::here("thesis_surveydata/livelihood_insecurity_complete.xlsx"))
 module1 <- data.frame(moduleone)
+
+unique(module1$caste)
 
 # loaded data set for module 2 eco -pol variables and removes the rows with question number and question text
 ```

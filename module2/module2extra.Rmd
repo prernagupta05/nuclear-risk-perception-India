@@ -427,3 +427,308 @@ likert(Measure ~ ., data=likertstack, ylab=NULL,
        strip=FALSE, 
        par.strip.text=list(cex=.7))
 ```
+
+
+
+Factor Analysis on the economic and political values scale: 4 factor spaces
+
+```{r, echo=FALSE}
+#factor analysis with 4 factor spaces
+
+ecopolscale4.fa <- fa(ecopolscalescores, nfactors=4, scores=TRUE, rotate="varimax", fm="pa")
+print.psych(ecopolscale4.fa, cut = 0.3, sort = TRUE)
+fa.diagram(ecopolscale4.fa)
+
+loadingsecopol4 <- unclass(ecopolscale4.fa$loadings)
+
+loadingstableecopol4 <- cbind(loadingsecopol4) 
+
+faecopol4 <- as_tibble(loadingstableecopol4) %>%
+add_column("Items" = c("Local politicians shouldn't have to ask permission from the central government to implement policies",
+ "Laws and policies would be implemented more smoothly if more power lay with the central government",
+"It is good to have a strong leader who does not have to bother with elections", 
+ "Experts, not the government, should make decisions according to what they think is best for the country" , 
+"It is very important to have a democratic political system because it ensures that no individual leader has too much power" , 
+"There should be a system governed by religious law" , 
+"Large corporations are destroying the local industries in India and benefiting only a handful of people" , 
+"Large scale industries are required for the development of the country that will benefit everyone" , 
+"India would be better off if foreign companies didn't come to here" , 
+"Foreign companies have led to a range of benefits for the Indian people and society", 
+"Economic growth and creating jobs should be prioritized over environmental protection" , 
+"Polluting industries that spoil the environment should be shut down even if it costs people their jobs", 
+"All businesses and industries should be owned privately", 
+"The government should own most large businesses and industries", 
+"Regardless of ownership, the government should pass strong regulations and implement them", 
+"There is too much red-tape and the government should not interfere with businesses and industries" , 
+"A limit should be put to how much wealth a person can amass",
+ "Rapid mechanization of work is taking away jobs from workers in this country"))%>%
+dplyr::select("Items",PA1, PA2, PA3, PA4) %>%
+  arrange(desc(PA1))
+  
+knitr::kable(faecopol4, digits= 2)
+  
+Varexplecopol4 <- unclass(ecopolscale4.fa$Vaccounted)
+
+knitr::kable(Varexplecopol4, digits = 2)
+
+
+```
+
+Factor Analysis on the economic and political values scale: 6 factor spaces
+
+
+```{r, echo=FALSE}
+
+ecopolscale3.fa <- fa(ecopolscalescores, nfactors=3, scores=TRUE, rotate="varimax", fm="pa")
+print.psych(ecopolscale3.fa, cut = 0.3, sort = TRUE)
+fa.diagram(ecopolscale3.fa)
+
+loadingsecopol3 <- unclass(ecopolscale3.fa$loadings)
+ 
+loadingstableecopol3 <- cbind(loadingsecopol3) 
+
+faecopol3 <- as_tibble(loadingstableecopol3) %>%
+add_column("Items" = c("Local politicians shouldn't have to ask permission from the central government to implement policies",
+ "Laws and policies would be implemented more smoothly if more power lay with the central government",
+"It is good to have a strong leader who does not have to bother with elections", 
+ "Experts, not the government, should make decisions according to what they think is best for the country" , 
+"It is very important to have a democratic political system because it ensures that no individual leader has too much power" , 
+"There should be a system governed by religious law" , 
+"Large corporations are destroying the local industries in India and benefiting only a handful of people" , 
+"Large scale industries are required for the development of the country that will benefit everyone" , 
+"India would be better off if foreign companies didn't come to here" , 
+"Foreign companies have led to a range of benefits for the Indian people and society", 
+"Economic growth and creating jobs should be prioritized over environmental protection" , 
+"Polluting industries that spoil the environment should be shut down even if it costs people their jobs", 
+"All businesses and industries should be owned privately", 
+"The government should own most large businesses and industries", 
+"Regardless of ownership, the government should pass strong regulations and implement them", 
+"There is too much red-tape and the government should not interfere with businesses and industries" , 
+"A limit should be put to how much wealth a person can amass",
+ "Rapid mechanization of work is taking away jobs from workers in this country"))%>%
+dplyr::select("Items",PA1, PA2, PA3) %>%
+  arrange(desc(PA1))
+  
+knitr::kable(faecopol3, digits= 2)
+  
+Varexplecopol3 <- unclass(ecopolscale3.fa$Vaccounted)
+
+knitr::kable(Varexplecopol3, digits = 2)
+```
+
+
+```{r, echo=FALSE}
+
+#factor analysis with 2, 4 and 6 factor spaces
+
+ecopolscale.fa <- fa(ecopolscalescores, nfactors=2, scores=TRUE, rotate="varimax", fm="pa")
+print.psych(ecopolscale.fa, cut = 0.3, sort = TRUE)
+fa.diagram(ecopolscale.fa)
+
+# Calculate eigenvalues
+ecopol.eigenvalues <- ecopolscale.fa$values
+
+loadingsecopol <- unclass(ecopolscale.fa$loadings)
+
+loadingstableecopol <- cbind(loadingsecopol) 
+
+twofaecopol <- as_tibble(loadingstableecopol) %>%
+add_column("Items" = c("Local politicians shouldn't have to ask permission from the central government to implement policies",
+ "Laws and policies would be implemented more smoothly if more power lay with the central government",
+"It is good to have a strong leader who does not have to bother with elections", 
+ "Experts, not the government, should make decisions according to what they think is best for the country" , 
+"It is very important to have a democratic political system because it ensures that no individual leader has too much power" , 
+"There should be a system governed by religious law" , 
+"Large corporations are destroying the local industries in India and benefiting only a handful of people" , 
+"Large scale industries are required for the development of the country that will benefit everyone" , 
+"India would be better off if foreign companies didn't come to here" , 
+"Foreign companies have led to a range of benefits for the Indian people and society", 
+"Economic growth and creating jobs should be prioritized over environmental protection" , 
+"Polluting industries that spoil the environment should be shut down even if it costs people their jobs", 
+"All businesses and industries should be owned privately", 
+"The government should own most large businesses and industries", 
+"Regardless of ownership, the government should pass strong regulations and implement them", 
+"There is too much red-tape and the government should not interfere with businesses and industries" , 
+"A limit should be put to how much wealth a person can amass",
+ "Rapid mechanization of work is taking away jobs from workers in this country"))%>%
+dplyr::select("Items",PA1, PA2)%>%
+arrange(desc(PA1))
+  
+knitr::kable(twofaecopol, digits= 2)
+  
+Varexplecopol <- unclass(ecopolscale.fa$Vaccounted)
+
+knitr::kable(Varexplecopol, digits = 2)
+
+
+
+
+```
+
+**Economic and Political characteristics of the energy technology scale -  Solar Energy and rooftop solar energy**
+
+
+- **DISPLACESOLAR**	 Solar energy is leading to displacement of people from their land
+- **POLLUTESOLAR**	 Solar energy increases pollution of air/water/land
+- **HEALTHSOLAR**	   Solar energy poses a great risk to the health of people living around it
+- **JOBSSOLAR**	     Solar energy will bring jobs to the local community
+- **BEAUTYSOLAR**	   Solar energy spoils the natural beauty of the landscape
+- **PRIDESOLAR**	   I would be proud if my community used solar energy
+- **NPRIDESOLAR**	   Solar energy is a mark of pride for our nation
+- **DEVSOLAR**	     Solar energy pushes forward the country's development
+- **PROSPERSOLAR**	 Solar energy brings economic prosperity to the surrounding regions
+- **RELYSOLAR**	     I don't like the idea that I have to rely on the government for electricity from (large scale) solar energy
+
+
+
+
+Cronbach's alpha test on the Eco-Pol characteristics of the technology -  Solar Energy
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+#alpha test on Eco-pol characteristics of the technology
+
+Solar <- codedmodule2 %>%
+dplyr::select("DISPLACESOLAR":"RELYSOLAR") %>%
+dplyr::rename("Solar energy is leading to displacement of people from their land" = "DISPLACESOLAR") %>%
+dplyr::rename("Solar energy increases pollution of air/water/land" = "POLLUTESOLAR")%>%
+dplyr::rename("Solar energy poses a great risk to the health of people living around it" = "HEALTHSOLAR")%>%
+dplyr::rename("Solar energy will bring jobs to the local community" = "JOBSSOLAR")%>%
+dplyr::rename("Solar energy spoils the natural beauty of the landscape" = "BEAUTYSOLAR")%>%
+dplyr::rename("I would be proud if my community used solar energy" = "PRIDESOLAR")%>%
+dplyr::rename("Solar energy is a mark of pride for our nation" = "NPRIDESOLAR") %>%
+dplyr::rename("Solar energy pushes forward the country's development" = "DEVSOLAR")%>%
+dplyr::rename("Solar energy brings economic prosperity to the surrounding regions" = "PROSPERSOLAR")%>%
+dplyr::rename("I don't like the idea that I have to rely on the government for electricity from (large scale solar energy)" = "RELYSOLAR")%>%
+  na.omit()
+
+
+psych::alpha(Solar, check.keys = TRUE)
+
+
+
+
+```
+
+
+
+Factor Analysis on the eco- pol characteristics of the technology, Solar Energy : 2 factor spaces
+
+
+```{r, echo=FALSE}
+
+#factor analysis with 2 factor spaces
+
+solar.fa <- fa(Solar, nfactors=2, scores=TRUE, rotate="varimax", fm="pa")
+#print.psych(solar.fa, cut = 0.4, sort = TRUE)
+#fa.diagram(solar.fa)
+
+loadingssolar <- unclass(solar.fa$loadings)
+
+loadingstablesolar <- cbind(loadingssolar) 
+
+fasolar <- as_tibble(loadingstablesolar) %>%
+add_column("Items" = c("Solar energy is leading to displacement of people from their land",
+"Solar energy increases pollution of air/water/land",
+"Solar energy poses a great risk to the health of people living around it",
+"Solar energy will bring jobs to the local community",
+"Solar energy spoils the natural beauty of the landscape",
+"I would be proud if my community used solar energy",
+"Solar energy is a mark of pride for our nation",
+"Solar energy pushes forward the country's development",
+"Solar energy brings economic prosperity to the surrounding regions",
+"I don't like the idea that I have to rely on the government for electricity from (large scale) solar energy"))%>%
+dplyr::select("Items",PA1, PA2)%>%
+arrange(desc(PA1))
+  
+knitr::kable(fasolar, digits= 2)
+  
+Varexplsolar <- unclass(solar.fa$Vaccounted)
+
+knitr::kable(Varexplsolar, digits = 2)
+```
+
+
+
+Factor Analysis on the eco- pol characteristics of the technology, Solar Energy : 4 factor spaces
+
+
+```{r, echo=FALSE}
+
+#factor analysis with  4 a factor spaces
+
+solar4.fa <- fa(Solar, nfactors=4, scores=TRUE, rotate="varimax", fm="pa")
+#print.psych(solar.fa, cut = 0.4, sort = TRUE)
+#fa.diagram(solar.fa)
+
+loadingssolar4 <- unclass(solar4.fa$loadings)
+
+loadingstablesolar4 <- cbind(loadingssolar4) 
+
+fasolar4 <- as_tibble(loadingstablesolar4) %>%
+add_column("Items" = c("Solar energy is leading to displacement of people from their land",
+"Solar energy increases pollution of air/water/land",
+"Solar energy poses a great risk to the health of people living around it",
+"Solar energy will bring jobs to the local community",
+"Solar energy spoils the natural beauty of the landscape",
+"I would be proud if my community used solar energy",
+"Solar energy is a mark of pride for our nation",
+"Solar energy pushes forward the country's development",
+"Solar energy brings economic prosperity to the surrounding regions",
+"I don't like the idea that I have to rely on the government for electricity from (large scale) solar energy"))%>%
+dplyr::select("Items",PA1, PA2, PA3, PA4) %>%
+  arrange(desc(PA1))
+  
+knitr::kable(fasolar4, digits= 2)
+  
+Varexplsolar4 <- unclass(solar4.fa$Vaccounted)
+
+knitr::kable(Varexplsolar4, digits = 2)
+```
+
+
+
+```{r, echo=FALSE}
+ROOFS<- codedmodule2 %>%
+ dplyr::select("DISPLACEROOFS":"RELYROOFS")
+
+psych::alpha(ROOFS, check.keys = TRUE)
+
+```
+
+
+
+```{r, echo=FALSE}
+#factor analysis with 2, 4 and 6 factor spaces
+
+roofs.fa <- fa(ROOFS, nfactors=2, scores=TRUE, rotate="varimax", fm="pa")
+#print.psych(roofs.fa, cut = 0.4, sort = TRUE)
+#fa.diagram(roofs.fa)
+
+loadingsroofs <- unclass(roofs.fa$loadings)
+
+loadingstableroofs <- cbind(loadingsroofs) 
+
+faroofs <- as_tibble(loadingstableroofs) %>%
+add_column("Items" = c("Rooftop solar is leading to displacement of people from their land",
+"Rooftop solar increases pollution of air/water/land", 
+"Rooftop solar poses a great risk to the health of people living around it",
+"Rooftop solar will bring jobs to the local community",
+"Rooftop solar spoils the natural beauty of the landscape" , 
+"I would be proud if my community used Rooftop solar" , 
+"Rooftop solar is a mark of pride for our nation", 
+"Rooftop solar pushes forward the country's development" , 
+"Rooftop solar brings economic prosperity to the surrounding regions" , 
+"I don't like the idea that I have to rely on the government for electricity from (large scale) Rooftop solar")) %>%
+dplyr::select("Items",  PA1, PA2)%>%
+  arrange(desc(PA1))
+  
+knitr::kable(faroofs, digits = 2)
+  
+
+Varexplroofs <- unclass(roofs.fa$Vaccounted)
+
+knitr::kable(Varexplroofs, digits = 2)
+
+```

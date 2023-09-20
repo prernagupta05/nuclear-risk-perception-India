@@ -230,7 +230,7 @@ Plotted only strongly disagree(1) and strongly agree(5)
 
 demorisk2 <- codedmodule2%>%
   group_by(SYSTEMDEMO)%>%
-  filter(SYSTEMDEMO %in% c(1, 5))%>%
+  filter(SYSTEMDEMO %in% c(1,5))%>%
   summarize_at(vars(starts_with(c("RISKY"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
   #melt to long format
   gather(key = "technology", value = "summary", Risky_Hydro_mean, Risky_Solar_mean, Risky_Wind_mean, Risky_Nuclear_mean, Risky_Coal_mean, Risky_Gas_mean, Risky_Oil_mean, Risky_Hydro_sd, Risky_Solar_sd, Risky_Wind_sd, Risky_Nuclear_sd, Risky_Coal_sd, Risky_Gas_sd, Risky_Oil_sd, Risky_Hydro_n, Risky_Solar_n, Risky_Wind_n, Risky_Nuclear_n, Risky_Coal_n, Risky_Gas_n, Risky_Oil_n) %>%

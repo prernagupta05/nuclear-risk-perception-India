@@ -1,0 +1,220 @@
+---
+title: "extraFA"
+output: html_document
+---
+
+
+```{r load packages, warning = FALSE, message = FALSE, echo=FALSE}
+  knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+suppressPackageStartupMessages(library(lavaan))
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(readxl))
+suppressPackageStartupMessages(library(tsibble))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(DT))
+suppressPackageStartupMessages(library(knitr))
+suppressPackageStartupMessages(library(psych)) # psychometrics
+
+```
+
+
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+moduletwo <- read_excel(here::here("thesis_surveydata/political_factors_complete.xlsx"))
+save(moduletwo, file = "moduletwo.rda")
+module2 <- data.frame(moduletwo)
+module2[module2 == "Rather not say/ Don't know"] <- "Rather not say/Don't know"
+#module2 %>% filter(!row_number() %in% c(1,2))
+
+# loaded data set for module 2 eco -pol variables and removes the rows with question number and question text
+```
+
+
+```{r, eval =TRUE, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+#This chunk contains the coding schemes of various scales used in survey one: eco-political factors, kahan scale and acceptance scale
+codedmodule2 <- module2 %>%
+  
+#remove row 1
+  filter(!row_number() %in% c(1,2)) %>% 
+  
+# replace risky likert scale with numbers
+  mutate_at(vars(starts_with("Risky")), funs(case_when(. =="Not at all risky" ~ 1, 
+                                                       . =="Slightly risky" ~ 2, 
+                                                       . =="Moderately risky" ~ 3, 
+                                                       . =="Very risky" ~ 4, 
+                                                       . =="Extremely risky" ~ 5))) %>%
+
+# replace beneficial likert scale with numbers  
+  mutate_at(vars(starts_with("Ben")), funs(case_when(. =="Not at all beneficial" ~ 1,
+                                                     . =="Slightly beneficial" ~ 2,
+                                                     . =="Moderately beneficial" ~ 3,
+                                                     . =="Very beneficial" ~ 4,
+                                                     . =="Extremely beneficial" ~ 5 ))) %>%
+
+# replace nuclear acceptance likert scale with numbers
+  mutate_at(vars(N_accept,N_reluctantlyaccept,N_reject), funs(case_when(. == "Strongly disagree" ~ 1, 
+                                                                        . == "Somewhat disagree" ~ 2,
+                                                                        . == "Neither agree nor disagree" ~3,
+                                                                        . == "Somewhat agree" ~ 4,
+                                                                        . == "Strongly agree" ~ 5))) %>%
+  
+# code likert scale for variables for Kahan scale into numbers
+  mutate_at(vars(starts_with (c("K_I","K_H","DISPLACE", "POLLUTE", "HEALTH", "JOBS", "BEAUTY", "PRIDE", "NPRIDE", "DEV", "PROSPER", "RELY"))), funs(case_when(. == "Strongly disagree" ~ 1, 
+               . == "Somewhat disagree" ~ 2,
+               . == "Neither agree nor disagree" ~3,
+               . == "Somewhat agree" ~ 4,
+               . == "Strongly agree" ~ 5))) %>%
+  
+# reverse code for likert scale for variables for Kahan scale into numbers
+mutate_at(vars(starts_with (c("K_S","K_E"))), funs(case_when(. == "Strongly disagree" ~ 5, 
+                                                               . == "Somewhat disagree" ~ 4,
+                                                               . == "Neither agree nor disagree" ~3,
+                                                               . == "Somewhat agree" ~ 2,
+                                                               . == "Strongly agree" ~ 1))) %>%
+
+# code eco-pol scale variables into numbers
+  mutate_at(vars(SYSTEMDEMO,SYSTEMRELIGION,SYSTEMTECHNO,SYSTEMTOTAL,WEALTHLIM,MECHANISATION,DECISIONDECEN,INDUSTRYSMALL,ECONOMYLOCAL,ENVOVERDEV,OWNERPUB, OWNERREG), funs(case_when(. == "Strongly disagree" ~ 1, 
+                        . == "Somewhat disagree" ~ 2,
+                        . == "Neither agree nor disagree" ~3,
+                        . == "Somewhat agree" ~ 4,
+                        . == "Strongly agree" ~ 5))) %>%
+
+# reverse code eco-pol scale variables into numbers 
+ mutate_at(vars(DECISIONCEN,INDUSTRYLARGE,ECONOMYGLOBAL,OWNERPVT,OWNERNOREG), funs(case_when(. == "Strongly disagree" ~ 5, 
+                                                                                                         . == "Somewhat disagree" ~ 4,
+                                                                                                         . == "Neither agree nor disagree" ~3,
+                                                                                                         . == "Somewhat agree" ~ 2,
+                                                                                                         . == "Strongly agree" ~ 1)))
+```
+
+
+
+```{r}
+#scatter plot of Kahan scale scores around the median scores on Individualism and Hierarchy scales. 
+
+Kscalescores %>%
+ ggplot(aes(Individualism_score, Hierarchy_score))+
+  geom_count(aes(color = ..n.., size = ..n..))+
+  guides(color = 'legend')+
+  geom_hline(yintercept=2, colour="black", lwd=1)+
+  geom_vline(xintercept=3, colour="black", lwd=1)+
+  labs(x = " Communitarianism to Individualism", y = "Egalitarianism to Hierarchy")
+```
+
+
+```{r, echo=FALSE}
+
+# checking assumptions before doing a factor analysis 
+
+# running Bartlett's test of sphericity on our scale
+
+#ncol(ecopolall) # 24 variables in total 
+#nrow(ecopolall) # 443
+
+ecopolall_cor <- cor(ecopolall)
+
+# conducting Bartlett's test of sphericity to check the assumption that the variables are correlated in the population
+#ecopolall_bartlett <- cortest.bartlett(ecopolall_cor, n = nrow(ecopolall)) # p-value = 0 
+
+# Kaiser-Meyer-Olkin measure 
+
+#KMO(ecopolall) # above 0.7 ie MSA= 0.78 , the sampling adequacy was acceptable (KMO= 0.78) and the Bartlett's test of sphericity demonstrated that the correlations between the items were large enough for FA
+
+```
+
+```{r, echo=FALSE}
+# checking normality 
+
+#longecopol <-ecopolall %>% 
+  #gather(key = "variable", value = "score") %>% 
+ # na.omit()
+
+#ggplot(longecopol, aes(x = score, y = variable)) + 
+  #geom_boxplot() # Q1 how do I deal with outliers here. Is this a problem ? 
+
+# Apply Shapiro-Wilk test to all columns
+#shapiro_results <- apply(ecopolall, 2, shapiro.test)
+
+# Extract p-values from test results
+#p_values <- sapply(shapiro_results, function(x) x$p.value)
+
+
+# Identify columns with non-normal distributions
+#non_normal_columns <- names(p_values[p_values < 0.05])
+
+# data is not normally distributed 
+```
+
+```{r}
+##EXTRA :
+  
+  # nuclear 1 contains only those variables that were relevant in the EFA
+Nuclear1 <- codedmodule2 %>%
+dplyr::select("Risky_Nuclear", "HEALTHNUCLEAR", "POLLUTENUCLEAR", "BEAUTYNUCLEAR", "DISPLACENUCLEAR", "DEVNUCLEAR" , "PROSPERNUCLEAR", "NPRIDENUCLEAR", "PRIDENUCLEAR", "JOBSNUCLEAR", "RELYNUCLEAR") %>%
+  na.omit()
+
+nuclear_alpha1<- psych::alpha(Nuclear1, check.keys = TRUE)
+
+summary(nuclear_alpha1)
+
+#creating a condensed scale for the characteristics of the technology across two factors as identified with EFA - negative characteristics and positive characteristics. 
+
+Ncharac_scores<- Nuclear1 %>%
+  rowwise()%>%
+  na.omit()%>%
+  dplyr::mutate(Negative_score = mean(c_across(HEALTHNUCLEAR:DISPLACENUCLEAR)))%>%
+  dplyr::mutate(Positive_score = mean(c_across(DEVNUCLEAR:RELYNUCLEAR)))%>%
+  dplyr::select(!starts_with(c("HEALTHNUCLEAR", "POLLUTENUCLEAR", "BEAUTYNUCLEAR", "DISPLACENUCLEAR", "DEVNUCLEAR" , "PROSPERNUCLEAR", "NPRIDENUCLEAR", "PRIDENUCLEAR", "JOBSNUCLEAR", "RELYNUCLEAR")))
+
+
+Ncharac_lm <- lm(Risky_Nuclear ~ Negative_score + Positive_score , data = Ncharac_scores)
+summary(Ncharac_lm )
+
+
+kandecopol <- codedmodule2 %>%
+  dplyr::select("Risky_Nuclear", "K_SHARM", "K_SLIMCHOI", "K_SPROTECT", "K_HEQUAL", "K_ERADEQ1",  "K_EWEALTH",  "K_ERADEQ2","State","HEALTHNUCLEAR", "POLLUTENUCLEAR", "BEAUTYNUCLEAR", "DISPLACENUCLEAR", "DEVNUCLEAR" , "PROSPERNUCLEAR", "NPRIDENUCLEAR", "PRIDENUCLEAR", "JOBSNUCLEAR", "RELYNUCLEAR") %>%
+   rowwise()%>%
+  na.omit()%>%
+  dplyr::mutate(Individualism_score = mean(c_across(K_SHARM:K_SPROTECT)))%>%
+  dplyr::mutate(Hierarchy_score = mean(c_across(K_HEQUAL:K_ERADEQ2)))%>%
+  dplyr::mutate(Negative_score = mean(c_across(HEALTHNUCLEAR:DISPLACENUCLEAR)))%>%
+  dplyr::mutate(Positive_score = mean(c_across(DEVNUCLEAR:RELYNUCLEAR)))%>%
+  dplyr::select(!starts_with(c("HEALTHNUCLEAR", "POLLUTENUCLEAR", "BEAUTYNUCLEAR", "DISPLACENUCLEAR", "DEVNUCLEAR" , "PROSPERNUCLEAR", "NPRIDENUCLEAR", "PRIDENUCLEAR", "JOBSNUCLEAR", "RELYNUCLEAR", "K_I","K_S", "K_H", "K_E")))
+
+```
+
+
+```{r}
+
+
+# CFA on the reduced ecopol value scale to check whether our reduced dimensions are good fit for the scale. 
+
+ecopolall
+
+ecopolall_fas <- '
+  Pdevelop =~ HEALTHNUCLEAR + BEAUTYNUCLEAR + POLLUTENUCLEAR
+  Ndevelop =~ PRIDENUCLEAR + NPRIDENUCLEAR + PROSPERNUCLEAR
+  Pdevelop ~~ Ndevelop 
+'
+
+# Run CFA with standardization all method - gives standardized loadings 
+# The factors are assumed to be correlated 
+
+ecopolall_cfa <- cfa(ecopolall_fas, data = ecopolall, std.lv = TRUE)
+
+# Print the summary of the CFA results, including fit measures
+summary(ecopolall_cfa, fit.measure= TRUE, standardized = TRUE)
+
+# RMSEA - between 0.05 and 0.08 (reasonable fit), less than 0.05 close fit and greater than 0.10 is poor fit 
+# CFI - greater than 0.90 or 0.95 indicates good fit
+#TFI - CFI>TFI >0.90 - indicates good fit
+
+ 
+# cross validate with larger sample 
+
+# talk to terre about the two options - how much do I need to worry about CLI 
+
+```
+

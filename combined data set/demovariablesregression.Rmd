@@ -112,7 +112,7 @@ module1 <- data.frame(moduleone)
 
 
 ```{r, eval =TRUE, echo=FALSE}
-#This chunk contains the coding schemes of various scales used in survey one: eco-political factors, kahan scale and acceptance scale
+#This chunk contains the coding schemes of likert scales 
 codedmodule1 <- module1 %>%
   
 #remove row 1
@@ -158,20 +158,40 @@ joineddf <-  full_join(numcol2, numcol1, by = c("Respondent", "Language", "Surve
 
 
 
-```{r}
+```{r, echo=FALSE}
+
+# cleaning up variables and making them into neat categories, turning IVs into factors 
+
 library(dplyr)
 
 demovars <- joineddf %>%
-  select(starts_with("Risky"), starts_with("Ben"),urban_rural, gender, caste, religion, age, State)%>%
-  mutate(religion = ifelse(religion == "Other (Please mention)", "Other", religion))
+  dplyr::select(starts_with("Risky"), starts_with("Ben"),urban_rural, gender, caste, religion, age, State)%>%
+  mutate(religion = ifelse(religion == "Other (Please mention)", "Other", religion)) %>%
+  filter(gender %in% c("Male", "Female"))%>%
+  mutate(caste = ifelse(grepl("SC|Scheduled caste", caste), "SC", caste),
+          caste = ifelse(grepl("ST|Scheduled Tribe", caste), "ST", caste),
+          caste = ifelse(grepl("OBC|Other Backward Classes", caste), "OBC", caste))%>%
+  mutate(State = case_when(State == "West bengal" ~ "West Bengal",
+                            State == "WEST BENGAL" ~ "West Bengal",
+                            State == "Up" ~ "UP",
+                            TRUE ~ State)) %>%
+  mutate(religion = case_when(religion == "Agnostism/ Atheism" ~ "Agnosticism_Atheism",
+                              TRUE~ religion))
 
+
+demovars$gender <- as.factor(demovars$gender)
+demovars$caste <- as.factor(demovars$caste)
+demovars$urban_rural <- as.factor(demovars$urban_rural)
+demovars$age <- as.factor(demovars$age)
+demovars$religion <- as.factor(demovars$religion)
+demovars$State <- as.factor(demovars$State)
 
 
 
 ```
 
 
-```{r}
+```{r, echo=FALSE}
 library(dplyr)
 
 demovars_frisk <- demovars %>%
@@ -216,7 +236,7 @@ sum_mrisk <- demovars_mrisk %>%
 
 
 
-```{r}
+```{r, echo=FALSE}
 library(ggplot2)
 
 # Combine the two datasets
@@ -257,7 +277,7 @@ grid.arrange(p1, p2, ncol = 2, widths = NULL)
 
 ```
 
-```{r}
+```{r, echo=FALSE}
 
 # conducting non-parametric procedure : "Wilcoxon rank-sum test" to see how perception of risk may differ according to gender. 
 
@@ -276,14 +296,9 @@ Cfemale_risk <- demovars[demovars$gender == "Female",]$Risky_Coal
 
 wilcox.test(Cmale_risk, Cfemale_risk, alternative = "two.sided")
 
-demovars_mf <- demovars %>% 
-  filter(gender %in% c("Male", "Female"))
-
-
-wilcox_gender <- demovars_mf %>%
-  select(starts_with("Risky")) %>%
-  lapply(function(col) wilcox.test(col ~ gender, data = demovars_mf))
-
+wilcox_gender <- demovars %>%
+  dplyr::select(starts_with("Risky")) %>%
+  lapply(function(col) wilcox.test(col ~ gender, data = demovars))
 
 wilcox_mf <- do.call(rbind, wilcox_gender)
 
@@ -295,17 +310,19 @@ wilcox_mf <- do.call(rbind, wilcox_gender)
 
 
 
-```{r}
+```{r, echo=FALSE}
 library(ggplot2)
 library(dplyr)
 library(tidyr)
 
+demovars_caste <- demovars %>%
+  dplyr::select(starts_with("Risky"), caste) %>%
+  na.omit()
+
+
 demovars_caste_long <- demovars_caste %>%
   pivot_longer(cols = starts_with("Risky_"), names_to = "technology", values_to = "perceived_risk") %>%
-  mutate(technology = gsub("Risky_", "", technology)) %>%
-        mutate(caste = ifelse(grepl("SC|Scheduled caste", caste), "SC", caste),
-              caste = ifelse(grepl("ST|Scheduled Tribe", caste), "ST", caste),
-              caste = ifelse(grepl("OBC|Other Backward Classes", caste), "OBC", caste))
+  mutate(technology = gsub("Risky_", "", technology)) 
 
 
 
@@ -313,7 +330,7 @@ demovars_caste_long <- demovars_caste %>%
 
 
 
-```{r}
+```{r, echo=FALSE}
 
 library(ggplot2)
 
@@ -349,6 +366,8 @@ ggplot(demovars_caste_long_not_ind, aes(x = technology, y = median_perceived_ris
 
 
 ```
+
+
 ```{r}
 
 # print the head of the file
@@ -491,6 +510,214 @@ demovars_urban_rural <-  demovars %>%
 
 pairwise.wilcox.test(demovars_urban_rural$perceived_risk, demovars_urban_rural$urban_rural, p.adjust.method = "BH")
 
+
+# For Coal
+Coal_urban_rural <- demovars_urban_rural %>%
+  filter(technology == "Coal")
+pairwise.wilcox.test(Coal_urban_rural$perceived_risk, Coal_urban_rural$urban_rural, p.adjust.method = "BH")
+
+# For Gas
+Gas_urban_rural <- demovars_urban_rural %>%
+  filter(technology == "Gas")
+pairwise.wilcox.test(Gas_urban_rural$perceived_risk, Gas_urban_rural$urban_rural, p.adjust.method = "BH")
+
+# For Hydro
+Hydro_urban_rural <- demovars_urban_rural %>%
+  filter(technology == "Hydro")
+pairwise.wilcox.test(Hydro_urban_rural$perceived_risk, Hydro_urban_rural$urban_rural, p.adjust.method = "BH")
+
+# For INDBiogas
+INDBiogas_urban_rural <- demovars_urban_rural %>%
+  filter(technology == "INDBiogas")
+pairwise.wilcox.test(INDBiogas_urban_rural$perceived_risk, INDBiogas_urban_rural$urban_rural, p.adjust.method = "BH")
+
+# For INDDiesel
+INDDiesel_urban_rural <- demovars_urban_rural %>%
+  filter(technology == "INDDiesel")
+pairwise.wilcox.test(INDDiesel_urban_rural$perceived_risk, INDDiesel_urban_rural$urban_rural, p.adjust.method = "BH")
+
+# For INDFirewoodetc
+INDFirewoodetc_urban_rural <- demovars_urban_rural %>%
+  filter(technology == "INDFirewoodetc")
+pairwise.wilcox.test(INDFirewoodetc_urban_rural$perceived_risk, INDFirewoodetc_urban_rural$urban_rural, p.adjust.method = "BH")
+
+# For INDHydro
+INDHydro_urban_rural <- demovars_urban_rural %>%
+  filter(technology == "INDHydro")
+pairwise.wilcox.test(INDHydro_urban_rural$perceived_risk, INDHydro_urban_rural$urban_rural, p.adjust.method = "BH")
+
+# For INDKerosene
+INDKerosene_urban_rural <- demovars_urban_rural %>%
+  filter(technology == "INDKerosene")
+pairwise.wilcox.test(INDKerosene_urban_rural$perceived_risk, INDKerosene_urban_rural$urban_rural, p.adjust.method = "BH")
+
+# For INDLPG
+INDLPG_urban_rural <- demovars_urban_rural %>%
+  filter(technology == "INDLPG")
+pairwise.wilcox.test(INDLPG_urban_rural$perceived_risk, INDLPG_urban_rural$urban_rural, p.adjust.method = "BH")
+
+# For INDSolar
+INDSolar_urban_rural <- demovars_urban_rural %>%
+  filter(technology == "INDSolar")
+pairwise.wilcox.test(INDSolar_urban_rural$perceived_risk, INDSolar_urban_rural$urban_rural, p.adjust.method = "BH")
+
+# For INDWind
+INDWind_urban_rural <- demovars_urban_rural %>%
+ filter(technology == "INDWind")
+pairwise.wilcox.test(INDWind_urban_rural$perceived_risk, INDWind_urban_rural$urban_rural, p.adjust.method = "BH")
+
+#For Nuclear
+Nuclear_urban_rural <- demovars_urban_rural %>%
+filter(technology == "Nuclear")
+pairwise.wilcox.test(Nuclear_urban_rural$perceived_risk, Nuclear_urban_rural$urban_rural, p.adjust.method = "BH")
+
+#For Oil
+Oil_urban_rural <- demovars_urban_rural %>%
+filter(technology == "Oil")
+pairwise.wilcox.test(Oil_urban_rural$perceived_risk, Oil_urban_rural$urban_rural, p.adjust.method = "BH")
+
+#For Solar
+Solar_urban_rural <- demovars_urban_rural %>%
+filter(technology == "Solar")
+pairwise.wilcox.test(Solar_urban_rural$perceived_risk, Solar_urban_rural$urban_rural, p.adjust.method = "BH")
+
+#For Wind
+Wind_urban_rural <- demovars_urban_rural %>%
+filter(technology == "Wind")
+pairwise.wilcox.test(Wind_urban_rural$perceived_risk, Wind_urban_rural$urban_rural, p.adjust.method = "BH")
+
+
+
+```
+
+
+```{r}
+library(ggplot2)
+
+# Convert variables to factors
+demovars_urban_rural$urban_rural <- factor(demovars_urban_rural$urban_rural)
+demovars_urban_rural$technology <- factor(demovars_urban_rural$technology)
+
+# Create boxplot
+ggplot(demovars_urban_rural, aes(x = technology, y = perceived_risk, fill = urban_rural)) +
+  stat_boxplot(geom="errorbar", width=0.5) +
+  stat_boxplot(geom="boxplot", width=0.5, notch=FALSE, outlier.shape=NA) +
+  scale_fill_manual(values = c("#00AFBB", "#E7B800")) +
+  labs(x = "Technology", y = "Perceived Risk", fill = "Urban/Rural") +
+  theme_bw() +
+   theme(legend.position = "bottom", plot.title = element_text(hjust = 0.5), axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  ggtitle("Perceived Risk by Technology and Urban/Rural Group") +
+  facet_wrap(~ifelse(grepl("^IND", technology), "IND", "Non-IND"), nrow = 1)
+
+```
+
+
+```{r}
+# now check for urban and gender since caste is not that important , I don't care about age. let's do a regression 
+
+str(demovars)
+
+```
+
+```{r}
+library(dplyr)
+demovars_subset <- demovars %>%
+  na.omit()%>%
+  select(-c(urban_rural, gender, caste, religion, age, State))
+
+# correlation matric to check correlations among the DVs
+correlation_matrix <- round(cor(demovars_subset), 2)
+
+# Convert correlation matrix to data frame
+cor_df <- as.data.frame(as.table(correlation_matrix))
+
+# Rename columns
+colnames(cor_df) <- c("Var1", "Var2", "Correlation")
+
+# Extract variables with correlation greater than 0.7
+high_corr_vars <- subset(cor_df, abs(Correlation) > 0.7) %>%
+                  filter(Var1 != Var2)
+
+
+
+# We see that Risky_INDSolar and Risky_Solar are highly correlated concepts (as expected) but rest of the dependent variables are not highly correlated. In the context of dependent variables, high correlation between them can indicate that they are measuring similar constructs or dimensions, which can lead to redundancy in the model. In some cases, it may be necessary to combine these variables or choose one to represent the construct in the analysis. Additionally, high correlation between dependent variables can make it difficult to isolate the effect of individual independent variables on each dependent variable. Therefore, it is important to check the correlation between different dependent variables to ensure that the model is accurately capturing the relationships between the independent and dependent variables. 
+
+# Here we don't need to worry about this because we are going to run two separate regression models. one for IND and one for centrally owned technologies. SO NO HIGH MULTICOLINEARITY - GOOD NEWS! 
+
+
+```
+
+```{r}
+# I want to conduct a factor analysis on my IVs to see how closely connected some of the caste and religion categories might be. 
+library(psych)
+
+
+
+
+
+
+
+
+```
+
+
+```{r}
+# what is the appropriate regression model to use? First I consider the regression model used in risk studies? 
+# First question is does WME (upper caste male effect exist in India, or what demographic factors impact risk perception of energy technologies.)
+# going to use linear regression - following Kahan et al. 
+
+# running multivariate regression model on risk perception fom centrally owned energy technologies: 
+
+model_Risky_central <- demovars %>%
+  dplyr::select(dplyr::starts_with("Risky"), age, urban_rural, gender, caste, religion, State) %>%
+  dplyr::select(-dplyr::starts_with("Risky_IND")) %>%
+  na.omit()%>%
+#creating dummy variables
+  mutate(gender_female = if_else(gender == "Female", 1, 0),
+         caste_brahmin = if_else(caste == "Brahmin", 1, 0),
+         caste_general = if_else(caste == "General", 1, 0),
+         caste_obc = if_else(caste == "OBC", 1, 0),
+         caste_rather_not_say = if_else(caste == "Rather not say/Don't know", 1, 0),
+         caste_sc = if_else(caste == "SC", 1, 0),
+         caste_st = if_else(caste == "ST", 1, 0),
+         urban_rural_rural = if_else(urban_rural == "Rural", 1, 0),
+         age_18_24 = if_else(age == "18-24 years old", 1, 0),
+         age_25_34 = if_else(age == "25-34 years old", 1, 0),
+         age_35_44 = if_else(age == "35-44 years old", 1, 0),
+         age_45_54 = if_else(age == "45-54 years old", 1, 0),
+         age_55_64 = if_else(age == "55-64 years old", 1, 0),
+         age_65_74 = if_else(age == "65-74 years old", 1, 0),
+         age_75_or_older = if_else(age == "75 years or older", 1, 0),
+         religion_agnosticism_atheism = if_else(religion == "Agnosticism_Atheism", 1, 0),
+         religion_buddhism = if_else(religion == "Buddhism", 1, 0),
+         religion_christanity = if_else(religion == "Christanity", 1, 0),
+         religion_hinduism = if_else(religion == "Hinduism", 1, 0),
+         religion_islam = if_else(religion == "Islam", 1, 0),
+         religion_jainism = if_else(religion == "Jainism", 1, 0),
+         religion_other = if_else(religion == "Other", 1, 0),
+         religion_sikhism = if_else(religion == "Sikhism", 1, 0),
+         state_maharashtra = if_else(State == "Maharashtra", 1, 0),
+         state_rajasthan = if_else(State == "Rajasthan", 1, 0),
+         state_tamilnadu = if_else(State == "Tamilnadu", 1, 0),
+         state_up = if_else(State == "UP", 1, 0),
+         state_west_bengal = if_else(State == "West Bengal", 1, 0))
+
+
+
+# Fit a multivariate linear regression model
+model <- lm(cbind(Risky_Hydro, Risky_Solar, Risky_Wind, Risky_Nuclear, Risky_Coal, Risky_Gas, Risky_Oil) ~ gender_female + caste_general + caste_obc + caste_rather_not_say + caste_sc + caste_st + urban_rural_rural + age_25_34 + age_35_44 + age_45_54 + age_55_64 + age_65_74 + age_75_or_older + religion_buddhism + religion_christanity + religion_hinduism + religion_islam + religion_jainism + religion_other + religion_sikhism + state_rajasthan + state_tamilnadu + state_up + state_west_bengal, data = model_Risky_central)
+
+
+# Print the model summary
+summary(model)
+
+str(model_Risky_central)
+
+
+#NEXT - plot residuals, read about regression on statistics by Jim. move on to factor analysis and reducing factors and conducting regression models and residual plots, send these to Terre, Milind and Ramana - questions and ideas for two papers. - right now the results from the regression do not match the earlier results like the significance of gender for instance 
+
+
+  
 ```
 
 

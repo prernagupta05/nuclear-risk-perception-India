@@ -504,11 +504,9 @@ kruskal_result <- kruskal.test(perceived_risk ~ technology, data = perceivedrisk
 # print the test statistic and p-value
 print(kruskal_result) 
 
-library(emmeans)
-emm_results <- emmeans(kruskal_results, ~ technology)
-summary(emm_results, infer = c(T, T))
-
-
+#library(emmeans)
+#emm_results <- emmeans(kruskal_result, ~ technology)
+#summary(emm_results, infer = c(T, T))
 
 ```
 
@@ -543,6 +541,8 @@ perceivedrisk %>%
     IQR = IQR(perceived_risk, na.rm = TRUE)
   )
 
+levels(perceivedrisk$technology)
+
 ```
 ```{r}
 
@@ -572,14 +572,7 @@ ggplot(tidy_result, aes(x = group1, y = group2, fill = p.value)) +
 
 ```
 
-```{r}
-#now do the same for perceived benefit
-#null hypothesis - no sognificant difference between perceived benefit from technologies. 
-#push to github - figure out what happened! why not pushing anymore yaar 
-#
 
-
-```
 
 ```{r, echo=FALSE}
 library(dplyr)
@@ -648,6 +641,7 @@ ggplot(perceivedbenefit %>%
 
 
 ```
+
 ```{r}
 library(dplyr)
 perceivedbenefit %>%
@@ -691,4 +685,140 @@ ggplot(tidy_result, aes(x = group1, y = group2, fill = p.value)) +
 
 
 ```
+
+```{r, echo=FALSE}
+# Calculate median and IQR for each technology and category (risk or benefit)
+summary_df_median <- long_format %>%
+  group_by(technology, risk_or_benefit) %>%
+  summarise(median = median(value, na.rm = TRUE),
+            IQR = IQR(value, na.rm = TRUE),
+            .groups = "drop")
+
+# Order technologies by median risk
+order_risk_median <- summary_df_median %>% 
+  filter(risk_or_benefit == "risk") %>%
+  arrange(median) %>% 
+  pull(technology)
+
+# Change the levels of factor 'technology'
+summary_df_median$technology <- factor(summary_df_median$technology, levels = order_risk_median)
+
+# Plotting the data
+ggplot(summary_df_median, aes(x = technology, y = median, fill = risk_or_benefit)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_errorbar(aes(ymin = median - 0.5*IQR, ymax = median + 0.5*IQR), 
+                width = 0.3, position = position_dodge(0.9)) +
+  ylim(0, 5) +
+  scale_fill_manual("legend", 
+                    values = c("benefit" = "palegreen3", "risk" = "firebrick2"), 
+                    labels = c("benefit" = "Perceived Benefit", "risk" = "Perceived Risk")) +
+  labs(y = "Median Values", x = "Energy Technologies", fill = "Perceived") +
+  ggtitle("Perceived risk and benefit from centrally owned energy technologies\n(Median)") +
+  coord_flip()
+
+
+
+```
+
+```{r}
+
+# **Perceived risk by Support for Totalitarian government**
+
+#The following is a list of statements about governance. How strongly do you agree or disagree with each of these statements? Do you strongly disagree(1), somewhat disagree(2), neither agree nor disagree(3), somewhat agree(4) or strongly agree(5)? - It is good to have a strong leader who does not have to bother with elections.
+
+govtrisk$grouped_total <- ifelse(govtrisk$SYSTEMTOTAL %in% c(1,2), "low", ifelse(govtrisk$SYSTEMTOTAL %in% c(4,5), "high", NA))
+
+totalrisk2 <- govtrisk %>%
+  group_by(grouped_total) %>%
+  filter(grouped_total %in% c("low", "high")) %>%
+  summarize_at(vars(starts_with(c("RISKY"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
+  gather(key = "technology", value = "summary", Risky_Hydro_mean, Risky_Solar_mean, Risky_Wind_mean, Risky_Nuclear_mean, Risky_Coal_mean, Risky_Gas_mean, Risky_Oil_mean, Risky_Hydro_sd, Risky_Solar_sd, Risky_Wind_sd, Risky_Nuclear_sd, Risky_Coal_sd, Risky_Gas_sd, Risky_Oil_sd, Risky_Hydro_n, Risky_Solar_n, Risky_Wind_n, Risky_Nuclear_n, Risky_Coal_n, Risky_Gas_n, Risky_Oil_n) %>%
+  dplyr::select(grouped_total, technology, summary) %>%
+  separate(technology, c("Risky", "var"), extra = "merge", fill = "left") %>%
+  separate(var, c("technology", "meansd")) %>%
+  spread(meansd,summary) %>%
+  select(-Risky) %>%
+  arrange(grouped_total) 
+
+data.frame(totalrisk2)
+
+totalrisk2 <- totalrisk2 %>%
+  mutate(technology = reorder(technology, -mean))  # reorder based on -mean, to get high to low
+
+t <- totalrisk2 %>%
+  group_by(technology) %>%
+  ggplot(aes(x = technology, y= mean, group = grouped_total))+
+  geom_line(aes(colour = grouped_total, line = grouped_total)) +
+  labs(y = "mean perceived risk", x = "energy technology", color = "Totalitarianism Value") +
+  ggtitle("Q:It is good to have a strong leader who does not have to bother with\nelections.")
+
+t
+
+
+
+# **Perceived risk by Support for Technocratic government**
+
+#The following is a list of statements about governance. How strongly do you agree or disagree with each of these statements? Do you strongly disagree(1), somewhat disagree(2), neither agree nor disagree(3), somewhat agree(4) or strongly agree(5)? - Experts, not the government, should make decisions according to what they think is best for the country.
+
+govtrisk$grouped_techno <- ifelse(govtrisk$SYSTEMTECHNO %in% c(1,2), "low", ifelse(govtrisk$SYSTEMTECHNO %in% c(4,5), "high", NA))
+
+technorisk2 <- govtrisk %>%
+  group_by(grouped_techno) %>%
+  filter(grouped_techno %in% c("low", "high")) %>%
+  summarize_at(vars(starts_with(c("RISKY"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
+  gather(key = "technology", value = "summary", Risky_Hydro_mean, Risky_Solar_mean, Risky_Wind_mean, Risky_Nuclear_mean, Risky_Coal_mean, Risky_Gas_mean, Risky_Oil_mean, Risky_Hydro_sd, Risky_Solar_sd, Risky_Wind_sd, Risky_Nuclear_sd, Risky_Coal_sd, Risky_Gas_sd, Risky_Oil_sd, Risky_Hydro_n, Risky_Solar_n, Risky_Wind_n, Risky_Nuclear_n, Risky_Coal_n, Risky_Gas_n, Risky_Oil_n) %>%
+  dplyr::select(grouped_techno, technology, summary) %>%
+  separate(technology, c("Risky", "var"), extra = "merge", fill = "left") %>%
+  separate(var, c("technology", "meansd")) %>%
+  spread(meansd,summary) %>%
+  select(-Risky) %>%
+  arrange(grouped_techno) 
+
+data.frame(technorisk2)
+
+technorisk2 <- technorisk2 %>%
+  mutate(technology = reorder(technology, -mean))  # reorder based on -mean, to get high to low
+
+techno <- technorisk2 %>%
+  group_by(technology) %>%
+  ggplot(aes(x = technology, y= mean, group = grouped_techno))+
+  geom_line(aes(colour = grouped_techno, line = grouped_techno)) +
+  labs(y = "mean perceived risk", x = "energy technology", color = "Technocratic Value") +
+  ggtitle("Q:Experts, not the government, should make decisions according to\nwhat they think is best for the country.")
+
+techno
+
+# **Perceived risk by Support for Religious government**
+
+#The following is a list of statements about governance. How strongly do you agree or disagree with each of these statements? Do you strongly disagree(1), somewhat disagree(2), neither agree nor disagree(3), somewhat agree(4) or strongly agree(5)? - There should be a system governed by religious law.
+
+govtrisk$grouped_religion <- ifelse(govtrisk$SYSTEMRELIGION %in% c(1,2), "low", ifelse(govtrisk$SYSTEMRELIGION %in% c(4,5), "high", NA))
+
+religionrisk2 <- govtrisk %>%
+  group_by(grouped_religion) %>%
+  filter(grouped_religion %in% c("low", "high")) %>%
+  summarize_at(vars(starts_with(c("RISKY"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
+  gather(key = "technology", value = "summary", Risky_Hydro_mean, Risky_Solar_mean, Risky_Wind_mean, Risky_Nuclear_mean, Risky_Coal_mean, Risky_Gas_mean, Risky_Oil_mean, Risky_Hydro_sd, Risky_Solar_sd, Risky_Wind_sd, Risky_Nuclear_sd, Risky_Coal_sd, Risky_Gas_sd, Risky_Oil_sd, Risky_Hydro_n, Risky_Solar_n, Risky_Wind_n, Risky_Nuclear_n, Risky_Coal_n, Risky_Gas_n, Risky_Oil_n) %>%
+  dplyr::select(grouped_religion, technology, summary) %>%
+  separate(technology, c("Risky", "var"), extra = "merge", fill = "left") %>%
+  separate(var, c("technology", "meansd")) %>%
+  spread(meansd,summary) %>%
+  select(-Risky) %>%
+  arrange(grouped_religion) 
+
+data.frame(religionrisk2)
+
+religionrisk2 <- religionrisk2 %>%
+  mutate(technology = reorder(technology, -mean))  # reorder based on -mean, to get high to low
+
+r <- religionrisk2 %>%
+  group_by(technology) %>%
+  ggplot(aes(x = technology, y= mean, group = grouped_religion))+
+  geom_line(aes(colour = grouped_religion, line = grouped_religion)) +
+  labs(y = "mean perceived risk", x = "energy technology", color = "Religious law Value") +
+  ggtitle("Q:There should be a system governed by religious law.")
+
+r
+```
+
 

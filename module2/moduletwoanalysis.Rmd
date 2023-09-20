@@ -260,7 +260,64 @@ full_join(risksummary,benefitsummary, by = NULL, copy = FALSE, keep = FALSE) %>%
 ```
 
 
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+# Q4: How do perception of risk and perception of benefit compare with each other? 
 
+# what is this comparison telling us ? 
+
+# summary statistics for risks from different energy sources
+library(tidyverse)
+
+# Filter variables of interest
+joineddf_subset <- joineddf %>%
+  dplyr::select(!starts_with(c("Ben_IND", "Risky_IND")))%>%
+  select(starts_with("Risky"), 
+         starts_with("Ben"))
+
+str(joineddf_subset)
+
+# Melt the data frame to long format
+long_format <- joineddf_subset %>% 
+  pivot_longer(everything(), names_to = "technology", values_to = "value") %>%
+  mutate(risk_or_benefit = if_else(str_detect(technology, "Risky"), "risk", "benefit"),
+         technology = str_replace(technology, "Risky_|Ben_", ""))
+
+# Calculate mean and sd for each technology and category (risk or benefit)
+summary_df <- long_format %>%
+  group_by(technology, risk_or_benefit) %>%
+  summarise(mean = mean(value, na.rm = TRUE),
+            sd = sd(value, na.rm = TRUE),
+            se = sd(value, na.rm = TRUE) / sqrt(n()),
+            .groups = "drop")
+
+
+# Order technologies by mean risk
+order_risk <- summary_df %>% 
+  filter(risk_or_benefit == "risk") %>%
+  arrange(mean) %>% 
+  pull(technology)
+
+# Change the levels of factor 'technology'
+summary_df$technology <- factor(summary_df$technology, levels = order_risk)
+
+# Plotting the data
+ggplot(summary_df, aes(x = technology, y = mean, fill = risk_or_benefit)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = 0.3, position = position_dodge(0.9)) +
+  ylim(0, 5) +
+  scale_fill_manual("legend", 
+                    values = c("benefit" = "palegreen3", "risk" = "firebrick2"), 
+                    labels = c("benefit" = "Perceived Benefit", "risk" = "Perceived Risk")) +
+  labs(y = "Mean Values", x = "Energy Technologies", fill = "Perceived") +
+  ggtitle("Perceived risk and benefit from centrally managed energy technologies") +
+  coord_flip()
+
+
+# add a star in front of all bars to show these differences are significant at 0.05 
+# error bars represent 
+
+```
 bar plots for median of perceived risk and benefit from various energy technologies
 
 ```{r, echo=FALSE}

@@ -1,0 +1,902 @@
+---
+title: "LPG v/s Firewood"
+output:
+  pdf_document:
+    toc: yes
+    toc_depth: 2
+    keep_tex: yes
+  header-includes:
+  - \usepackage{dcolumn}
+  - \usepackage{array}
+  keep_md: yes
+
+---
+
+```{r load packages, warning = FALSE, message = FALSE, echo = FALSE}
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(readxl))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(psych))
+suppressPackageStartupMessages(library(tidyr))
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(lavaan))
+suppressPackageStartupMessages(library(tsibble))
+suppressPackageStartupMessages(library(DT))
+suppressPackageStartupMessages(library(knitr))
+
+
+```
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+moduletwo <- read_excel(here::here("thesis_surveydata/political_factors_complete.xlsx"))
+module2 <- data.frame(moduletwo)
+module2[module2 == "Rather not say/ Don't know"] <- "Rather not say/Don't know"
+
+# loaded data set for module 2 eco -pol variables and removes the rows with question number and question text
+```
+
+```{r, eval =TRUE, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+#This chunk contains the coding schemes of various scales used in survey one: eco-political factors, kahan scale and acceptance scale
+codedmodule2 <- module2 %>%
+  
+#remove row 1
+  filter(!row_number() %in% c(1,2)) %>% 
+  
+# replace risky likert scale with numbers
+  mutate_at(vars(starts_with("Risky")), funs(case_when(. =="Not at all risky" ~ 1, 
+                                                       . =="Slightly risky" ~ 2, 
+                                                       . =="Moderately risky" ~ 3, 
+                                                       . =="Very risky" ~ 4, 
+                                                       . =="Extremely risky" ~ 5))) %>%
+
+# replace beneficial likert scale with numbers  
+  mutate_at(vars(starts_with("Ben")), funs(case_when(. =="Not at all beneficial" ~ 1,
+                                                     . =="Slightly beneficial" ~ 2,
+                                                     . =="Moderately beneficial" ~ 3,
+                                                     . =="Very beneficial" ~ 4,
+                                                     . =="Extremely beneficial" ~ 5 ))) %>%
+
+# replace nuclear acceptance likert scale with numbers
+  mutate_at(vars(N_accept,N_reluctantlyaccept,N_reject), funs(case_when(. == "Strongly disagree" ~ 1, 
+                                                                        . == "Somewhat disagree" ~ 2,
+                                                                        . == "Neither agree nor disagree" ~3,
+                                                                        . == "Somewhat agree" ~ 4,
+                                                                        . == "Strongly agree" ~ 5))) %>%
+  
+# code likert scale for variables for Kahan scale into numbers
+  mutate_at(vars(starts_with (c("K_I","K_H","DISPLACE", "POLLUTE", "HEALTH", "JOBS", "BEAUTY", "PRIDE", "NPRIDE", "DEV", "PROSPER", "RELY"))), funs(case_when(. == "Strongly disagree" ~ 1, 
+               . == "Somewhat disagree" ~ 2,
+               . == "Neither agree nor disagree" ~3,
+               . == "Somewhat agree" ~ 4,
+               . == "Strongly agree" ~ 5))) %>%
+  
+# reverse code for likert scale for variables for Kahan scale into numbers
+  mutate_at(vars(starts_with (c("K_S","K_E"))), funs(case_when(. == "Strongly disagree" ~ 5, 
+                                                               . == "Somewhat disagree" ~ 4,
+                                                               . == "Neither agree nor disagree" ~3,
+                                                               . == "Somewhat agree" ~ 2,
+                                                               . == "Strongly agree" ~ 1))) %>%
+
+# code eco-pol scale variables into numbers
+  mutate_at(vars(SYSTEMDEMO,SYSTEMRELIGION,SYSTEMTECHNO,SYSTEMTOTAL,WEALTHLIM,MECHANISATION,DECISIONDECEN,INDUSTRYLARGE,ECONOMYGLOBAL,OWNERPVT,OWNERNOREG), funs(case_when(. == "Strongly disagree" ~ 1, 
+                        . == "Somewhat disagree" ~ 2,
+                        . == "Neither agree nor disagree" ~3,
+                        . == "Somewhat agree" ~ 4,
+                        . == "Strongly agree" ~ 5))) %>%
+
+# reverse code eco-pol scale variables into numbers 
+ mutate_at(vars(DECISIONCEN, INDUSTRYSMALL, ECONOMYLOCAL, ENVOVERDEV,OWNERPUB, OWNERREG), funs(case_when(. == "Strongly disagree" ~ 5, 
+                                                                                                         . == "Somewhat disagree" ~ 4,
+                                                                                                         . == "Neither agree nor disagree" ~3,
+                                                                                                         . == "Somewhat agree" ~ 2,
+                                                                                                         . == "Strongly agree" ~ 1))) %>%
+  mutate_all(~ifelse(. == "Rather not say/ Don't know", "Rather not say/Don't know", .))%>%
+  mutate_all(~ifelse(. == "West bengal", "West Bengal", .))%>%
+  mutate_all(~ifelse(. == "WEST BENGAL", "West Bengal", .))%>%
+  mutate_all(~ifelse(. == "Up", "Uttar Pradesh", .))%>%
+  mutate_all(~ifelse(. == "Tamilnadu", "Tamil Nadu", .))%>%
+  mutate_all(~ifelse(. == "UP", "Uttar Pradesh", .))
+  
+
+```
+
+
+```{r, eval=TRUE, echo = FALSE}
+
+moduleone <- read_excel(here::here("thesis_surveydata/livelihood_insecurity_complete.xlsx"))
+save(moduleone, file = "moduleone.rda")
+module1 <- data.frame(moduleone)
+
+
+# loaded data set for module 2 eco -pol variables and removes the rows with question number and question text
+```
+
+
+```{r, echo = FALSE}
+#This chunk contains the coding schemes of various scales used in survey one: eco-political factors, kahan scale and acceptance scale
+codedmodule1 <- module1 %>%
+  #remove row 1 and 2 
+  
+  filter(!row_number() %in% c(1,2))%>%
+  
+  # replace risky likert scale with numbers
+  mutate(across(starts_with("Risky"), ~case_when(. =="Not at all risky" ~ 1, 
+                                                 . =="Slightly risky" ~ 2, 
+                                                 . =="Moderately risky" ~ 3, 
+                                                 . =="Very risky" ~ 4, 
+                                                 . =="Extremely risky" ~ 5))) %>%
+
+  # replace beneficial likert scale with numbers  
+  mutate(across(starts_with("Ben"), ~case_when(. =="Not at all beneficial" ~ 1,
+                                               . =="Slightly beneficial" ~ 2,
+                                               . =="Moderately beneficial" ~ 3,
+                                               . =="Very beneficial" ~ 4,
+                                               . =="Extremely beneficial" ~ 5 ))) %>%
+
+  # replace nuclear acceptance likert scale with numbers
+  mutate(across(c(N_accept,N_reluctantlyaccept,N_reject), ~case_when(. == "Strongly disagree" ~ 1, 
+                                                                     . == "Somewhat disagree" ~ 2,
+                                                                     . == "Neither agree nor disagree" ~3,
+                                                                     . == "Somewhat agree" ~ 4,
+                                                                     . == "Strongly agree" ~ 5))) %>%
+
+  mutate(across(Livelihood_Income, ~case_when(. == "(a) own farming/fishing/animal rearing/business" ~ "LSI", 
+                                              . == "(b) employed for wages/salary" ~ "ISI",
+                                              . == "(c) student" ~"student",
+                                              . == "(d) currently unemployed" ~ "unemployed",
+                                              . == "(e) homemaker" ~ "homemaker",
+                                              . == "(f) retired" ~ "retired",
+                                              . == "(g) unable to work" ~ "unable to work" ))) %>%
+
+  # coding education
+  mutate(across(education, ~case_when(. == "No schooling completed" ~ 0, 
+                                      . == "Primary school" ~ 1,
+                                      . == "Grade 10th" ~ 2,
+                                      . == "Grade 12th" ~ 3,
+                                      . == "Some college, no degree" ~ 4,
+                                      . == "Trade/technical/vocational training" ~ 5,
+                                      . == "Bachelor's degree" ~ 6,
+                                      . == "Master's degree" ~ 7,
+                                      . == "Professional degree" ~ 8,
+                                      . == "Doctorate degree" ~ 9 ))) %>%
+
+  # coding yes and no questions
+  mutate(across(c(Lassociation,Iassociation, govtscheme, wateravail, polposition, polparty), ~case_when(.== "Yes" ~ 1,
+                                                                                                        .== "No" ~ 0))) %>%
+  # reverse coding yes and no questions
+  mutate(across(c(illness,severeillness), ~case_when(.== "Yes" ~ 0,
+                                                     .== "No" ~ 1))) %>%
+
+  # coding How confident are you that you can continue your current livelihood if you want to? 
+  mutate(across(Lconfidence, ~case_when(. == "Not at all confident" ~ 1, 
+                                        . == "Not much confident" ~ 2,
+                                        . == "Neutral" ~3,
+                                        . == "Somewhat confident" ~ 4,
+                                        . == "Very confident" ~ 5))) %>%
+
+  mutate(across(c(Lboat, houseown), ~case_when(.== "Own it" ~ 1,
+                                               .== "Rent it" ~ 0))) %>%
+
+  # J security index coding
+  mutate(across(JISRkeep, ~case_when(. == "Strongly disagree" ~ 1, 
+                                     . == "Somewhat disagree" ~ 2,
+                                     . == "Neither agree nor disagree" ~3,
+                                     . == "Somewhat agree" ~ 4,
+                                     . == "Strongly agree" ~ 5))) %>%
+
+  # reverse code JIS 
+  mutate(across(c(JISlosefuture, JISlose, JISfuture), ~case_when(. == "Strongly disagree" ~ 5, 
+                                                                 . == "Somewhat disagree" ~ 4,
+                                                                 . == "Neither agree nor disagree" ~3,
+                                                                 . == "Somewhat agree" ~ 2,
+                                                                 . == "Strongly agree" ~ 1))) %>%
+
+  mutate(across(c(totalincome, otherincome), ~case_when(. == "Less than Rs 1,00,000" ~ 1,
+                                                        . == "Rs 1,00,000 to Rs 2,50,000"  ~ 2,
+                                                        . == "Rs 2,50,001 to Rs 5,00,000" ~ 3,
+                                                        . == "Rs 5,00,001 to Rs 10,00,000" ~ 4,
+                                                        . == "Rs 10,00,001 and above"  ~ 5,
+                                                        . == "Doesn't apply" ~ 0))) %>%
+
+  mutate(across(c(workknowledge, subsidyknow), ~case_when(. == "Very poor" ~ 1, 
+                                                          . == "Poor" ~ 2,
+                                                          . == "Fair" ~3,
+                                                          . == "Good" ~ 4,
+                                                          . == "Very good" ~ 5))) %>%
+
+  mutate(across(c(drinkingwater, cookingwater), ~case_when(. == "Bottled water/ Filtered Water" ~ 1,                                       
+                                                           .  == "Piped into dwelling" ~ 2,                                                  
+                                                           .  == "Piped to neighbour" ~ 3,                                                   
+                                                           .  == "Piped to yard/plot" ~ 4, 
+                                                           .  == "Protected well" ~ 5, 
+                                                           .  == "Public tap/standpipe" ~6,
+                                                           .  == "Surface Water  (River/Dam/Lake/Pond/Stream/Canal/Irrigation Channel)" ~7, 
+                                                           .  == "Tanker Truck" ~ 8,
+                                                           .  == "Tubewell/borehole" ~ 9,
+                                                           .  == "Unprotected Spring" ~ 10))) %>%
+  
+  mutate(across(toilet, ~case_when(. == "No facility/bush/field" ~ 1,                                       
+                                   .  == "Hanging toilet/hanging latrine" ~ 2,                                             
+                                   .  == "Bucket toilet"  ~ 3,                                                   
+                                   .  == "Composting toilet"  ~ 4, 
+                                   .  == "Pit latrine without slab/open pit" ~ 5, 
+                                   .  == "Pit latrine with slab" ~6,
+                                   .  == "Ventilated improved pit laterine"  ~7, 
+                                   .  == "Flush to somewhere else"  ~ 8,
+                                   .  == "Flush to pit latrine"  ~ 9,
+                                   .  == "Flush to septic tank" ~ 10,
+                                   .  == "Flush to piped sewer system" ~ 11))) %>%
+
+  mutate(across(house, ~case_when(. == "Hut made of mud, bamboo, straw etc. (kutcha house)" ~ 1, 
+                                  . == "Permanent single story house (pukka house)" ~ 2,
+                                  . == "Apartment/Flat in a multi-story building"  ~3,
+                                  . == "Multi-story house" ~ 4))) %>% 
+
+  mutate(across(foodtrouble, ~case_when(. == "8 or more months" ~ 1,                                       
+                                        .  == "6-8 months"  ~ 2,                                                  
+                                        .  == "4-6 months"  ~ 3,                                                   
+                                        .  == "2-4 months"  ~ 4, 
+                                        .  == "1-2 months" ~ 5, 
+                                        .  == "0 months"  ~6))) %>%
+  
+  mutate(across(foodadequacy, ~case_when(. == "Extremely inadequate" ~ 1, 
+                                         . == "Moderately inadequate" ~ 2,
+                                         . == "Slightly inadequate" ~3,
+                                         . == "Neither adequate nor inadequate" ~ 4,
+                                         . == "Slightly adequate" ~ 5,
+                                         . == "Moderately adequate" ~ 6,
+                                         . == "Extremely adequate" ~ 7))) %>%
+
+  # separating cooking, vehicle and food cols into separate entries
+  separate(col = cookstove, into = c("cook1", "cook2", "cook3", "cook4"), sep = ",") %>%
+  separate(col = vehicle, into = c("vehicle1", "vehicle2", "vehicle3", "vehicle4"), sep = ",") %>%
+  separate(col = foodsource, into = c("food1", "food2", "food3", "food4"), sep = ",") %>%
+
+  
+  mutate(across(c(cook1, cook2, cook3, cook4), ~case_when(. == "Three Stone Stove/Open Fire" ~ 1, 
+                                  . == "Traditional Solid Fuel Stove" ~ 2,
+                                  . == "Liquid Fuel Stove" ~3,
+                                  . == "Biogas Stove" ~ 4,
+                                  . == "Piped Natural Gas Stove" ~ 5,
+                                  . == "Liquefied Petroleum Gas (LPG)/Cooking gas stove" ~ 6,
+                                  . == "Solar Cooker" ~ 7,
+                                  . == "Electric Stove" ~ 7,
+                                  is.na(.) ~ 0))) %>%
+  
+  
+  mutate(across(c(vehicle1, vehicle2, vehicle3, vehicle4, vehicletext), ~case_when(. == "Bicycle" ~ 1, 
+                                    . == "Animal Drawn Cart" ~ 2,
+                                    . == "Motorcycle/Scooter" ~3,
+                                    . == "Car" ~ 4,
+                                    . == "Truck" ~ 4,
+                                    . == "Boat with Motor" ~ 4,
+                                    . == "Tractor" ~ 4,
+                                    . == "E-rickshaw" ~ 1,
+                                    . == "Tempo" ~ 3,
+                                    . == "Nothing" ~ 0,
+                                    . == "Other (Please Specify)" ~ 0,
+                                    is.na(.) ~ 0))) %>%
+  
+
+  
+  mutate(across(c(food1, food2, food3,food4), ~case_when(. == "Forest" ~ 1, 
+                                  . == "Own Farm" ~ 2,
+                                  . == "Market" ~4,
+                                  . == "Own livestock" ~ 2,
+                                  . == "Subsidised ration shops" ~ 3,
+                                  is.na(.) ~ 0)))
+
+
+
+
+```
+
+```{r, echo = FALSE}
+
+suppressPackageStartupMessages(library(tidyselect))
+# combine codedmodule1 and codedmodule2
+
+numcol2 <- codedmodule2 %>% add_column(Respondent = 1:1099, .before = "Language") 
+numcol1 <- codedmodule1 %>% add_column(Respondent = 1099:2160, .before = "Language")
+
+joineddf <-  full_join(numcol2, numcol1, by = c("Respondent", "Language", "Survey_Date", "State", "Risky_Hydro", "Risky_Solar", "Risky_Wind", "Risky_Nuclear", "Risky_Coal", "Risky_Gas", "Risky_Oil", "Risky_INDHydro", "Risky_INDSolar", "Risky_INDWind", "Risky_INDBiogas", "Risky_INDDiesel", "Risky_INDKerosene", "Risky_INDFirewoodetc", "Risky_INDLPG", "Ben_Hydro", "Ben_Solar", "Ben_Wind", "Ben_Nuclear", "Ben_Coal", "Ben_Gas", "Ben_Oil", "Ben_INDHydro", "Ben_INDSolar", "Ben_INDWind", "Ben_INDDiesel", "Ben_INDBiogas", "Ben_INDFirewoodetc", "Ben_INDLPG", "Ben_INDKerosene", "N_accept", "N_reluctantlyaccept", "N_reject", "age", "urban_rural", "gender", "caste", "religion", "religiontext")) %>%
+  mutate_all(~ifelse(. == "Rather not say/ Don't know", "Rather not say/Don't know", .))%>%
+  mutate_all(~ifelse(. == "West bengal", "West Bengal", .))%>%
+  mutate_all(~ifelse(. == "WEST BENGAL", "West Bengal", .))%>%
+  mutate_all(~ifelse(. == "Up", "Uttar Pradesh", .))%>%
+  mutate_all(~ifelse(. == "Tamilnadu", "Tamil Nadu", .))%>%
+  mutate_all(~ifelse(. == "UP", "Uttar Pradesh", .))
+
+numcolb <- module2 %>%   filter(!row_number() %in% c(1,2))%>% 
+                        add_column(Respondent = 1:1099, .before = "Language") 
+numcola <- module1 %>%   filter(!row_number() %in% c(1,2)) %>% 
+                        add_column(Respondent = 1099:2160, .before = "Language")
+
+uncodedjoineddf <- full_join(numcolb, numcola, by = c("Respondent", "Language", "Survey_Date", "State", "Risky_Hydro", "Risky_Solar", "Risky_Wind", "Risky_Nuclear", "Risky_Coal", "Risky_Gas", "Risky_Oil", "Risky_INDHydro", "Risky_INDSolar", "Risky_INDWind", "Risky_INDBiogas", "Risky_INDDiesel", "Risky_INDKerosene", "Risky_INDFirewoodetc", "Risky_INDLPG", "Ben_Hydro", "Ben_Solar", "Ben_Wind", "Ben_Nuclear", "Ben_Coal", "Ben_Gas", "Ben_Oil", "Ben_INDHydro", "Ben_INDSolar", "Ben_INDWind", "Ben_INDDiesel", "Ben_INDBiogas", "Ben_INDFirewoodetc", "Ben_INDLPG", "Ben_INDKerosene", "N_accept", "N_reluctantlyaccept", "N_reject", "age", "urban_rural", "gender", "caste", "religion", "religiontext")) %>%
+  mutate_all(~ifelse(. == "Rather not say/ Don't know", "Rather not say/Don't know", .))%>%
+  mutate_all(~ifelse(. == "West bengal", "West Bengal", .))%>%
+  mutate_all(~ifelse(. == "WEST BENGAL", "West Bengal", .))%>%
+  mutate_all(~ifelse(. == "Up", "Uttar Pradesh", .))%>%
+  mutate_all(~ifelse(. == "Tamilnadu", "Tamil Nadu", .))%>%
+  mutate_all(~ifelse(. == "UP", "Uttar Pradesh", .))
+
+  
+
+```
+\newpage
+
+
+# Characteristics of the Sample
+
+The following graph shows that distribution of different demographic variables in our sample of 2,160 from the combined dataset from both surveys. 
+
+
+
+
+```{r, echo=FALSE}
+
+library(dplyr)
+library(tidyr)
+
+
+sampledemos <- joineddf %>% dplyr::select("State", "Language", "age", "urban_rural", "gender", "caste" ,"religion") %>%
+              mutate_all(~ifelse(. == "Rather not say/ Don't know", "Rather not say/Don't know", .))%>%
+              mutate_all(~ifelse(. == "OBC", "Other Backward Classes (OBC)", .))%>%
+              mutate_all(~ifelse(. == "SC", "Scheduled caste (SC)", .))%>%
+              mutate_all(~ifelse(. == "ST", "Scheduled tribe (ST)", .))%>%
+              mutate_all(~ifelse(. == "MAR", "Marathi", .))%>%
+              mutate_all(~ifelse(. == "TA", "Tamil", .)) %>%
+              mutate_all(~ifelse(. == "EN", "English", .))%>%
+              mutate_all(~ifelse(. == "BN", "Bengali", .))%>%
+              mutate_all(~ifelse(. == "MAR", "Marathi", .))%>%
+              mutate_all(~ifelse(. == "HI", "Hindi", .))%>%
+              na.omit()
+
+#changing factor levels for each variable from high to low n 
+
+sampledemos$State <- factor(sampledemos$State, levels = c("Maharashtra","Rajasthan", "West Bengal" , "Tamil Nadu", "Uttar Pradesh"))
+sampledemos$Language <- factor(sampledemos$Language, levels = c("Hindi","Marathi","Bengali","Tamil"))
+sampledemos$age <- factor(sampledemos$age, levels = c( "18-24 years old" ,  "25-34 years old","35-44 years old", "45-54 years old", "55-64 years old","65-74 years old","75 years or older"  ))
+sampledemos$urban_rural <- factor(sampledemos$urban_rural, levels = c("Rural","Urban"))
+sampledemos$gender <- factor(sampledemos$gender, levels = c("Male","Female"))
+sampledemos$caste <- factor(sampledemos$caste, levels = c("Scheduled tribe (ST)", "Scheduled caste (SC)", "Other Backward Classes (OBC)", "General","Brahmin","Rather not say/Don't know"))
+sampledemos$religion <- factor(sampledemos$religion, levels = c("Hinduism", "Islam", "Christanity","Buddhism","Agnostism/ Atheism","Other (Please mention)"))
+
+
+```
+
+
+
+
+```{r, echo=FALSE, fig.width=11, fig.height=14, out.width='80%', out.height='80%'}
+# Loading the required libraries
+library(tidyverse)
+library(gridExtra)
+library(scales)
+
+# Function to create bar plot
+create_bar_plot <- function(data, variable_name, palette_name) {
+  factor_levels <- levels(sampledemos[[variable_name]])
+  data %>%
+    filter(Variable == variable_name) %>%
+    mutate(Category = factor(Category, levels = factor_levels)) %>%
+    ggplot(aes(y = "", x = Percentage, fill = Category)) +
+    geom_bar(position = "fill", stat = "identity", width = 1) +
+    geom_text(aes(label = paste0(round(Percentage, 0), "%")), 
+              position = position_fill(vjust = 0.5)) +
+    scale_x_continuous(labels = percent) +
+    labs(y = NULL, x = "Percentage", fill = variable_name) +
+    theme_classic() +
+    theme(axis.text.y = element_blank(), strip.text = element_text(size = 10), legend.position = "top") +
+    scale_fill_brewer(palette = palette_name)
+}
+
+# Gather data to long format and calculate counts and percentages
+df_barplot <- sampledemos %>%
+  gather(Variable, Category) %>%
+  group_by(Variable, Category) %>%
+  filter(!is.na(Category)) %>%
+  summarise(n = n()) %>%
+  mutate(Percentage = n / sum(n) * 100)
+
+# Create separate plots for each variable
+plot_state <- create_bar_plot(df_barplot, "State", "Spectral")
+plot_language <- create_bar_plot(df_barplot, "Language", "Paired")
+plot_age <- create_bar_plot(df_barplot, "age", "Set3")
+plot_urban_rural <- create_bar_plot(df_barplot, "urban_rural", "Dark2")
+plot_gender <- create_bar_plot(df_barplot, "gender", "Pastel1")
+plot_caste <- create_bar_plot(df_barplot, "caste", "Set1")
+plot_religion <- create_bar_plot(df_barplot, "religion", "Set2")
+
+# Combine the plots with spacing
+combined_plot <- gridExtra::arrangeGrob(plot_state, plot_language, plot_age, plot_urban_rural, plot_gender, plot_caste, plot_religion, ncol = 1, heights = c(1, 1, 1, 1, 1, 1, 1))
+
+# Print the combined plot
+grid::grid.newpage()
+grid::grid.draw(combined_plot)
+
+```
+
+
+\newpage
+## Individually/Community owned energy technologies (n= 2160)
+The percentages are rounded off to whole numbers. 
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+#bar plot for likert responses perceived risk - individually owned technologies 
+df_barplot %>% ggplot(aes(fill= fct_rev(factor(Perceived_Risk, levels=c("Extremely risky", "Very risky","Moderately risky","Slightly risky","Not at all risky","Rather not say/Don't know"))), y=n , x=Technology)) + 
+  geom_bar(position="fill", stat = "identity")+
+  geom_text(data = df_barplot_percent, aes(label=paste0(Percentage, "%"), y=n), position = position_fill(vjust=0.5), size=3) +
+  scale_x_discrete(limits = c("INDSolar", "INDFirewoodetc","INDWind", "INDHydro", "INDDiesel" , "INDBiogas","INDKerosene", "INDLPG"))+
+  scale_fill_manual("legend", values = c("Extremely risky" = "#8C4646", "Very risky" = "#D9695F", "Moderately risky" = "#F2A679", "Slightly risky" = "#F2D091","Not at all risky" = "#5D8C7B", "Rather not say/Don't know" = "grey94"))+
+   labs( y = "Perceived Risk", x ="Individually Owned Energy Technologies")+
+  theme_classic()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+
+#perceived benefit individually owned technologies 
+
+df_barplotben %>% ggplot(aes(fill= factor(Perceived_Benefit, levels=c("Rather not say/Don't know","Not at all beneficial","Slightly beneficial","Moderately beneficial","Very beneficial", "Extremely beneficial")), y=n , x=Technology)) + 
+  geom_bar(position="fill",stat="identity")+
+   geom_text(data = df_barplotben_percent, aes(label=paste0(Percentage, "%"), y=n), position = position_fill(vjust=0.5), size=3) +
+  scale_fill_manual("legend", values = c("Rather not say/Don't know" = "grey94" ,"Not at all beneficial" = "orange","Slightly beneficial"="yellow" ,"Moderately beneficial" = "palegreen","Very beneficial"= "green3", "Extremely beneficial"= "green4"))+
+  scale_x_discrete(limits = c( "INDSolar", "INDFirewoodetc" , "INDLPG",  "INDWind", "INDHydro", "INDDiesel" , "INDBiogas","INDKerosene"))+
+  labs( y = "Perceived Benefit", x ="Individually Owned Energy Technologies")+
+  theme_classic()+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+
+
+
+
+\newpage 
+
+
+# Perceived risk and Perceived Benefit in comparison
+  
+
+```{r, echo = FALSE}
+
+# exploring LPG and firewood discrepancies 
+# first we observe that the  perceived risk from LPG is higher than perceived risk from firewood
+joineddf_IND <- joineddf %>%
+  dplyr::select(starts_with(c("Ben_IND", "Risky_IND")))
+
+# Melt the data frame to long format
+long_formatIND <- joineddf_IND %>% 
+  pivot_longer(everything(), names_to = "technology", values_to = "value") %>%
+  mutate(risk_or_benefit = if_else(str_detect(technology, "Risky"), "risk", "benefit"),
+         technology = str_replace(technology, "Risky_|Ben_", ""))
+
+# Calculate mean and sd for each technology and category (risk or benefit)
+summary_dfIND <- long_formatIND %>%
+  group_by(technology, risk_or_benefit) %>%
+  summarise(mean = mean(value, na.rm = TRUE),
+            sd = sd(value, na.rm = TRUE),
+            se = sd(value, na.rm = TRUE) / sqrt(n()),
+            .groups = "drop")
+
+
+# Order technologies by mean risk
+order_riskIND <- summary_dfIND %>% 
+  filter(risk_or_benefit == "risk") %>%
+  arrange(mean) %>% 
+  pull(technology)
+
+# Change the levels of factor 'technology'
+summary_dfIND$technology <- factor(summary_dfIND$technology, levels = order_riskIND)
+
+# Plotting the data
+ggplot(summary_dfIND, aes(x = technology, y = mean, fill = risk_or_benefit)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = 0.3, position = position_dodge(0.9)) +
+  ylim(0, 5) +
+  scale_fill_manual("legend", 
+                    values = c("benefit" = "palegreen3", "risk" = "firebrick2"), 
+                    labels = c("benefit" = "Perceived Benefit", "risk" = "Perceived Risk")) +
+  labs(y = "Mean Values", x = "Energy Technologies", fill = "Perceived") +
+  ggtitle("Perceived risk and benefit from individually owned energy technologies") +
+  coord_flip()
+```
+
+
+\newpage
+
+# T-tests 
+
+## Pairwise T-test: Mean perceived risk and  mean perceived benefit (all individually owned energy technologies)
+
+```{r, echo = FALSE, fig.width=14, fig.height=6}
+# Now we wanna know if these differences are significant using simple t test
+
+perceivedriskIND <-joineddf %>% select(starts_with(c("Risky_IND"))) %>%
+  gather(key = "technology", value = "perceived_risk") %>% 
+  mutate(technology = gsub("Risky_", "", technology))
+
+result_ttestIND <- pairwise.t.test(perceivedriskIND$perceived_risk, perceivedriskIND$technology, p.adjust.method = "BH")
+
+
+# visualising the pairwaise wilcox test results. the non significant pairs are grey 
+
+tidy_result_ttestIND <- broom::tidy(result_ttestIND)
+
+heatmap1IND <- ggplot(tidy_result_ttestIND, aes(x = group1, y = group2, fill = p.value)) + 
+  geom_tile(color = "white") + 
+  scale_fill_gradient2(low = "firebrick2", high = "white", midpoint = 0.025, 
+                       limits = c(0, 0.05), space = "Lab", 
+                       name = "P-value") + 
+  theme_classic() + 
+  labs(x = "Technology 1", y = "Technology 2") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+   theme(axis.text.y = element_text(size=12), 
+        axis.text.x = element_text(size=12))
+
+## now benIND 
+
+perceivedbenIND <-joineddf %>% select(starts_with(c("Ben_IND"))) %>%
+  gather(key = "technology", value = "perceived_benefit") %>% 
+  mutate(technology = gsub("Ben_", "", technology))
+
+result_ttestINDb <- pairwise.t.test(perceivedbenIND$perceived_benefit, perceivedbenIND$technology, p.adjust.method = "BH")
+
+
+# visualising the pairwaise t- test results. the non significant pairs are grey 
+
+tidy_result_ttestINDb <- broom::tidy(result_ttestINDb)
+
+heatmap2IND <- ggplot(tidy_result_ttestINDb, aes(x = group1, y = group2, fill = p.value)) + 
+  geom_tile(color = "white") + 
+  scale_fill_gradient2(low = "palegreen3", high = "white", midpoint = 0.025, 
+                       limits = c(0, 0.05), space = "Lab", 
+                       name = "P-value") + 
+  theme_classic() + 
+  labs(x = "Technology 1", y = "Technology 2") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+   theme(axis.text.y = element_text(size=12), 
+        axis.text.x = element_text(size=12))
+
+library(gridExtra)
+
+grid.arrange(heatmap1IND, heatmap2IND, ncol=2) 
+```
+
+## Paired T-test: Comparing mean perceived risk and mean perceived benefit for each technology. 
+
+Null hypothesis (H0): The mean difference between perceived risk and perceived benefit from each technology is zero.
+All p values are less than 0.05 suggesting that the differences observed in the bargraph are statistically significant. 
+
+```{r, echo=FALSE}
+
+# Convert character columns to factors
+long_formatIND$technology <- factor(long_formatIND$technology)
+long_formatIND$risk_or_benefit <- factor(long_formatIND$risk_or_benefit)
+
+# Perform the t- Test for each technology
+p_values <- long_formatIND %>%
+  split(.$technology) %>%
+  lapply(function(x) t.test(x$value[x$risk_or_benefit == "risk"], x$value[x$risk_or_benefit == "benefit"], paired = TRUE)) %>%
+  lapply(function(x) x$p.value)
+
+
+p_values
+
+```
+
+
+# Acceptance = Perceived Benefit - Perceived Risk 
+
+Graph representing a combined acceptance scale obtained by subtracting perceived risk from perceived benefit for each respondent 
+
+```{r, echo = FALSE}
+
+
+# combining risk and benefit from each energy technology 
+
+INDacceptance <- joineddf %>% select(starts_with(c("Risky_IND", "Ben_IND"))) %>%
+  na.omit()%>%
+  mutate(Biogas = Ben_INDBiogas - Risky_INDBiogas,
+         INDHydro = Ben_INDHydro - Risky_INDHydro,
+         INDWind = Ben_INDWind - Risky_INDWind,
+         INDSolar = Ben_INDSolar - Risky_INDSolar,
+         Diesel = Ben_INDDiesel - Risky_INDDiesel,
+         Kerosene = Ben_INDKerosene - Risky_INDKerosene,
+         Firewood = Ben_INDFirewoodetc - Risky_INDFirewoodetc,
+         LPG = Ben_INDLPG - Risky_INDLPG)%>%
+  select(-starts_with(c("Risky", "Ben")))
+
+
+# Compute the mean of each column
+mean_INDacceptance <- data.frame(col = names(INDacceptance), mean_val = sapply(INDacceptance, mean))
+
+# Compute standard error (not deviation)(divided by root of n)
+sem <- function(x) sqrt(var(x, na.rm = TRUE) / length(na.omit(x)))
+sem_INDacceptance <- data.frame(col = names(INDacceptance), sem_val = sapply(INDacceptance, sem))
+
+mean_INDacceptance <- merge(mean_INDacceptance, sem_INDacceptance, by = "col")
+
+
+# Plot
+ggplot(mean_INDacceptance, aes(x = col, y = mean_val, fill = ifelse(mean_val >= 0, 'Above 0', 'Below 0'))) + 
+  geom_bar(stat = "identity") +
+  geom_errorbar(aes(ymin = mean_val - sem_val, ymax = mean_val + sem_val), width = 0.2) +
+  geom_text(aes(label = round(mean_val, 2)), vjust = -0.9) +
+  scale_fill_manual(values = c('Above 0' = 'palegreen3', 'Below 0' = 'firebrick2')) +
+  labs(fill = "Legend") +
+  xlab("Energy Technologies") +
+  ylab("Mean Value") +
+  ggtitle("Benefit - Risk for Each Energy Technology") +
+  theme_minimal()+
+  ylim(0, 2)
+
+
+
+```
+\newpage
+
+# Linear Regression Models 
+
+## Perceived Risk from Firewood : demographic variables 
+
+
+```{r, echo=FALSE}
+
+joineddf$Uppercaste <- ifelse(joineddf$caste %in% c('Brahmin', 'General'), 1, 0)
+
+# Convert `gender` into binary variable 'male' (1) vs 'female' (0)
+joineddf$Male <- ifelse(joineddf$gender == 'Male', 1, 0)
+
+# Convert `religion` into binary variable 'Hinduism' (1) vs 'Non-Hinduism' (0)
+joineddf$Hindu <- ifelse(joineddf$religion == 'Hinduism', 1, 0)
+
+# # Convert `caste` into binary variable 'upper' (1) vs 'non-upper' (0)
+codedmodule1$Uppercaste <- ifelse(codedmodule1$caste %in% c('Brahmin', 'General'), 1, 0)
+
+# Convert `gender` into binary variable 'male' (1) vs 'female' (0)
+codedmodule1$Male <- ifelse(codedmodule1$gender == 'Male', 1, 0)
+
+# Convert `religion` into binary variable 'Hinduism' (1) vs 'Non-Hinduism' (0)
+codedmodule1$Hindu <- ifelse(codedmodule1$religion == 'Hinduism', 1, 0)
+
+falldemos <- joineddf %>%
+            select(Risky_INDFirewoodetc,Uppercaste, Male, Hindu, urban_rural, age, State)%>%
+            na.omit()
+
+falldemoslm1 <- lm(Risky_INDFirewoodetc ~ Uppercaste + Male + Hindu + urban_rural + age, data = falldemos)
+# Print model summary
+#summary(falldemoslm1)
+#plot(alldemoslm1)
+
+
+codedmodule1$totalincome <- as.numeric(codedmodule1$totalincome)
+codedmodule1$otherincome <- as.numeric(codedmodule1$otherincome)
+
+falldemos2 <-codedmodule1 %>%
+            select(Risky_INDFirewoodetc,Uppercaste, Male, Hindu, urban_rural, age, State, totalincome, otherincome)%>%
+            mutate(income = totalincome + otherincome)%>%
+            na.omit()
+
+
+#lapply(falldemos2, unique)
+
+falldemos$State <- as.factor(falldemos$State)
+#levels(falldemos$State)
+
+falldemos$age <- as.factor(falldemos$age)
+#levels(falldemos$age)
+
+
+# 2) lm with all demographic variables
+falldemoslm2<- lm(Risky_INDFirewoodetc ~ Uppercaste + Male + Hindu + urban_rural + age + State , data = falldemos)
+# Print model summary
+#summary(falldemoslm2)
+#plot(alldemoslm1)
+
+
+```
+
+
+
+
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
+
+
+cat("\\begingroup")
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(falldemoslm1, falldemoslm2,
+          title = "Results from 2 linear regression models",
+          type = "latex"
+)
+cat("\\endgroup")
+
+
+```
+
+## Perceived Risk from LPG : demographic variables 
+```{r, echo=FALSE}
+#same linear models with LPG 
+
+LPGalldemos <- joineddf %>%
+            select(Risky_INDLPG,Uppercaste, Male, Hindu, urban_rural, age, State)%>%
+            na.omit()
+
+LPGalldemoslm1 <- lm(Risky_INDLPG ~ Uppercaste + Male + Hindu + urban_rural + age , data = LPGalldemos)
+# Print model summary
+#summary(LPGalldemoslm1)
+#plot(alldemoslm1)
+
+
+LPGalldemos2 <-codedmodule1 %>%
+            select(Risky_INDLPG,Uppercaste, Male, Hindu, urban_rural, age, State, totalincome, otherincome)%>%
+            mutate(income = totalincome + otherincome)%>%
+            na.omit()
+
+
+#lapply(LPGalldemos2, unique)
+
+# 2) lm with all demographic variables
+LPGalldemoslm2<- lm(Risky_INDLPG ~ Uppercaste + Male + Hindu + urban_rural + age + State , data = LPGalldemos)
+# Print model summary
+#summary(LPGalldemoslm2)
+#plot(alldemoslm1)
+
+```
+
+
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
+
+
+cat("\\begingroup")
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(LPGalldemoslm1,LPGalldemoslm2 , 
+          title = "Results from 2 linear regression models",
+          type = "latex"
+)
+cat("\\endgroup")
+
+
+```
+
+Table 1 and 2 : 
+
+1. Uppercaste, Male, Hindu and urban_rural are binary variables. 
+2. Reference for age variables is 18-24 years old
+3. Reference for State is Maharashtra 
+
+
+
+# Linear Regression model - stove ownership by four groups - (i)LPG, (ii)Traditonal Stove(Including Firewood), (iii)Both and (iv)Other
+
+```{r, echo = FALSE}
+
+
+
+# # Convert `caste` into binary variable 'upper' (1) vs 'non-upper' (0)
+module1$Uppercaste <- ifelse(module1$caste %in% c('Brahmin', 'General'), 1, 0)
+
+# Convert `gender` into binary variable 'male' (1) vs 'female' (0)
+module1$Male <- ifelse(module1$gender == 'Male', 1, 0)
+
+# Convert `religion` into binary variable 'Hinduism' (1) vs 'Non-Hinduism' (0)
+module1$Hindu <- ifelse(module1$religion == 'Hinduism', 1, 0)
+
+
+stove <-module1 %>%
+        filter(!row_number() %in% c(1,2))%>%
+        select(Risky_INDFirewoodetc, Risky_INDLPG, urban_rural, Male, Uppercaste, Hindu, age, State, cookstove,)%>%
+        mutate(across(starts_with("Risky"), ~case_when(. =="Not at all risky" ~ 1, 
+                                                 . =="Slightly risky" ~ 2, 
+                                                 . =="Moderately risky" ~ 3, 
+                                                 . =="Very risky" ~ 4, 
+                                                 . =="Extremely risky" ~ 5))) %>%
+  na.omit()
+        
+      
+#lapply(stove, unique)
+library(dplyr)
+
+grouped_stove <- stove %>%
+  mutate(
+    group = case_when(
+      # Group 3
+      cookstove %in% c(
+        "Liquefied Petroleum Gas (LPG)/Cooking gas stove,Liquid Fuel Stove,Traditional Solid Fuel Stove",
+        "Liquefied Petroleum Gas (LPG)/Cooking gas stove,Three Stone Stove/Open Fire",
+        "Liquefied Petroleum Gas (LPG)/Cooking gas stove,Liquid Fuel Stove,Traditional Solid Fuel Stove,Three Stone Stove/Open Fire",
+        "Liquefied Petroleum Gas (LPG)/Cooking gas stove,Three Stone Stove/Open Fire,Other(Please Specify)",
+        "Liquefied Petroleum Gas (LPG)/Cooking gas stove,Traditional Solid Fuel Stove,Three Stone Stove/Open Fire",
+        "Electric Stove,Liquefied Petroleum Gas (LPG)/Cooking gas stove,Traditional Solid Fuel Stove",
+        "Liquefied Petroleum Gas (LPG)/Cooking gas stove,Traditional Solid Fuel Stove",
+        "Solar Cooker,Liquefied Petroleum Gas (LPG)/Cooking gas stove,Traditional Solid Fuel Stove,Three Stone Stove/Open Fire",
+        "Electric Stove,Solar Cooker,Liquefied Petroleum Gas (LPG)/Cooking gas stove,Traditional Solid Fuel Stove,Three Stone Stove/Open Fire",
+        "Solar Cooker,Liquefied Petroleum Gas (LPG)/Cooking gas stove,Liquid Fuel Stove,Traditional Solid Fuel Stove,Three Stone Stove/Open Fire",
+        "Electric Stove,Liquefied Petroleum Gas (LPG)/Cooking gas stove,Traditional Solid Fuel Stove,Three Stone Stove/Open Fire",
+        "Solar Cooker,Liquefied Petroleum Gas (LPG)/Cooking gas stove,Traditional Solid Fuel Stove,No Food Cooked in Household",
+        "Electric Stove,Liquefied Petroleum Gas (LPG)/Cooking gas stove,Three Stone Stove/Open Fire",
+        "Solar Cooker,Liquefied Petroleum Gas (LPG)/Cooking gas stove,Three Stone Stove/Open Fire"
+      ) ~ "Both",
+      
+      # Group 1
+      cookstove %in% c(
+        "Three Stone Stove/Open Fire",
+        "Traditional Solid Fuel Stove",
+        "Three Stone Stove/Open Fire,Other(Please Specify)",
+        "Traditional Solid Fuel Stove,Three Stone Stove/Open Fire",
+        "Traditional Solid Fuel Stove,Three Stone Stove/Open Fire,Other(Please Specify)",
+        "Solar Cooker,Three Stone Stove/Open Fire",
+        "Piped Natural Gas Stove,Traditional Solid Fuel Stove,Three Stone Stove/Open Fire",
+        "Biogas Stove,Traditional Solid Fuel Stove",
+        "Electric Stove,Biogas Stove,Traditional Solid Fuel Stove",
+        "Electric Stove,Traditional Solid Fuel Stove"
+      ) ~ "Traditional",
+      
+       # Group 2
+      cookstove %in% c(
+        "Liquefied Petroleum Gas (LPG)/Cooking gas stove,Other(Please Specify)",
+        "Liquefied Petroleum Gas (LPG)/Cooking gas stove,Biogas Stove",
+        "Electric Stove,Liquefied Petroleum Gas (LPG)/Cooking gas stove",
+        "Liquefied Petroleum Gas (LPG)/Cooking gas stove,Biogas Stove,Liquid Fuel Stove",
+        "Solar Cooker,Liquefied Petroleum Gas (LPG)/Cooking gas stove",
+        "Solar Cooker,Liquefied Petroleum Gas (LPG)/Cooking gas stove,Liquid Fuel Stove",
+        "Liquefied Petroleum Gas (LPG)/Cooking gas stove,No Food Cooked in Household",
+        "Liquefied Petroleum Gas (LPG)/Cooking gas stove"
+      ) ~ "LPG",
+      
+      # Default to "Other" for any cookstove values not specified in the conditions above
+      TRUE ~ "Other"
+    )
+  )
+
+
+count2 <- grouped_stove %>% count(group)
+
+
+grouped_stove$group <- as.factor(grouped_stove$group)
+
+grouped_stove$group <- factor(grouped_stove$group, levels = c("LPG", "Traditional", "Both", "Other"))
+ 
+#levels(grouped_stove$group)
+
+# lm with stove ownership 
+LPGstove<- lm(Risky_INDLPG ~ urban_rural + Hindu + Male + Uppercaste + age +  group , data = grouped_stove)
+# Print model summary
+#summary(LPGstove)
+
+
+# lm with stove ownership 
+fstove<- lm(Risky_INDFirewoodetc ~ urban_rural + Hindu + Male + Uppercaste + age +  group , data = grouped_stove)
+# Print model summary
+#summary(fstove)
+
+
+
+count2
+```
+
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
+
+
+cat("\\begingroup")
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(LPGstove, fstove, 
+          title = "Results from 2 linear regression models",
+          type = "latex"
+)
+cat("\\endgroup")
+
+
+```
+
