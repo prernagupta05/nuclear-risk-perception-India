@@ -215,6 +215,8 @@ codedmodule1$gender <- factor(codedmodule1$gender, levels = c("Male","Female"))
                  #~factor(.))
 #converting relevant variables to Numeric
 
+
+
 ```
 
 
@@ -793,13 +795,6 @@ str(codedmodule1)
 
 
 
-
-
-
-
-
-
-
 # Livelihood/Income Security scale adapted from Kamaruddin and Samsudin(2014)
 
 Human Asset
@@ -815,9 +810,9 @@ subsidyknow -     How would you rate your knowledge concerning how to obtain inf
 Physical Asset 
 
 drinkingwater   	What is the main source of drinking water for the members of your household?
-cookingwater      What is the main source of water used by your\r\nhousehold for other purposes such as cooking and\r\nhandwashing?
-farwatermins      How long does it take to go there, get water, and come\r\nback? 
-toilet            What kind of toilet facility do members of your\r\nhousehold usually use?
+cookingwater      What is the main source of water used by your household for other purposes such as cooking and handwashing?
+farwatermins      How long does it take to go there, get water, and come back? 
+toilet            What kind of toilet facility do members of your nhousehold usually use?
 house
 stove
 vehicle
