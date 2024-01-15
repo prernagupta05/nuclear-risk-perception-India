@@ -732,3 +732,80 @@ Varexplroofs <- unclass(roofs.fa$Vaccounted)
 knitr::kable(Varexplroofs, digits = 2)
 
 ```
+
+
+
+```{r}
+staterisky <- joineddf %>%
+  dplyr::select(!starts_with(c("Ben_IND", "Risky_IND")))%>%
+  dplyr::select(starts_with("Risky"), State)
+
+staterisky_mean <- staterisky %>%
+  group_by(State) %>%
+  summarise(
+    Mean_Risky_Hydro = mean(Risky_Hydro, na.rm = TRUE),
+    Mean_Risky_Solar = mean(Risky_Solar, na.rm = TRUE),
+    Mean_Risky_Wind = mean(Risky_Wind, na.rm = TRUE),
+    Mean_Risky_Nuclear = mean(Risky_Nuclear, na.rm = TRUE),
+    Mean_Risky_Coal = mean(Risky_Coal, na.rm = TRUE),
+    Mean_Risky_Gas = mean(Risky_Gas, na.rm = TRUE),
+    Mean_Risky_Oil = mean(Risky_Oil, na.rm = TRUE)
+  )
+ 
+
+str(staterisky_mean)
+
+# Load required packages
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+# Convert to long format
+long_data <- staterisky_mean %>%
+  gather(Technology, Mean_Score, -State) %>%
+  mutate(Technology = gsub("Mean_Risky_", "", Technology))
+
+# Order Technologies
+technology_order <- c("Nuclear", "Gas", "Coal", "Oil", "Hydro", "Wind", "Solar")
+long_data$Technology <- factor(long_data$Technology, levels = technology_order)
+
+# Plot the graph
+ggplot(long_data, aes(x = Technology, y = Mean_Score, color = State, group = State)) +
+  geom_line(size = 1) +
+  geom_point(size = 3) +
+  labs(title = "Mean Perceived Risk by State",
+       x = "Technology", y = "Mean Score") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+
+```
+
+```{r}
+# Using dplyr and tidyr
+
+standardized_data <- long_data %>%
+  group_by(Technology) %>%
+  mutate(
+    Overall_Mean = mean(Mean_Score, na.rm = TRUE),
+    Std_Dev = sd(Mean_Score, na.rm = TRUE)
+  ) %>%
+  ungroup() %>%
+  mutate(Standardized_Score = (Mean_Score - Overall_Mean) / Std_Dev) %>%
+  dplyr::select(-Overall_Mean, -Std_Dev)  # 
+
+# Order Technologies
+technology_order <- c("Nuclear", "Gas", "Coal", "Oil", "Hydro", "Wind", "Solar")
+standardized_data$Technology <- factor(standardized_data$Technology, levels = technology_order)
+
+# Plot the graph
+ggplot(standardized_data, aes(x = Technology, y = Standardized_Score, color = State, group = State)) +
+  geom_line(size = 1) +
+  geom_point(size = 3) +
+  labs(title = "Standardised Scores of Technologies by State",
+       x = "Technology", y = "Z Score") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```

@@ -117,7 +117,7 @@ demorisk <- codedmodule2%>%
   summarize_at(vars(starts_with(c("RISKY"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
   #melt to long format
   gather(key = "technology", value = "summary", Risky_Hydro_mean, Risky_Solar_mean, Risky_Wind_mean, Risky_Nuclear_mean, Risky_Coal_mean, Risky_Gas_mean, Risky_Oil_mean, Risky_Hydro_sd, Risky_Solar_sd, Risky_Wind_sd, Risky_Nuclear_sd, Risky_Coal_sd, Risky_Gas_sd, Risky_Oil_sd,Risky_Hydro_n, Risky_Solar_n, Risky_Wind_n, Risky_Nuclear_n, Risky_Coal_n, Risky_Gas_n, Risky_Oil_n) %>%
-  select(SYSTEMDEMO, technology, summary) %>%
+  dplyr::select(SYSTEMDEMO, technology, summary) %>%
   # separate risky from variable suffix
   separate(technology, c("Risky", "var"), extra = "merge", fill = "left") %>%
   #separate mean from variable prefix
@@ -125,7 +125,7 @@ demorisk <- codedmodule2%>%
   # spread summary values back to wide form
   spread(meansd,summary) %>%
   #clean up
-  select(-Risky)%>%
+  dplyr::select(-Risky)%>%
   arrange(mean) %>%
   mutate_at(vars(SYSTEMDEMO), funs(case_when(. == 5 ~ "democractic"))) %>%
   dplyr::rename(Govt = SYSTEMDEMO)
@@ -136,7 +136,7 @@ techrisk <- codedmodule2%>%
   summarize_at(vars(starts_with(c("RISKY"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
   #melt to long format
   gather(key = "technology", value = "summary", Risky_Hydro_mean, Risky_Solar_mean, Risky_Wind_mean, Risky_Nuclear_mean, Risky_Coal_mean, Risky_Gas_mean, Risky_Oil_mean, Risky_Hydro_sd, Risky_Solar_sd, Risky_Wind_sd, Risky_Nuclear_sd, Risky_Coal_sd, Risky_Gas_sd, Risky_Oil_sd, Risky_Hydro_n, Risky_Solar_n, Risky_Wind_n, Risky_Nuclear_n, Risky_Coal_n, Risky_Gas_n, Risky_Oil_n) %>%
-  select(SYSTEMTECHNO, technology, summary) %>%
+  dplyr::select(SYSTEMTECHNO, technology, summary) %>%
   # separate risky from variable suffix
   separate(technology, c("Risky", "var"), extra = "merge", fill = "left") %>%
   #separate mean from variable prefix
@@ -144,7 +144,7 @@ techrisk <- codedmodule2%>%
   # spread summary values back to wide form
   spread(meansd,summary) %>%
   #clean up
-  select(-Risky)%>%
+  dplyr::select(-Risky)%>%
   arrange(mean) %>%
   mutate_at(vars(SYSTEMTECHNO), funs(case_when(. == 5 ~ "technocratic"))) %>%
   dplyr::rename(Govt = SYSTEMTECHNO)
@@ -155,7 +155,7 @@ religionrisk <- codedmodule2%>%
   summarize_at(vars(starts_with(c("RISKY"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
   #melt to long format
   gather(key = "technology", value = "summary", Risky_Hydro_mean, Risky_Solar_mean, Risky_Wind_mean, Risky_Nuclear_mean, Risky_Coal_mean, Risky_Gas_mean, Risky_Oil_mean, Risky_Hydro_sd, Risky_Solar_sd, Risky_Wind_sd, Risky_Nuclear_sd, Risky_Coal_sd, Risky_Gas_sd, Risky_Oil_sd, Risky_Hydro_n, Risky_Solar_n, Risky_Wind_n, Risky_Nuclear_n, Risky_Coal_n, Risky_Gas_n, Risky_Oil_n) %>%
-  select(SYSTEMRELIGION, technology, summary) %>%
+  dplyr::select(SYSTEMRELIGION, technology, summary) %>%
   # separate risky from variable suffix
   separate(technology, c("Risky", "var"), extra = "merge", fill = "left") %>%
   #separate mean from variable prefix
@@ -163,7 +163,7 @@ religionrisk <- codedmodule2%>%
   # spread summary values back to wide form
   spread(meansd,summary) %>%
   #clean up
-  select(-Risky)%>%
+  dplyr::select(-Risky)%>%
   arrange(mean)%>%
   mutate_at(vars(SYSTEMRELIGION), funs(case_when(. == 5 ~ "religious"))) %>%
   dplyr::rename(Govt = SYSTEMRELIGION)
@@ -174,7 +174,7 @@ totalrisk <- codedmodule2%>%
   summarize_at(vars(starts_with(c("RISKY"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
   #melt to long format
   gather(key = "technology", value = "summary", Risky_Hydro_mean, Risky_Solar_mean, Risky_Wind_mean, Risky_Nuclear_mean, Risky_Coal_mean, Risky_Gas_mean, Risky_Oil_mean, Risky_Hydro_sd, Risky_Solar_sd, Risky_Wind_sd, Risky_Nuclear_sd, Risky_Coal_sd, Risky_Gas_sd, Risky_Oil_sd, Risky_Hydro_n, Risky_Solar_n, Risky_Wind_n, Risky_Nuclear_n, Risky_Coal_n, Risky_Gas_n, Risky_Oil_n) %>%
-  select(SYSTEMTOTAL, technology, summary) %>%
+  dplyr::select(SYSTEMTOTAL, technology, summary) %>%
   # separate risky from variable suffix
   separate(technology, c("Risky", "var"), extra = "merge", fill = "left") %>%
   #separate mean from variable prefix
@@ -182,7 +182,7 @@ totalrisk <- codedmodule2%>%
   # spread summary values back to wide form
   spread(meansd,summary) %>%
   #clean up
-  select(-Risky)%>%
+  dplyr::select(-Risky)%>%
   arrange(mean)%>%
   mutate_at(vars(SYSTEMTOTAL), funs(case_when(. == 5 ~ "totalitarian"))) %>%
   dplyr::rename(Govt = SYSTEMTOTAL)
@@ -234,7 +234,7 @@ demorisk2 <- codedmodule2%>%
   summarize_at(vars(starts_with(c("RISKY"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
   #melt to long format
   gather(key = "technology", value = "summary", Risky_Hydro_mean, Risky_Solar_mean, Risky_Wind_mean, Risky_Nuclear_mean, Risky_Coal_mean, Risky_Gas_mean, Risky_Oil_mean, Risky_Hydro_sd, Risky_Solar_sd, Risky_Wind_sd, Risky_Nuclear_sd, Risky_Coal_sd, Risky_Gas_sd, Risky_Oil_sd, Risky_Hydro_n, Risky_Solar_n, Risky_Wind_n, Risky_Nuclear_n, Risky_Coal_n, Risky_Gas_n, Risky_Oil_n) %>%
-  select(SYSTEMDEMO, technology, summary) %>%
+  dplyr::select(SYSTEMDEMO, technology, summary) %>%
   # separate risky from variable suffix
   separate(technology, c("Risky", "var"), extra = "merge", fill = "left") %>%
   #separate mean from variable prefix
@@ -242,7 +242,7 @@ demorisk2 <- codedmodule2%>%
   # spread summary values back to wide form
   spread(meansd,summary) %>%
   #clean up
-  select(-Risky)%>%
+  dplyr::select(-Risky)%>%
   arrange(SYSTEMDEMO) 
 
 data.frame(demorisk2)
@@ -265,7 +265,7 @@ update_labels(d, list(colour = "Support for Democratic Government"))
 ```{r, echo=FALSE}
 
 decenrisk2 <- codedmodule2%>%
-    select(starts_with(c("Risky","Ben","SYSTEMDEMO","SYSTEMRELIGION","SYSTEMTECHNO","SYSTEMTOTAL","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG")))%>%
+    dplyr::select(starts_with(c("Risky","Ben","SYSTEMDEMO","SYSTEMRELIGION","SYSTEMTECHNO","SYSTEMTOTAL","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG")))%>%
   rowwise()%>%
   dplyr::mutate(Pro_decentralisation = mean(c_across("DECISIONDECEN":"DECISIONCEN"))) %>%
   group_by(Pro_decentralisation)%>%
@@ -273,7 +273,7 @@ decenrisk2 <- codedmodule2%>%
   summarize_at(vars(starts_with(c("RISKY"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
   #melt to long format
   gather(key = "technology", value = "summary", Risky_Hydro_mean, Risky_Solar_mean, Risky_Wind_mean, Risky_Nuclear_mean, Risky_Coal_mean, Risky_Gas_mean, Risky_Oil_mean, Risky_Hydro_sd, Risky_Solar_sd, Risky_Wind_sd, Risky_Nuclear_sd, Risky_Coal_sd, Risky_Gas_sd, Risky_Oil_sd,Risky_Hydro_n, Risky_Solar_n, Risky_Wind_n, Risky_Nuclear_n, Risky_Coal_n, Risky_Gas_n, Risky_Oil_n ) %>%
-  select(Pro_decentralisation, technology, summary) %>%
+  dplyr::select(Pro_decentralisation, technology, summary) %>%
   # separate risky from variable suffix
   separate(technology, c("Risky", "var"), extra = "merge", fill = "left") %>%
   #separate mean from variable prefix
@@ -281,7 +281,7 @@ decenrisk2 <- codedmodule2%>%
   # spread summary values back to wide form
   spread(meansd,summary) %>%
   #clean up
-  select(-Risky)%>%
+  dplyr::select(-Risky)%>%
   arrange(Pro_decentralisation) 
 
 data.frame(decenrisk2)
@@ -305,7 +305,7 @@ update_labels(decen, list(colour = "Pro decentralised governance"))
 ```{r, echo=FALSE}
 
 largerisk2 <- codedmodule2%>%
-    select(starts_with(c("Risky","Ben","SYSTEMDEMO","SYSTEMRELIGION","SYSTEMTECHNO","SYSTEMTOTAL","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG")))%>%
+    dplyr::select(starts_with(c("Risky","Ben","SYSTEMDEMO","SYSTEMRELIGION","SYSTEMTECHNO","SYSTEMTOTAL","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG")))%>%
   rowwise()%>%
   dplyr::mutate(Pro_largescale = sum(c_across("INDUSTRYLARGE":"INDUSTRYSMALL"))) %>%
   group_by(Pro_largescale)%>%
@@ -313,7 +313,7 @@ largerisk2 <- codedmodule2%>%
   summarize_at(vars(starts_with(c("RISKY"))), list(~mean(., na.rm = TRUE), ~median(., na.rm = TRUE), ~sd(.,na.rm = TRUE),~var(.,na.rm = TRUE), ~n())) %>%
   #melt to long format
   gather(key = "technology", value = "summary", Risky_Hydro_mean, Risky_Solar_mean, Risky_Wind_mean, Risky_Nuclear_mean, Risky_Coal_mean, Risky_Gas_mean, Risky_Oil_mean, Risky_Hydro_sd, Risky_Solar_sd, Risky_Wind_sd, Risky_Nuclear_sd, Risky_Coal_sd, Risky_Gas_sd, Risky_Oil_sd, Risky_Hydro_n, Risky_Solar_n, Risky_Wind_n, Risky_Nuclear_n, Risky_Coal_n, Risky_Gas_n, Risky_Oil_n) %>%
-  select(Pro_largescale, technology, summary) %>%
+  dplyr::select(Pro_largescale, technology, summary) %>%
   # separate risky from variable suffix
   separate(technology, c("Risky", "var"), extra = "merge", fill = "left") %>%
   #separate mean from variable prefix
@@ -321,7 +321,7 @@ largerisk2 <- codedmodule2%>%
   # spread summary values back to wide form
   spread(meansd,summary) %>%
   #clean up
-  select(-Risky)%>%
+  dplyr::select(-Risky)%>%
   arrange(Pro_largescale) 
 
 data.frame(largerisk2)
@@ -435,7 +435,7 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 #calculating individualism score and hierarchy score for each respondent
 
 Kscalescores <- codedmodule2 %>%
-  select(starts_with(c("Risky","K_I","K_S", "K_H", "K_E")))%>%
+  dplyr::select(starts_with(c("Risky_Nuclear","K_I","K_S", "K_H", "K_E")))%>%
   rowwise()%>%
   na.omit()%>%
   dplyr::mutate(Individualism_score = mean(c_across(K_IINTRFER:K_SPROTECT)))%>%
@@ -443,12 +443,14 @@ Kscalescores <- codedmodule2 %>%
   dplyr::select(!starts_with(c("K_I","K_S", "K_H", "K_E")))
 
 
+Knuclearlm <- lm(Risky_Nuclear ~ Individualism_score + Hierarchy_score , data = Kscalescores)
+summary(Knuclearlm)
 ```
 \newpage
 
 # **Scatter plot of Kahan scale scores around the median scores on Individualism and Hierarchy scales**
 
-```{r, echo=FALSE}
+```{r dev = "jpg", echo=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 #scatter plot of Kahan scale scores around the median scores on Individualism and Hierarchy scales. 
@@ -459,7 +461,10 @@ Kscalescores %>%
   guides(color = 'legend')+
   geom_hline(yintercept=2, colour="black", lwd=1)+
   geom_vline(xintercept=3, colour="black", lwd=1)+
-  labs(x = " Communitarianism to Individualism", y = "Egalitarianism to Hierarchy")
+  labs(x = " Communitarianism to Individualism", y = "Egalitarianism to Hierarchy")+
+  ylim(1,5)+
+  xlim(1,5)+
+  theme_minimal() 
 
 
 ```

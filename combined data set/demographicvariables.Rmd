@@ -430,6 +430,10 @@ urbanrural%>%
   geom_errorbar(aes(ymin=mean-sd, ymax=mean + sd), width=.2,
                  position=position_dodge(.9))+
   labs(x = "urban or rural", y = "mean risk")
+
+
+
+
 ```
 
 \newpage
@@ -491,6 +495,16 @@ genderrisk%>%
   geom_errorbar(aes(ymin=mean-sd, ymax=mean + sd), width=.2,
                  position=position_dodge(.9))+
   labs(y = "mean risk")
+
+
+joineddf%>%
+  ggplot(aes(x= gender, y = Risky_Nuclear))+
+  geom_boxplot()
+
+joineddf%>%
+  ggplot(aes(x= urban_rural, y = Risky_Nuclear))+
+  geom_boxplot()
+
 ```
 
 \newpage
