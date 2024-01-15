@@ -1,0 +1,1326 @@
+---
+title: "correlationstuff"
+output:
+  pdf_document:
+    toc: yes
+    toc_depth: 2
+    keep_tex: yes
+  header-includes:
+  - \usepackage{dcolumn}
+  - \usepackage{array}
+  - "\\usepackage{placeins}"
+  keep_md: yes
+---
+
+
+```{r load packages, warning = FALSE, message = FALSE, echo=FALSE}
+  knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(readxl))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(tidyr))
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(lavaan))
+suppressPackageStartupMessages(library(tsibble))
+suppressPackageStartupMessages(library(DT))
+suppressPackageStartupMessages(library(knitr))
+suppressPackageStartupMessages(library(psych)) 
+suppressPackageStartupMessages(library(foreign))
+suppressPackageStartupMessages(library(MASS))
+suppressPackageStartupMessages(library(Hmisc))
+suppressPackageStartupMessages(library(reshape2))
+
+```
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+moduletwo <- read_excel(here::here("thesis_surveydata/political_factors_complete.xlsx"))
+module2 <- data.frame(moduletwo)
+module2[module2 == "Rather not say/ Don't know"] <- "Rather not say/Don't know"
+
+
+
+# loaded data set for module 2 eco -pol variables and removes the rows with question number and question text
+```
+
+```{r, eval =TRUE, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+#This chunk contains the coding schemes of various scales used in survey one: eco-political factors, kahan scale and acceptance scale
+codedmodule2 <- module2 %>%
+  
+#remove row 1
+  filter(!row_number() %in% c(1,2)) %>% 
+  
+# replace risky likert scale with numbers
+  mutate_at(vars(starts_with("Risky")), funs(case_when(. =="Not at all risky" ~ 1, 
+                                                       . =="Slightly risky" ~ 2, 
+                                                       . =="Moderately risky" ~ 3, 
+                                                       . =="Very risky" ~ 4, 
+                                                       . =="Extremely risky" ~ 5))) %>%
+
+# replace beneficial likert scale with numbers  
+  mutate_at(vars(starts_with("Ben")), funs(case_when(. =="Not at all beneficial" ~ 1,
+                                                     . =="Slightly beneficial" ~ 2,
+                                                     . =="Moderately beneficial" ~ 3,
+                                                     . =="Very beneficial" ~ 4,
+                                                     . =="Extremely beneficial" ~ 5 ))) %>%
+
+# replace nuclear acceptance likert scale with numbers
+  mutate_at(vars(N_accept,N_reluctantlyaccept,N_reject), funs(case_when(. == "Strongly disagree" ~ 1, 
+                                                                        . == "Somewhat disagree" ~ 2,
+                                                                        . == "Neither agree nor disagree" ~3,
+                                                                        . == "Somewhat agree" ~ 4,
+                                                                        . == "Strongly agree" ~ 5))) %>%
+  
+  
+# code likert scale for variables for Kahan scale into numbers
+  mutate_at(vars(starts_with (c("K_S","K_E","DISPLACE", "POLLUTE", "HEALTH", "JOBS", "BEAUTY", "PRIDE", "NPRIDE","DEVNUCLEAR","PROSPER", "RELY"))), funs(case_when(. == "Strongly disagree" ~ 1, 
+               . == "Somewhat disagree" ~ 2,
+               . == "Neither agree nor disagree" ~3,
+               . == "Somewhat agree" ~ 4,
+               . == "Strongly agree" ~ 5))) %>%
+  
+# reverse code for likert scale for variables for Kahan scale into numbers
+  mutate_at(vars(starts_with (c("K_H","K_I"))), funs(case_when(. == "Strongly disagree" ~ 5, 
+                                                               . == "Somewhat disagree" ~ 4,
+                                                               . == "Neither agree nor disagree" ~3,
+                                                               . == "Somewhat agree" ~ 2,
+                                                               . == "Strongly agree" ~ 1))) %>%
+
+# code eco-pol scale variables into numbers
+mutate_at(vars(SYSTEMDEMO,SYSTEMRELIGION,SYSTEMTECHNO,SYSTEMTOTAL,WEALTHLIM,MECHANISATION,DECISIONDECEN,INDUSTRYSMALL,ECONOMYLOCAL,ENVOVERDEV,OWNERPUB, OWNERREG), funs(case_when(. == "Strongly disagree" ~ 1, 
+                        . == "Somewhat disagree" ~ 2,
+                        . == "Neither agree nor disagree" ~3,
+                        . == "Somewhat agree" ~ 4,
+                        . == "Strongly agree" ~ 5))) %>%
+
+# reverse code eco-pol scale variables into numbers 
+ mutate_at(vars(DECISIONCEN,INDUSTRYLARGE,ECONOMYGLOBAL,OWNERPVT,OWNERNOREG, DEVOVERENV), funs(case_when(. == "Strongly disagree" ~ 5, 
+                                                                                                         . == "Somewhat disagree" ~ 4,
+                                                                                                         . == "Neither agree nor disagree" ~3,
+                                                                                                         . == "Somewhat agree" ~ 2,
+                                                                                                         . == "Strongly agree" ~ 1))) %>%
+  mutate_all(~ifelse(. == "Rather not say/ Don't know", "Rather not say/Don't know", .))%>%
+  mutate_all(~ifelse(. == "West bengal", "West Bengal", .))%>%
+  mutate_all(~ifelse(. == "WEST BENGAL", "West Bengal", .))%>%
+  mutate_all(~ifelse(. == "Up", "Uttar Pradesh", .))%>%
+  mutate_all(~ifelse(. == "Tamilnadu", "Tamil Nadu", .))%>%
+  mutate_all(~ifelse(. == "UP", "Uttar Pradesh", .))
+  
+
+```
+
+
+```{r, eval=TRUE, echo=FALSE}
+
+moduleone <- read_excel(here::here("thesis_surveydata/livelihood_insecurity_complete.xlsx"))
+module1 <- data.frame(moduleone)
+# loaded data set for module 2 eco -pol variables and removes the rows with question number and question text
+```
+
+
+```{r, eval =TRUE, echo=FALSE}
+#This chunk contains the coding schemes of various scales used in survey one: eco-political factors, kahan scale and acceptance scale
+codedmodule1 <- module1 %>%
+
+#remove row 1 and 2 
+  filter(!row_number() %in% c(1,2)) %>% 
+  
+# replace risky likert scale with numbers
+  mutate_at(vars(starts_with("Risky")), funs(case_when(. =="Not at all risky" ~ 1, 
+                                                       . =="Slightly risky" ~ 2, 
+                                                       . =="Moderately risky" ~ 3, 
+                                                       . =="Very risky" ~ 4, 
+                                                       . =="Extremely risky" ~ 5))) %>%
+
+# replace beneficial likert scale with numbers  
+  mutate_at(vars(starts_with("Ben")), funs(case_when(. =="Not at all beneficial" ~ 1,
+                                                     . =="Slightly beneficial" ~ 2,
+                                                     . =="Moderately beneficial" ~ 3,
+                                                     . =="Very beneficial" ~ 4,
+                                                     . =="Extremely beneficial" ~ 5 ))) %>%
+
+# replace nuclear acceptance likert scale with numbers
+  mutate_at(vars(N_accept,N_reluctantlyaccept,N_reject), funs(case_when(. == "Strongly disagree" ~ 1, 
+                                                                        . == "Somewhat disagree" ~ 2,
+                                                                        . == "Neither agree nor disagree" ~3,
+                                                                        . == "Somewhat agree" ~ 4,
+                                                                        . == "Strongly agree" ~ 5)))%>%
+  mutate_all(~ifelse(. == "Rather not say/ Don't know", "Rather not say/Don't know", .))%>%
+  mutate_all(~ifelse(. == "West bengal", "West Bengal", .))%>%
+  mutate_all(~ifelse(. == "WEST BENGAL", "West Bengal", .))%>%
+  mutate_all(~ifelse(. == "Up", "Uttar Pradesh", .))%>%
+  mutate_all(~ifelse(. == "Tamilnadu", "Tamil Nadu", .))%>%
+  mutate_all(~ifelse(. == "UP", "Uttar Pradesh", .))
+
+```
+
+
+```{r, echo = FALSE}
+
+suppressPackageStartupMessages(library(tidyselect))
+# combine codedmodule1 and codedmodule2
+
+numcol2 <- codedmodule2 %>% add_column(Respondent = 1:1099, .before = "Language") 
+numcol1 <- codedmodule1 %>% add_column(Respondent = 1099:2160, .before = "Language")
+
+joineddf <-  full_join(numcol2, numcol1, by = c("Respondent", "Language", "Survey_Date", "State", "Risky_Hydro", "Risky_Solar", "Risky_Wind", "Risky_Nuclear", "Risky_Coal", "Risky_Gas", "Risky_Oil", "Risky_INDHydro", "Risky_INDSolar", "Risky_INDWind", "Risky_INDBiogas", "Risky_INDDiesel", "Risky_INDKerosene", "Risky_INDFirewoodetc", "Risky_INDLPG", "Ben_Hydro", "Ben_Solar", "Ben_Wind", "Ben_Nuclear", "Ben_Coal", "Ben_Gas", "Ben_Oil", "Ben_INDHydro", "Ben_INDSolar", "Ben_INDWind", "Ben_INDDiesel", "Ben_INDBiogas", "Ben_INDFirewoodetc", "Ben_INDLPG", "Ben_INDKerosene", "N_accept", "N_reluctantlyaccept", "N_reject", "age", "urban_rural", "gender", "caste", "religion", "religiontext")) %>%
+  mutate_at(vars(age), funs(case_when(. == "18-24 years old" ~ 1, 
+                                      . == "25-34 years old" ~ 2,
+                                      . ==  "35-44 years old" ~3,
+                                      . == "45-54 years old" ~ 4,
+                                      . == "55-64 years old" ~ 5,
+                                      . == "65-74 years old" ~ 6,
+                                      . == "75 years or older" ~ 7))) # converting age to continuous variable 
+
+
+joineddf1 <-  full_join(numcol2, numcol1, by = c("Respondent", "Language", "Survey_Date", "State", "Risky_Hydro", "Risky_Solar", "Risky_Wind", "Risky_Nuclear", "Risky_Coal", "Risky_Gas", "Risky_Oil", "Risky_INDHydro", "Risky_INDSolar", "Risky_INDWind", "Risky_INDBiogas", "Risky_INDDiesel", "Risky_INDKerosene", "Risky_INDFirewoodetc", "Risky_INDLPG", "Ben_Hydro", "Ben_Solar", "Ben_Wind", "Ben_Nuclear", "Ben_Coal", "Ben_Gas", "Ben_Oil", "Ben_INDHydro", "Ben_INDSolar", "Ben_INDWind", "Ben_INDDiesel", "Ben_INDBiogas", "Ben_INDFirewoodetc", "Ben_INDLPG", "Ben_INDKerosene", "N_accept", "N_reluctantlyaccept", "N_reject", "age", "urban_rural", "gender", "caste", "religion", "religiontext"))
+
+numcolb <- module2 %>%   filter(!row_number() %in% c(1,2))%>% 
+                        add_column(Respondent = 1:1099, .before = "Language") 
+numcola <- module1 %>%   filter(!row_number() %in% c(1,2)) %>% 
+                        add_column(Respondent = 1099:2160, .before = "Language")
+
+uncodedjoineddf <- full_join(numcolb, numcola, by = c("Respondent", "Language", "Survey_Date", "State", "Risky_Hydro", "Risky_Solar", "Risky_Wind", "Risky_Nuclear", "Risky_Coal", "Risky_Gas", "Risky_Oil", "Risky_INDHydro", "Risky_INDSolar", "Risky_INDWind", "Risky_INDBiogas", "Risky_INDDiesel", "Risky_INDKerosene", "Risky_INDFirewoodetc", "Risky_INDLPG", "Ben_Hydro", "Ben_Solar", "Ben_Wind", "Ben_Nuclear", "Ben_Coal", "Ben_Gas", "Ben_Oil", "Ben_INDHydro", "Ben_INDSolar", "Ben_INDWind", "Ben_INDDiesel", "Ben_INDBiogas", "Ben_INDFirewoodetc", "Ben_INDLPG", "Ben_INDKerosene", "N_accept", "N_reluctantlyaccept", "N_reject", "age", "urban_rural", "gender", "caste", "religion", "religiontext")) %>%
+  mutate_all(~ifelse(. == "Rather not say/ Don't know", "Rather not say/Don't know", .))%>%
+  mutate_all(~ifelse(. == "West bengal", "West Bengal", .))%>%
+  mutate_all(~ifelse(. == "WEST BENGAL", "West Bengal", .))%>%
+  mutate_all(~ifelse(. == "Up", "Uttar Pradesh", .))%>%
+  mutate_all(~ifelse(. == "Tamilnadu", "Tamil Nadu", .))%>%
+  mutate_all(~ifelse(. == "UP", "Uttar Pradesh", .))
+
+  
+
+```
+
+
+
+
+\newpage    
+
+
+## Mean Perceived Risk and Mean Perceived Benefit for all energy technologies. 
+
+```{r, echo=FALSE}
+library(tidyverse)
+
+# Filter variables of interest
+joineddf_subset <- joineddf %>%
+  dplyr::select(!starts_with(c("Ben_IND", "Risky_IND")))%>%
+  dplyr::select(starts_with("Risky"), 
+         starts_with("Ben"))
+
+joineddf_subset_cor <- joineddf %>%
+  dplyr::select(!starts_with(c("Ben_IND", "Risky_IND")))%>%
+  dplyr::select(starts_with("Risky"), 
+         starts_with("Ben"))%>%
+  na.omit()
+
+
+#cor(joineddf_subset_cor)
+
+
+
+# Assuming your data is named joineddf_subset
+long_df <- joineddf_subset %>%
+  gather(key = "Type", value = "Value")
+
+# Separate out Risky and Ben columns
+risky_df <- long_df %>% filter(str_detect(Type, "^Risky"))
+ben_df <- long_df %>% filter(str_detect(Type, "^Ben"))
+
+# Extract the technology type (Hydro, Solar, etc.)
+risky_df$Tech <- str_replace(risky_df$Type, "Risky_", "")
+ben_df$Tech <- str_replace(ben_df$Type, "Ben_", "")
+
+# Calculate the mean for each technology for Risky
+risky_mean <- risky_df %>%
+  group_by(Tech) %>%
+  dplyr::summarize(Mean_Value = mean(Value, na.rm = TRUE),
+          sd = sd(Value, na.rm = TRUE),
+          se = sd(Value, na.rm = TRUE) / sqrt(n()),
+          .groups = "drop")
+
+# Do the same for Ben technologies
+ben_mean <- ben_df %>%
+  group_by(Tech) %>%
+  dplyr::summarize(Mean_Value = mean(Value, na.rm = TRUE),
+          sd = sd(Value, na.rm = TRUE),
+          se = sd(Value, na.rm = TRUE) / sqrt(n()),
+          .groups = "drop")
+
+# Combine the two data frames into one for plotting
+combined_mean <- bind_rows(
+  mutate(risky_mean, Category = "Risky"),
+  mutate(ben_mean, Category = "Beneficial")
+)
+# Reorder the factor levels of the Tech variable by Mean_Value
+risky_mean$Tech <- factor(risky_mean$Tech, levels = risky_mean$Tech[order(risky_mean$Mean_Value, decreasing = FALSE)])
+
+
+
+# Split the data into Risky and Ben subsets
+risky_data <- joineddf_subset_cor %>% dplyr::select(starts_with("Risky"))
+ben_data <- joineddf_subset_cor %>% dplyr::select(starts_with("Ben"))
+
+# Rename the columns
+names(risky_data) <- gsub("^Risky_", "Perceived Risk (", names(risky_data))
+names(risky_data) <- paste0(names(risky_data), ")")
+names(ben_data) <- gsub("^Ben_", "Perceived Benefit (", names(ben_data))
+names(ben_data) <- paste0(names(ben_data), ")")
+
+# Compute the correlation between Risky and Ben variables
+correlation_matrix <- cor(risky_data, ben_data)
+
+correlation_df <- as.data.frame(correlation_matrix)
+
+```
+
+
+
+```{r, echo=FALSE}
+library(ggplot2)
+library(gridExtra)
+
+mean_risk <- mean(combined_mean$Mean_Value[combined_mean$Category == "Risky"], na.rm = TRUE)
+mean_benefit <- mean(combined_mean$Mean_Value[combined_mean$Category == "Beneficial"], na.rm = TRUE)
+
+
+# Order Technologies
+technology_order <- c("Solar","Wind","Hydro","Oil","Coal", "Gas","Nuclear")
+ben_mean$Tech <- factor(ben_mean$Tech, levels = technology_order)
+
+
+# Generate the Ben plot with flipped y-axis
+ben_plot <- ggplot(ben_mean, aes(y = Tech, x = Mean_Value)) +
+  geom_bar(stat = "identity", fill = "palegreen3") +
+  geom_errorbar(aes(xmin = Mean_Value - se, xmax = Mean_Value + se), width = 0.2) +
+  coord_cartesian(xlim = c(5, 1)) + 
+  labs(title = "Perceived Benefit", x = "Mean Values") +
+  #scale_x_reverse() +
+  theme(  # remove y-axis labels
+        axis.title.y = element_blank()) + # remove the "Tech" axis title
+  geom_vline(data = subset(combined_mean, Category == "Beneficial"), 
+             aes(xintercept = mean_benefit), linetype="dotted", color = "black", size = 0.5)
+
+# Generate the Risky plot
+risky_plot <- ggplot(risky_mean, aes(y = Tech, x = Mean_Value)) +
+  geom_bar(stat = "identity", fill = "firebrick2") +
+  geom_errorbar(aes(xmin = Mean_Value - se, xmax = Mean_Value + se), width = 0.2) +
+  coord_cartesian(xlim = c(1, 5)) + 
+  labs(title = "Perceived Risk", x = "Mean Values") +
+  theme(axis.text.y = element_blank(),
+        axis.title.y = element_blank())+
+  geom_vline(data = subset(combined_mean, Category == "Risky"), 
+             aes(xintercept = mean_risk), linetype="dotted", color = "black", size = 0.5)
+ # remove the "Tech" axis title
+
+# Arrange plots side by side
+#grid.arrange(ben_plot, risky_plot, ncol=2)
+
+```
+
+
+
+```{r, echo=FALSE}
+
+
+## Paired T-test: Comparing mean perceived risk and mean perceived benefit for each technology. 
+
+#Null hypothesis (H0): The mean difference between perceived risk and perceived benefit from each technology is zero.
+
+#All p values are less than 0.05 suggesting that the differences observed in the bar graph are statistically significant. 
+
+# Melt the data frame to long format
+long_format <- joineddf_subset %>% 
+  pivot_longer(everything(), names_to = "technology", values_to = "value") %>%
+  mutate(risk_or_benefit = if_else(str_detect(technology, "Risky"), "risk", "benefit"),
+         technology = str_replace(technology, "Risky_|Ben_", ""))
+
+# Convert character columns to factors
+long_format$technology <- factor(long_format$technology)
+long_format$risk_or_benefit <- factor(long_format$risk_or_benefit)
+
+# Perform the t- Test for each technology
+p_values <- long_format %>%
+  split(.$technology) %>%
+  lapply(function(x) t.test(x$value[x$risk_or_benefit == "risk"], x$value[x$risk_or_benefit == "benefit"], paired = TRUE)) %>%
+  lapply(function(x) x$p.value)
+
+
+```
+
+\newpage
+
+
+```{r, echo=FALSE}
+
+
+# # Convert `caste` into binary variable 'upper' (1) vs 'non-upper' (0)
+joineddf$Uppercaste <- ifelse(joineddf$caste %in% c('Brahmin', 'General'), 1, 0)
+# Convert `gender` into binary variable 'male' (1) vs 'female' (0)
+joineddf$Male <- ifelse(joineddf$gender == 'Male', 1, 0)
+# Convert `religion` into binary variable 'Hinduism' (1) vs 'Non-Hinduism' (0)
+joineddf$Hindu <- ifelse(joineddf$religion == 'Hinduism', 1, 0)
+codedmodule2$State <- as.factor(codedmodule2$State)
+codedmodule2$gender <- as.factor(codedmodule2$gender)
+codedmodule2$Urban <- as.factor(codedmodule2$urban_rural)
+joineddf$Urban <- as.factor(joineddf$urban_rural)
+codedmodule2$caste <- as.factor(codedmodule2$caste)
+codedmodule2$religion <- as.factor(codedmodule2$religion)
+# # Convert `caste` into binary variable 'upper' (1) vs 'non-upper' (0)
+codedmodule2$Uppercaste <- ifelse(codedmodule2$caste %in% c('Brahmin', 'General'), 1, 0)
+# Convert `gender` into binary variable 'male' (1) vs 'female' (0)
+codedmodule2$Male <- ifelse(codedmodule2$gender == 'Male', 1, 0)
+# Convert `religion` into binary variable 'Hinduism' (1) vs 'Non-Hinduism' (0)
+codedmodule2$Hindu <- ifelse(codedmodule2$religion == 'Hinduism', 1, 0)
+
+
+alldemos <- joineddf %>%
+            dplyr::select(Risky_Nuclear, Uppercaste, Male, Hindu, Urban, age, State) 
+
+
+alldemoslm1 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age , data = alldemos)
+# Print model summary
+#summary(alldemoslm1)
+#plot(alldemoslm1)
+
+
+# 2) lm with all demographic variables
+alldemoslm2<- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State, data = alldemos)
+# Print model summary
+#summary(alldemoslm2)
+#plot(alldemoslm1)
+
+
+```
+
+
+## Demographic IVs - two linear regression models
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
+
+
+cat("\\begingroup")
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(alldemoslm1, alldemoslm2, 
+          title = "Results from 2 linear regression models",
+          type = "latex"
+)
+cat("\\endgroup")
+
+
+```
+
+\newpage 
+
+## Linear regression where Mean value is the intercept
+Same model with mean value as intercept. 
+
+```{r, echo=FALSE}
+# Centering the numeric predictor variables
+alldemos$Uppercaste_centered <- alldemos$Uppercaste - mean(alldemos$Uppercaste, na.rm = TRUE)
+alldemos$Male_centered      <- alldemos$Male - mean(alldemos$Male, na.rm = TRUE)
+alldemos$Hindu_centered     <- alldemos$Hindu - mean(alldemos$Hindu, na.rm = TRUE)
+alldemos$age_centered       <- alldemos$age - mean(alldemos$age, na.rm = TRUE)
+
+# For factor variable 'Urban', we'll convert it to numeric (0/1) and then center
+# Assuming "Rural" is the reference category
+alldemos$Urban_numeric      <- ifelse(alldemos$Urban == "Urban", 1, 0)
+alldemos$Urban_centered     <- alldemos$Urban_numeric - mean(alldemos$Urban_numeric, na.rm = TRUE)
+
+# Now, run the regression with centered variables
+alldemoslm1_centered <- lm(Risky_Nuclear ~ Uppercaste_centered + Male_centered + Hindu_centered + Urban_centered + age_centered, data = alldemos)
+#summary(alldemoslm1_centered)
+
+alldemos$State <- as.factor(alldemos$State)
+alldemos$State <- relevel(alldemos$State, ref = "Rajasthan")
+
+alldemoslm2_centered <- lm(Risky_Nuclear ~ Uppercaste_centered + Male_centered + Hindu_centered + Urban_centered + age_centered + State, data = alldemos)
+#summary(alldemoslm2_centered)
+
+
+```
+
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
+
+
+cat("\\begingroup")
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(alldemoslm1_centered, alldemoslm2_centered, 
+          title = "Results from 2 linear regression models",
+          type = "latex"
+)
+cat("\\endgroup")
+
+
+```
+
+
+
+\newpage
+
+
+
+##  Kahan scale Alpha values 
+Hierarchy - Egalitarianism scale alpha  =  0.7
+Individualism - Communitarianism scale alpha= 0.52
+Only Individualism scale alpha = 0.31 
+Only Communitarianism scale alpha = 0.72
+
+```{r, echo=FALSE}
+# Q6: Does the Kahan scale explain perception of risk from nuclear energy and other DVs ? 
+
+# we conducted fa on the kahan scale 
+# CFA for Kahan scale. We shouldn't do FA here since this a well used scale with theoretical basis for factor distinctions and also previous studies using the same scale 
+
+library(lavaan)
+library(semTools)
+library(kableExtra)
+
+fascales <- codedmodule2 %>%
+  dplyr::select(starts_with(c("K_","Risky_Nuclear","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACENUCLEAR",  "POLLUTENUCLEAR", "HEALTHNUCLEAR", "JOBSNUCLEAR", "BEAUTYNUCLEAR", "PRIDENUCLEAR", "NPRIDENUCLEAR", "DEVNUCLEAR", "PROSPERNUCLEAR", "RELYNUCLEAR", "Uppercaste", "Male", "Hindu", "Urban", "State","age")))%>%
+  mutate_at(vars(age), funs(case_when(. == "18-24 years old" ~ 1, 
+                                      . == "25-34 years old" ~ 2,
+                                      . ==  "35-44 years old" ~3,
+                                      . == "45-54 years old" ~ 4,
+                                      . == "55-64 years old" ~ 5,
+                                      . == "65-74 years old" ~ 6,
+                                      . == "75 years or older" ~ 7))) %>%
+  na.omit()
+
+Kahan_fas <- '
+  KahanS =~ K_SHARM + K_SLIMCHOI + K_SPROTECT 
+  KahanH =~ K_HEQUAL+ K_ERADEQ1 + K_EWEALTH + K_ERADEQ2
+'
+
+# Run CFA
+Kahan_cfa <- cfa(Kahan_fas, data = fascales, std.lv = TRUE)
+
+Kahan_scale <- codedmodule2 %>%
+  dplyr::select(starts_with("K_"))
+
+KahanHE<-Kahan_scale %>%
+  dplyr::select(starts_with(c("K_H", "K_E")))
+
+
+KahanHE_alpha<- psych::alpha(KahanHE, check.keys = TRUE) # alpha = 0.7
+
+KahanSI<-Kahan_scale %>%
+  dplyr::select(starts_with(c("K_S", "K_I")))
+
+KahanSI_alpha<- psych::alpha(KahanSI, check.keys = TRUE) # alpha =0.52
+
+KahanS<-Kahan_scale %>%
+  dplyr::select(starts_with(c("K_S")))
+
+KahanS_alpha<- psych::alpha(KahanS, check.keys = TRUE) # alpha = 0.72
+
+
+KahanI<-Kahan_scale %>%
+  dplyr::select(starts_with(c("K_I")))
+
+
+
+KahanI_alpha<- psych::alpha(KahanI, check.keys = TRUE) # alpha = 0.31 
+
+Kahan_scores <- predict(Kahan_cfa, newdata = fascales)
+
+Kahan_Kscores <- cbind(fascales, Kahan_scores)
+
+
+
+```
+
+# EDIT :  Kahan scale EFA  
+```{r, echo=FALSE}
+
+
+Kahan_scale <- codedmodule2 %>%
+  dplyr::select(starts_with("K_"))
+
+kahan.fa <- fa(Kahan_scale, nfactors = 2, rotate = "varimax")
+
+#print.psych(kahan.fa, cut = 0.4, sort = TRUE)
+
+
+
+```
+
+
+
+
+```{r, echo=FALSE}
+
+library(flextable)
+
+flex <- function(data, title=NULL) {
+  # this grabs the data and converts it to a flextbale
+  flextable(data) %>%
+  # this makes the table fill the page width
+  set_table_properties(layout = "autofit", width = 1) %>%
+  # font size
+  fontsize(size=10, part="all") %>%
+    #this adds a ttitlecreates an automatic table number
+      set_caption(title, 
+                  autonum = officer::run_autonum(seq_id = "tab", 
+                                                 pre_label = "Table ", 
+                                                 post_label = "\n", 
+                                                 bkm = "anytable")) #%>%
+  # font type
+  #font(fontname="Times New Roman", part="all")
+}
+
+rename_map <- c(
+  "K_SHARM" = "(C)Sometimes the government needs to make laws that keep people from hurting themselves.",
+  "K_SLIMCHOI" = "(C)The government should put limits on the choices individuals can make so they don’t get in the way of what’s good for society.",
+  "K_SPROTECT" = "(C)The government should do more to advance society’s goals, even if that means limiting the freedom and choices of individuals.",
+  "K_HEQUAL" = "(H)We have gone too far in pushing equal rights in this country.",
+  "K_ERADEQ1" = "(E)We need to dramatically reduce inequalities between the rich and the poor.",
+  "K_EWEALTH" = "(E)Our society would be better off if the distribution of wealth was more equal.",
+  "K_ERADEQ2" = "(E)We need to dramatically reduce inequalities between men and women."
+)
+
+
+
+fa_table <- function(x) {
+  #get sorted loadings
+  loadings <- fa.sort(x)$loadings %>% round(3)
+  #supress loadings
+  #loadings[loadings < cut] <- ""  # alternative loadings > -cut & loadings < cut
+  #get additional info  
+  add_info <- cbind(x$communalities, 
+                    x$uniquenesses,
+                    x$complexity) %>%
+    # make it a data frame
+    as.data.frame() %>%
+    # column names
+   rename("Communality" = V1,
+           "Uniqueness" = V2,
+           "Complexity" = V3) %>%
+    #get the item names from the vector
+    rownames_to_column("item")
+  #build table
+  loadings %>%
+    unclass() %>%
+    as.data.frame() %>%
+    rownames_to_column("item") %>%
+    left_join(add_info) %>%
+    mutate(
+      item = if_else(item %in% names(rename_map), rename_map[item], item),
+      across(where(is.numeric), round, 3)
+    )
+}
+
+
+fa_table(kahan.fa) %>%
+  #rename(Pdevelop = MR1, Ndevelop = MR2, Items= item) %>%
+  flex("Kahan Exploratory Factor Analysis Table")
+
+```
+
+
+## alternative Kahan scores
+```{r, echo=FALSE}
+
+Kscalescores <- fascales %>%
+  dplyr::select(!starts_with(("K_I")))%>%
+  rowwise()%>%
+  dplyr::mutate(Communitarianism_score = mean(c_across(K_SHARM:K_SPROTECT)))%>%
+  dplyr::mutate(Egalitarianism_score = mean(c_across(K_HEQUAL:K_ERADEQ2)))%>%
+  dplyr::select(!starts_with(c("K_I","K_S", "K_H", "K_E")))
+
+```
+
+
+
+
+
+
+
+```{r fit-measures-display, echo = FALSE}
+# Extract fit measures
+fit_measures <- fitMeasures(Kahan_cfa, fit.measures = c("CFI", "TLI", "RMSEA", "rmsea.ci.upper", "rmsea.ci.lower"))
+fit_measures2 <- fitMeasures(Kahan_cfa)
+# Convert to a data frame for presentation
+fit_df <- data.frame(Measure = names(fit_measures), Value = fit_measures) %>%
+  mutate(Measure = case_when(
+    Measure == "cfi" ~ "Comparative Fit Index (CFI) ",
+    Measure == "tli" ~ "Tucker-Lewis Index (TLI)",
+    Measure == "rmsea" ~ "Root Mean Square Error of Approximation(RMSEA)",
+    Measure == "rmsea.ci.upper" ~ "RMSEA 90 Percent confidence interval - lower",
+    Measure == "rmsea.ci.lower" ~ "RMSEA 90 Percent confidence interval - upper",
+    TRUE ~ as.character(Measure)
+  )) %>%
+  mutate(Value = round(Value, 3)) %>%
+  remove_rownames()
+
+
+#RMSEA - between 0.05 and 0.08 (reasonable fit), less than 0.05 close fit and greater than 0.10 is poor fit 
+#CFI - greater than 0.90 or 0.95 indicates good fit
+#TFI - CFI>TFI >0.90 - indicates good fit
+
+
+```
+# Confirmatory Factor Analysis(CFA): Kahan Scale 
+
+
+**Cronbach's Alpha on Kahan et al(2007) Scale: A Note**
+
+The Individualism items (indicated by K_I) were bringing down the Cronbach's alpha values in the Kahan scale. The Alpha for Individualism- Communitarian scale was 0.49. After removing the Individualism items (K_I) the alpha for this factor was 0.71. The reasons for this could be that the individualism items are not well adapted to the Indian population. 
+
+```{r, echo =FALSE}
+# Display fit measures using kable
+knitr::kable(fit_df, caption = "Fit Measures from the CFA", booktabs = TRUE) %>%
+  kable_styling(latex_options = c("striped", "hold_position"))
+
+```
+
+\newpage
+
+
+```{r, echo=FALSE}
+
+
+# Extract parameter estimates
+params <- parameterEstimates(Kahan_cfa, standardized = TRUE)%>%
+   slice(1:(n()-10))
+
+params1 <- params %>%
+  mutate(rhs = case_when(
+    rhs == "K_SHARM" ~ "Sometimes the government needs to make laws that keep people from hurting themselves.",
+    rhs == "K_SLIMCHOI" ~ "The government should put limits on the choices individuals can make so they don’t get in the way of what’s good for society.",
+    rhs == "K_SPROTECT" ~ "The government should do more to advance society’s goals, even if that means limiting the freedom and choices of individuals.",
+    rhs == "K_HEQUAL" ~ "We have gone too far in pushing equal rights in this country.",
+    rhs == "K_ERADEQ1" ~ "We need to dramatically reduce inequalities between the rich and the poor.",
+    rhs == "K_EWEALTH" ~ "Our society would be better off if the distribution of wealth was more equal.",
+    rhs == "K_ERADEQ2" ~ "We need to dramatically reduce inequalities between men and women.",
+    TRUE ~ as.character(rhs)
+  )) %>%
+  dplyr::select(!c(lhs,op, std.nox)) %>%
+    rename(
+    "Items" = rhs,
+    "Loadings" = est,
+    "Standard Error" = se,
+    "zvalue" = z) %>%
+  mutate(across(c("Loadings", "Standard Error", "zvalue"), round, 3))
+   
+
+params1$Scale <- NA
+params1$Scale[1:3] <- "Communitarian"
+params1$Scale[4:7] <- "Hierarchy-Egalitarianism"
+params1 <- params1[, c("Scale", setdiff(names(params1), "Scale"))]
+CFAkahan <- knitr::kable(params1, booktabs = TRUE, caption = "Confirmatory Factor Analysis(CFA) on Kahan et al(2007) scale adapted to India") %>%
+  kable_styling(latex_options = c("striped","scale_down", "hold_position", "repeat_header"))%>%
+  column_spec(column = 2, width = "4cm")
+
+# Print the table
+CFAkahan %>%
+  landscape()
+
+```
+
+
+
+## Kahan scater plot from the CFA scores 
+```{r, echo = FALSE}
+
+Kahan_Kscores %>%
+  ggplot(aes(KahanS, KahanH))+
+  geom_count(aes(color = ..n.., size = ..n..))+
+  guides(color = 'legend')+
+  geom_hline(yintercept=0, colour="black", lwd=0.5)+
+  geom_vline(xintercept=0, colour="black", lwd=0.5)+
+  labs(x = "Individualism to Communitarianism", y = "Hierarchy to Egalitarianism")+
+  ylim(-2,3)+
+  xlim(-2,3)+
+  theme_minimal() 
+```
+
+
+\newpage
+
+# Factor Analysis: New Eco-political Scale
+
+```{r, echo=FALSE}
+
+library(psych)
+library(tidyverse)
+
+ecopolall <- fascales %>%
+        dplyr::select("WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACENUCLEAR",  "POLLUTENUCLEAR", "HEALTHNUCLEAR", "JOBSNUCLEAR", "BEAUTYNUCLEAR", "PRIDENUCLEAR", "NPRIDENUCLEAR", "DEVNUCLEAR", "PROSPERNUCLEAR", "RELYNUCLEAR")
+
+ecopolall_alpha <- psych::alpha(ecopolall, check.keys = TRUE)
+
+#summary(ecopolall_alpha)
+
+# when we combine both the scales the alpha is high at 0.785 (almost 0.8)
+
+# FA on all ecopol variables except systems of governance 
+
+ecopolall_cor <- cor(ecopolall)
+PCA24 <- principal(ecopolall, nfactors = 24, rotate = "none") # no rotation to start with. 
+
+#PCA24$loadings
+
+#fa.parallel(ecopolall_cor)
+# this suggests 2 factors if we go by FA or 8 by PCA. let's try both and see how they look conceptually 
+# running EFA using psych package 
+
+ecopolall2.fa <- fa(ecopolall, nfactors = 2, rotate = "varimax")
+
+print.psych(ecopolall2.fa, sort = TRUE)
+
+# I don't know still doesn't make a lot of sense to me- the two factors make more sense - 1) people centered development 2) nationalist development
+# So I am going to extract factor scores and bind them to the dataset
+
+ecopolall_scores <- psych::factor.scores(ecopolall, ecopolall2.fa)
+
+# The factor scores will be stored in the scores element of the returned list
+scores1 <- ecopolall_scores$scores
+
+#binding factor scores to the dataset
+
+
+
+fascale_scores <- cbind(Kahan_Kscores, scores1) %>%
+  rename(Pdevelop = MR1)%>%
+  rename(Ndevelop = MR2) #%>%
+  #dplyr::select(!starts_with(c("K_","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACENUCLEAR",  "POLLUTENUCLEAR", "HEALTHNUCLEAR", "JOBSNUCLEAR", "BEAUTYNUCLEAR", "PRIDENUCLEAR", "NPRIDENUCLEAR", "DEVNUCLEAR", "PROSPERNUCLEAR", "RELYNUCLEAR")))
+
+
+
+
+```
+
+
+
+```{r, echo=FALSE}
+library(ggplot2)
+library(fmsb)
+
+# Extract the loadings
+loadings_matrix <- ecopolall2.fa$loadings[1:24, ]
+
+loadings_df <- as.data.frame(as.matrix(loadings_matrix))
+
+# Adding rownames to the dataframe as a new column
+loadings_df <- loadings_df %>%
+  rownames_to_column(var = "variable") 
+
+# Pivot to longer format first
+long_loadings_df <- loadings_df %>%
+  pivot_longer(cols = c(MR1, MR2), names_to = "Factors", values_to = "value")
+
+# Pivot the longer format to wide format
+wide_loadings_df <- long_loadings_df %>%
+  pivot_wider(names_from = variable, values_from = value) %>%
+  mutate(Factors = case_when(
+    Factors == "MR1" ~ "People Centered Development (Pdevelop)",
+    Factors == "MR2" ~ "Nationalist Development (Ndevelop)",
+    TRUE ~ Factors
+  )) %>%
+  column_to_rownames("Factors")
+
+
+# Define the variable ranges: maximum and minimum
+max_min <- data.frame(
+  WEALTHLIM = c(0.8, -0.6), MECHANISATION = c(0.8, -0.6), DECISIONDECEN = c(0.8, -0.6),
+  DECISIONCEN = c(0.8, -0.6), INDUSTRYLARGE = c(0.8, -0.6), INDUSTRYSMALL = c(0.8, -0.6),
+  ECONOMYGLOBAL = c(0.8, -0.6), ECONOMYLOCAL = c(0.8, -0.6), ENVOVERDEV = c(0.8, -0.6),
+  DEVOVERENV = c(0.8, -0.6), OWNERPVT = c(0.8, -0.6), OWNERNOREG = c(0.8, -0.6),
+  OWNERPUB = c(0.8, -0.6), OWNERREG = c(0.8, -0.6), DISPLACENUCLEAR = c(0.8, -0.6),
+  POLLUTENUCLEAR = c(0.8, -0.6), HEALTHNUCLEAR = c(0.8, -0.6), JOBSNUCLEAR = c(0.8, -0.6),
+  BEAUTYNUCLEAR = c(0.8, -0.6), PRIDENUCLEAR = c(0.8, -0.6), NPRIDENUCLEAR = c(0.8, -0.6),
+  DEVNUCLEAR = c(0.8, -0.6), PROSPERNUCLEAR = c(0.8, -0.6), RELYNUCLEAR = c(0.8, -0.6)
+)
+rownames(max_min) <- c("Max", "Min")
+
+# Assuming you have a dataframe 'exam_scores' with matching column names
+# Bind the variable ranges to the data
+
+radar2 <- rbind(max_min, wide_loadings_df) %>%
+    rename(
+      "Limits on Wealth " = "WEALTHLIM",
+      "Anti Mechanisation of work" = "MECHANISATION",
+      "Pro Decentralisation" = "DECISIONDECEN",
+      "Pro Centralisation" = "DECISIONCEN",
+      "Pro Large Industries" = "INDUSTRYLARGE",
+      "Anti Large Industries " = "INDUSTRYSMALL",
+      "Pro Globaleconomy" = "ECONOMYGLOBAL",
+      "Pro Localeconomy" = "ECONOMYLOCAL",
+      "Environment over Development" = "ENVOVERDEV",
+      "Development over Environment" = "DEVOVERENV",
+      "Pro Private ownership " = "OWNERPVT",
+      "Anti Regulations" = "OWNERNOREG",
+      "Pro Public ownership" = "OWNERPUB",
+      "Pro Regulations" = "OWNERREG",
+      "Displacement risk(nuclear)" = "DISPLACENUCLEAR",
+      "Pollution risk(nuclear) " = "POLLUTENUCLEAR",
+      "Health risk(nuclear)" = "HEALTHNUCLEAR",
+      "Job opportunities(nuclear)" = "JOBSNUCLEAR",
+      "Spoils Natural Beauty(nuclear)" = "BEAUTYNUCLEAR",
+      "Community pride(nuclear)" = "PRIDENUCLEAR",
+      "National pride(nuclear)" = "NPRIDENUCLEAR",
+      "National development(nuclear)" = "DEVNUCLEAR",
+      "Local prosperity(nuclear)" = "PROSPERNUCLEAR",
+      "Reliance on government(nuclear)" = "RELYNUCLEAR"
+    )
+
+```
+
+
+```{r, echo=FALSE, fig.width=20, fig.height=18, out.width='100%', out.height='100%'}
+library(fmsb)
+
+create_beautiful_radarchart <- function(data, color = "#00AFBB", 
+                                        vlabels = colnames(data), vlcex = 0.7,
+                                        caxislabels = NULL, title = NULL, ...){
+  radarchart(
+    data, axistype = 1,
+    # Customize the polygon
+    pcol = color, pfcol = scales::alpha(color, 0.5), plwd = 2, plty = 1,
+    centerzero=FALSE,
+    # Customize the grid
+    cglcol = "black", cglty = 1.5, cglwd = 1.5,
+    # Customize the axis
+    axislabcol = "black", 
+     # Increase the axis label size
+    cexc = 3,
+    # Variable labels
+    vlcex = vlcex, vlabels = vlabels, vlpos = 0.98,
+    seg = 6, caxislabels = caxislabels, title = title, 
+    # Increase title size
+    cex.main = 2,
+    ...
+  )
+}
+
+
+# Reduce plot margin using par()
+op <- par(mar = c(7, 3, 3, 3))
+# Create the radar charts
+create_beautiful_radarchart(
+  data = radar2, caxislabels = c(-0.6,-0.4,-0.2, 0, 0.2, 0.4, 0.6, 0.8,1),
+  color = c("#00AFBB", "#F97D09"),
+  vlcex = 1.1
+)
+
+# Add an horizontal legend
+legend(
+  x = "bottomright", legend = rownames(radar2[-c(1,2),]), horiz = TRUE,
+  bty = "n", pch = 20 , col = c("#00AFBB", "#F97D09"),
+  text.col = "black", cex = 1.5, pt.cex = 3,
+  inset = c(0, 0)
+  )
+par(op)
+
+```
+
+
+
+\newpage
+
+
+```{r, echo=FALSE}
+
+library(flextable)
+
+flex <- function(data, title=NULL) {
+  # this grabs the data and converts it to a flextbale
+  flextable(data) %>%
+  # this makes the table fill the page width
+  set_table_properties(layout = "autofit", width = 1) %>%
+  # font size
+  fontsize(size=10, part="all") %>%
+    #this adds a ttitlecreates an automatic table number
+      set_caption(title, 
+                  autonum = officer::run_autonum(seq_id = "tab", 
+                                                 pre_label = "Table ", 
+                                                 post_label = "\n", 
+                                                 bkm = "anytable")) #%>%
+  # font type
+  #font(fontname="Times New Roman", part="all")
+}
+
+rename_map <- c(
+  "WEALTHLIM" = "Limits on Wealth",
+  "MECHANISATION" = "Anti Mechanisation of work",
+  "DECISIONDECEN" = "Pro Decentralisation",
+  "DECISIONCEN" = "Pro Centralisation",
+  "INDUSTRYLARGE" = "Pro Large Industries",
+  "INDUSTRYSMALL" = "Anti Large Industries",
+  "ECONOMYGLOBAL" = "Pro Globaleconomy",
+  "ECONOMYLOCAL" = "Pro Localeconomy",
+  "ENVOVERDEV" = "Environment over Development",
+  "DEVOVERENV" = "Development over Environment",
+  "OWNERPVT" = "Pro Private ownership",
+  "OWNERNOREG" = "Anti Regulations",
+  "OWNERPUB" = "Pro Public ownership",
+  "OWNERREG" = "Pro Regulations",
+  "DISPLACENUCLEAR" = "Displacement risk(nuclear)",
+  "POLLUTENUCLEAR" = "Pollution risk(nuclear)",
+  "HEALTHNUCLEAR" = "Health risk(nuclear)",
+  "JOBSNUCLEAR" = "Job opportunities(nuclear)",
+  "BEAUTYNUCLEAR" = "Spoils Natural Beauty(nuclear)",
+  "PRIDENUCLEAR" = "Community pride(nuclear)",
+  "NPRIDENUCLEAR" = "National pride(nuclear)",
+  "DEVNUCLEAR" = "National development(nuclear)",
+  "PROSPERNUCLEAR" = "Local prosperity(nuclear)",
+  "RELYNUCLEAR" = "Reliance on government(nuclear)"
+)
+
+
+
+fa_table <- function(x) {
+  #get sorted loadings
+  loadings <- fa.sort(x)$loadings %>% round(3)
+  #supress loadings
+  #loadings[loadings < cut] <- ""  # alternative loadings > -cut & loadings < cut
+  #get additional info  
+  add_info <- cbind(x$communalities, 
+                    x$uniquenesses,
+                    x$complexity) %>%
+    # make it a data frame
+    as.data.frame() %>%
+    # column names
+   rename("Communality" = V1,
+           "Uniqueness" = V2,
+           "Complexity" = V3) %>%
+    #get the item names from the vector
+    rownames_to_column("item")
+  #build table
+  loadings %>%
+    unclass() %>%
+    as.data.frame() %>%
+    rownames_to_column("item") %>%
+    left_join(add_info) %>%
+    mutate(
+      item = if_else(item %in% names(rename_map), rename_map[item], item),
+      across(where(is.numeric), round, 3)
+    )
+}
+
+
+
+
+fa_table(ecopolall2.fa) %>%
+  rename(Pdevelop = MR1, Ndevelop = MR2, Items= item) %>%
+  flex("Eco-Pol Values Factor Analysis Table")
+
+```
+
+
+
+
+
+
+
+
+
+```{r, echo=FALSE}
+
+ecopolall2.fa[["Vaccounted"]] %>%
+  as.data.frame() %>%
+  rownames_to_column("Property") %>%
+  rename(Pdevelop = MR1, Ndevelop = MR2) %>%
+    mutate(across(where(is.numeric), round, 3)) %>%
+    flex("Eigenvalues and Variance Explained for Rotated Factor Solution")
+
+```
+
+
+\newpage
+
+```{r, echo=FALSE}
+
+
+ecopolall <- fascales %>%
+        dplyr::select("WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACENUCLEAR",  "POLLUTENUCLEAR", "HEALTHNUCLEAR", "JOBSNUCLEAR", "BEAUTYNUCLEAR", "PRIDENUCLEAR", "NPRIDENUCLEAR", "DEVNUCLEAR", "PROSPERNUCLEAR", "RELYNUCLEAR")
+
+pdevelop <- ecopolall %>%
+  dplyr::select("POLLUTENUCLEAR", "HEALTHNUCLEAR", "BEAUTYNUCLEAR","DISPLACENUCLEAR","MECHANISATION","INDUSTRYSMALL","OWNERPUB")
+
+ndevelop <- ecopolall %>%
+  dplyr::select( "PRIDENUCLEAR", "NPRIDENUCLEAR", "DEVNUCLEAR", "PROSPERNUCLEAR")            
+  
+
+
+pdevelop_alpha <- psych::alpha(pdevelop, check.keys = TRUE)
+
+ndevelop_alpha <- psych::alpha(ndevelop, check.keys = TRUE)
+
+```
+
+
+```{r, echo=FALSE}
+
+
+data <- tibble(
+  Scale = c(
+    "People Centered Development (Pdevelop)", "", "", "", "", "", "",
+    "Nationalist Development (Ndevelop)", "", "", ""
+  ),
+  Code = c(
+    "Health risk(nuclear)", "Spoils Natural Beauty(nuclear)", "Anti Mechanisation of work",
+    "Anti Large Industries", "Displacement risk(nuclear)", "Pollution risk(nuclear)",
+    "Pro Regulations", "National development(nuclear)", "Community pride(nuclear)",
+    "National pride(nuclear)", "Local prosperity(nuclear)"
+  ),
+  "Items and Loadings" = c(
+    "Nuclear energy poses a great risk to the health of people living around it.(0.657)",
+    "Nuclear energy spoils the natural beauty of the landscape.(0.638)",
+    "Rapid mechanization of work is taking away jobs from workers in this country.(0.552)",
+    "Large corporations are destroying the local industries in India and benefiting only a handful of people.(0.532)",
+    "Nuclear energy is leading to displacement of people from their land.(0.59)",
+    "Nuclear energy increases pollution of air/water/land.(0.565)",
+    "Regardless of ownership, the government should pass strong regulations and implement them.(0.53)",
+    "Nuclear energy pushes forward the country's development.(0.662)",
+    "I would be proud if my community used nuclear energy.(0.623)",
+    "Nuclear energy is a mark of pride for our nation.(0.605)",
+    "Nuclear energy brings economic prosperity to the surrounding regions.(0.586)"
+  ),
+  Alpha = c(0.757, "", "", "", "", "", "", 0.725, "", "", ""),
+  Variance = c(0.13, "", "", "", "", "", "", 0.10, "", "", "")
+)
+
+
+```
+
+
+```{r, echo=FALSE}
+
+
+longvars <- knitr::kable(data, booktabs = TRUE, caption = "Two Factor Solution: Economic and Political Values Scale", 
+                         longtable = TRUE, escape = FALSE) %>%
+  kable_styling(latex_options = c("striped","scale_down", "hold_position", "repeat_header")) %>%
+  column_spec(column = 2, width = "4cm") %>%
+  column_spec(column = 1, width = "4cm") %>%
+  column_spec(column = 3, width = "9cm")
+  
+
+# Print the table in landscape mode
+longvars %>%
+  landscape()
+
+```
+
+
+# all lms after FA
+```{r, echo=FALSE}
+# 3 linear models - 1) lm with demographic variables except age and State
+m1_demo <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban, data = fascale_scores)
+
+# 2) lm with all demographic variables
+m2_demo<- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State, data = fascale_scores)
+
+# 3) lm with kahan 
+m1_kahan <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State + KahanS + KahanH , data = fascale_scores)
+
+# 4) lm with ecopolvars 
+m1_allscales <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State+ Pdevelop + Ndevelop + KahanS + KahanH , data = fascale_scores)
+
+m1_ecopol <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State + Pdevelop + Ndevelop,  data = fascale_scores)
+
+summary(m1_ecopol)
+
+m1_allscales2 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + KahanS*State + KahanH*State + Pdevelop*State + Ndevelop*State , data = fascale_scores)
+
+summary(m1_allscales2)
+
+
+```
+
+# Correlation Eco-pol and alt Kahan(mean across)
+
+```{r}
+# binding ecopol with alternative Kahan scale score 
+fascale_scores2 <-cbind(Kscalescores, scores1)  %>%
+  rename(Pdevelop = MR1)%>%
+  rename(Ndevelop = MR2)
+
+fascale_scores2
+
+fascale_scores2cor <- fascale_scores2 %>%
+  dplyr::select(Communitarianism_score, Egalitarianism_score, Pdevelop, Ndevelop)
+
+cor_kecopol <- cor(fascale_scores2cor)
+
+print(cor_kecopol)
+```
+
+
+# Lms with alt Kahan scores 
+```{r, echo = FALSE}
+
+# 3) lm with kahan 
+m1_kahan2 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State + Communitarianism_score + Egalitarianism_score , data = fascale_scores2)
+# Print model summary
+summary(m1_kahan2)
+#plot(m1_kahan)
+
+# 4) lm with ecopolvars 
+m1_allscales2 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State+ Pdevelop + Ndevelop + Communitarianism_score + Egalitarianism_score , data = fascale_scores2)
+# Print model summary
+summary(m1_allscales2)
+#plot(m1_allscales)
+
+
+m1_ecopol2 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State + Pdevelop + Ndevelop,  data = fascale_scores2)
+
+summary(m1_ecopol2)
+
+```
+
+
+
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
+
+
+cat("\\begingroup")
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(m1_kahan2, m1_ecopol2, m1_allscales2, 
+          title = "Results from 3 linear regression models",
+          type = "latex"
+)
+cat("\\endgroup")
+
+
+```
+
+
+
+
+
+\newpage
+
+# LMs : eco-pol and kahan scale 
+
+
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
+
+
+cat("\\begingroup")
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(m1_kahan, m1_allscales, 
+          title = "Results from 2 linear regression models",
+          type = "latex"
+)
+cat("\\endgroup")
+
+
+```
+
+\newpage
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
+
+
+cat("\\begingroup")
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(m1_ecopol, m1_allscales, 
+          title = "Results from 2 linear regression models",
+          type = "latex"
+)
+cat("\\endgroup")
+
+
+```
+\newpage
+
+# LMs by State
+
+
+```{r, echo=FALSE}
+
+fascale_scores
+
+fascale_scores2
+
+# make state wise dts
+
+# Uttar Pradesh
+UP<- fascale_scores %>%
+  filter(State == "Uttar Pradesh")
+
+Raj<- fascale_scores %>%
+  filter(State == "Rajasthan")
+
+
+TM<- fascale_scores %>%
+  filter(State == "Tamil Nadu")
+
+Mah<- fascale_scores %>%
+  filter(State == "Maharasthra")
+
+Bengal <- fascale_scores %>%
+  filter(State == "Bengal")
+
+
+# 3 linear models - 1) lm with demographic variables except age and State
+TM_demo <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban, data = TM)
+
+# 3) lm with kahan 
+TM1_kahan <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age  + KahanS + KahanH , data = TM)
+
+# 4) lm with ecopolvars 
+TM1_allscales <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + Pdevelop + Ndevelop + KahanS + KahanH , data = TM)
+
+TM1_ecopol <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age +  Pdevelop + Ndevelop,  data = TM)
+
+summary(TM1_ecopol)
+
+
+
+
+```
+
+
+
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
+
+
+cat("\\begingroup")
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(TM_demo, TM1_kahan, TM1_allscales, TM1_ecopol,
+          title = "Results from 2 linear regression models",
+          type = "latex"
+)
+cat("\\endgroup")
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

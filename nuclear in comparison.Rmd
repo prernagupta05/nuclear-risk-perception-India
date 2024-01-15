@@ -1,15 +1,25 @@
 ---
-title: 'nuclear energy in comparison'
+title: "nuclear energy in comparison"
 output:
   pdf_document:
     toc: yes
     toc_depth: 2
     keep_tex: yes
+    keep_md: yes
   header-includes:
   - \usepackage{dcolumn}
   - \usepackage{array}
-  keep_md: yes
+  - \usepackage{pdflscape}
+  - \newcommand{\blandscape}{\begin{landscape}}
+  - \newcommand{\elandscape}{\end{landscape}}
+  html_document:
+    toc: yes
+    toc_depth: '2'
+    df_print: paged
 ---
+
+# Abstract
+
 
 
 ```{r load packages, warning = FALSE, message = FALSE, echo=FALSE}
@@ -176,11 +186,541 @@ uncodedjoineddf <- full_join(numcolb, numcola, by = c("Respondent", "Language", 
 
 ```
 
-\newpage
-# State Specific Differences. 
 
-We see huge differences for perceived risk and perceived benefit for each technology from state to state. These graphs explore that. 
-The number of respondents from each state are also reported below. 
+\newpage
+
+# H1: Nuclear Energy will be seen as riskier than other energy technologies in India.  this paper explores nuclear energy in comparison with other technologies 
+
+## Likert Responses (n= 2160)
+The percentages are rounded off to whole numbers. 
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+# Q1: how much is the awareness of energy technologies in India ? How does it relate to state specific data ? 
+# summary of NA results from the combined sample of 2000 responses (simple percentage bar graphs)
+# part 1- how much is the awareness of energy technologies in India - 
+
+
+#plotting perceived risk from different technologies including rather not say don't know
+colorsequence<- c("#8C4646","#D9695F","#F2A679","#F2D091","#5D8C7B","#808080")
+
+#following is the data frame for making the barplot 
+df_barplot <- uncodedjoineddf %>%
+  dplyr::select(starts_with("RISKY"))%>%
+  gather(Technology, Perceived_Risk, Risky_Hydro:Risky_INDLPG, factor_key = TRUE)%>%
+  separate(Technology, c("Risky", "Technology"), extra = "merge", fill = "left")%>%
+  dplyr::select(-Risky) %>% 
+  group_by(Technology, Perceived_Risk) %>%
+  dplyr::summarise(n=n())
+
+#following data frame gives us percentage for each response 
+df_barplot_percent<- df_barplot%>%
+  group_by(Technology) %>%
+  mutate(Percentage = round(n/sum(n)*100, 0)) %>%
+  ungroup()
+
+#plotting perceived benefit from different technologies including rather not say don't know
+
+df_barplotben <- uncodedjoineddf %>%
+  dplyr::select(starts_with("Ben"))%>%
+  gather(Technology, Perceived_Benefit, Ben_Hydro:Ben_INDKerosene, factor_key = TRUE)%>%
+  separate(Technology, c("Ben", "Technology"), extra = "merge", fill = "left")%>%
+  dplyr::select(-Ben) %>% 
+  group_by(Technology, Perceived_Benefit) %>%
+  dplyr::summarise(n=n())
+
+df_barplotben_percent<- df_barplotben%>%
+  group_by(Technology) %>%
+  mutate(Percentage = round(n/sum(n)*100, 0)) %>%
+  ungroup()
+
+#bar plot for likert responses perceived risk - centrally owned technologies 
+df_barplot %>% ggplot(aes(fill= fct_rev(factor(Perceived_Risk, levels=c("Extremely risky", "Very risky","Moderately risky","Slightly risky","Not at all risky","Rather not say/Don't know"))), y=n , x=Technology)) + 
+  geom_bar(position="fill",stat="identity")+
+  geom_text(data = df_barplot_percent, aes(label=paste0(Percentage, "%"), y=n), position = position_fill(vjust=0.5), size=3) +
+  scale_x_discrete(limits = c("Solar", "Wind" ,"Hydro", "Oil", "Coal","Gas", "Nuclear"))+
+  scale_fill_manual("legend", values = c("Extremely risky" = "#8C4646", "Very risky" = "#D9695F", "Moderately risky" = "#F2A679", "Slightly risky" = "#F2D091","Not at all risky" = "#5D8C7B", "Rather not say/Don't know" = "grey94"))+
+  labs( y = "Perceived Risk", x ="Centrally Managed Energy Technologies")+
+  theme_classic()
+
+
+#perceived benefit centrally owned technologies 
+
+df_barplotben %>% ggplot(aes(fill= factor(Perceived_Benefit, levels=c("Rather not say/Don't know","Not at all beneficial","Slightly beneficial","Moderately beneficial","Very beneficial", "Extremely beneficial")), y=n , x=Technology)) + 
+  geom_bar(position="fill",stat="identity")+
+   geom_text(data = df_barplotben_percent, aes(label=paste0(Percentage, "%"), y=n), position = position_fill(vjust=0.5), size=3) +
+  scale_fill_manual("legend", values = c("Rather not say/Don't know" = "grey94" ,"Not at all beneficial" = "orange","Slightly beneficial"="yellow" ,"Moderately beneficial" = "palegreen","Very beneficial"= "green3", "Extremely beneficial"= "green4"))+
+  scale_x_discrete(limits = c("Solar", "Wind", "Hydro", "Oil", "Coal","Gas","Nuclear"))+
+  labs( y = "Perceived Benefit", x ="Centrally Managed Energy Technologies")+
+  theme_classic()
+
+```
+
+\newpage
+## Introduction: Mean Perceived Risk and Mean Perceived Benefit for all energy technologies. 
+
+```{r, echo=FALSE}
+library(tidyverse)
+
+# Filter variables of interest
+joineddf_subset <- joineddf %>%
+  dplyr::select(!starts_with(c("Ben_IND", "Risky_IND")))%>%
+  dplyr::select(starts_with("Risky"), 
+         starts_with("Ben"))
+
+# Assuming your data is named joineddf_subset
+long_df <- joineddf_subset %>%
+  gather(key = "Type", value = "Value")
+
+# Separate out Risky and Ben columns
+risky_df <- long_df %>% filter(str_detect(Type, "^Risky"))
+ben_df <- long_df %>% filter(str_detect(Type, "^Ben"))
+
+# Extract the technology type (Hydro, Solar, etc.)
+risky_df$Tech <- str_replace(risky_df$Type, "Risky_", "")
+ben_df$Tech <- str_replace(ben_df$Type, "Ben_", "")
+
+# Calculate the mean for each technology for Risky
+risky_mean <- risky_df %>%
+  group_by(Tech) %>%
+  dplyr::summarize(Mean_Value = mean(Value, na.rm = TRUE),
+          sd = sd(Value, na.rm = TRUE),
+          se = sd(Value, na.rm = TRUE) / sqrt(n()),
+          .groups = "drop")
+
+# Do the same for Ben technologies
+ben_mean <- ben_df %>%
+  group_by(Tech) %>%
+  dplyr::summarize(Mean_Value = mean(Value, na.rm = TRUE),
+          sd = sd(Value, na.rm = TRUE),
+          se = sd(Value, na.rm = TRUE) / sqrt(n()),
+          .groups = "drop")
+
+# Combine the two data frames into one for plotting
+combined_mean <- bind_rows(
+  mutate(risky_mean, Category = "Risky"),
+  mutate(ben_mean, Category = "Beneficial")
+)
+# Reorder the factor levels of the Tech variable by Mean_Value
+risky_mean$Tech <- factor(risky_mean$Tech, levels = risky_mean$Tech[order(risky_mean$Mean_Value, decreasing = FALSE)])
+
+
+
+```
+
+
+```{r, echo=FALSE}
+library(ggplot2)
+library(gridExtra)
+
+mean_risk <- mean(combined_mean$Mean_Value[combined_mean$Category == "Risky"], na.rm = TRUE)
+mean_benefit <- mean(combined_mean$Mean_Value[combined_mean$Category == "Beneficial"], na.rm = TRUE)
+
+
+# Order Technologies
+technology_order <- c("Solar","Wind","Hydro","Oil","Coal", "Gas","Nuclear")
+ben_mean$Tech <- factor(ben_mean$Tech, levels = technology_order)
+
+
+# Generate the Ben plot with flipped y-axis
+ben_plot <- ggplot(ben_mean, aes(y = Tech, x = Mean_Value)) +
+  geom_bar(stat = "identity", fill = "palegreen3") +
+  geom_errorbar(aes(xmin = Mean_Value - se, xmax = Mean_Value + se), width = 0.2) +
+  coord_cartesian(xlim = c(5, 1)) + 
+  labs(title = "Perceived Benefit", x = "Mean Values") +
+  #scale_x_reverse() +
+  theme(  # remove y-axis labels
+        axis.title.y = element_blank()) + # remove the "Tech" axis title
+  geom_vline(data = subset(combined_mean, Category == "Beneficial"), 
+             aes(xintercept = mean_benefit), linetype="dotted", color = "black", size = 0.5)
+
+# Generate the Risky plot
+risky_plot <- ggplot(risky_mean, aes(y = Tech, x = Mean_Value)) +
+  geom_bar(stat = "identity", fill = "firebrick2") +
+  geom_errorbar(aes(xmin = Mean_Value - se, xmax = Mean_Value + se), width = 0.2) +
+  coord_cartesian(xlim = c(1, 5)) + 
+  labs(title = "Perceived Risk", x = "Mean Values") +
+  theme(axis.text.y = element_blank(),
+        axis.title.y = element_blank())+
+  geom_vline(data = subset(combined_mean, Category == "Risky"), 
+             aes(xintercept = mean_risk), linetype="dotted", color = "black", size = 0.5)
+ # remove the "Tech" axis title
+
+# Arrange plots side by side
+grid.arrange(ben_plot, risky_plot, ncol=2)
+
+```
+
+
+## Boxplot for perceived benefit and perceived risk by technology
+
+```{r, echo = FALSE, fig.width=16, fig.height=6}
+
+#Box plot to see the distribution 
+
+# Loading the required libraries
+library(tidyverse)
+library(stringr)
+library(gridExtra)
+
+# Reshape the data to a long format
+joineddf_subset_long <- joineddf_subset %>%
+  pivot_longer(cols = everything(), 
+               names_to = "variable",
+               values_to = "value")
+
+# Separate the data into two: one for "Risky_" variables and one for "Ben_" variables
+risky_df <- joineddf_subset_long %>% 
+  filter(str_detect(variable, "^Risky_")) %>%
+  mutate(variable = str_remove(variable, "Risky_"))  # Remove the "Risky_" prefix
+
+ben_df <- joineddf_subset_long %>% 
+  filter(str_detect(variable, "^Ben_")) %>%
+  mutate(variable = str_remove(variable, "Ben_"))  # Remove the "Ben_" prefix
+
+# Remove NA values
+risky_df <- risky_df %>% drop_na()
+ben_df <- ben_df %>% drop_na()
+
+# Create box plots
+risky_plot <- ggplot(risky_df, aes(x = variable, y = value, fill = variable)) +
+  geom_boxplot() +
+  scale_fill_manual(values = rep("firebrick2", length(unique(risky_df$variable)))) +
+  labs(x = "Energy Technologies", y = "Likert", fill = "Technologies") +
+  ggtitle("Perceived risk") +
+  theme_minimal()+
+  theme(axis.text.y = element_text(size=20), 
+        axis.text.x = element_text(size=20),
+        axis.title.y = element_text(size=20),
+        axis.title.x = element_text(size=20),
+        title = element_text(size=20))+
+  guides(fill = FALSE)
+
+ben_plot <- ggplot(ben_df, aes(x = variable, y = value, fill = variable)) +
+  geom_boxplot() +
+  scale_fill_manual(values = rep("palegreen3", length(unique(ben_df$variable)))) +
+  labs(x = "Energy Technologies", y = "Likert Responses", fill = "Technologies") +
+  ggtitle("Perceived Benefit") +
+  theme_minimal()+
+  theme(axis.text.y = element_text(size=20), 
+        axis.text.x = element_text(size=20),
+        axis.title.y = element_text(size=20),
+        axis.title.x = element_text(size=20),
+        title = element_text(size=20))+
+  guides(fill = FALSE)
+
+# Put the two plots next to each other
+grid.arrange(risky_plot, ben_plot, ncol = 2)
+
+```
+
+
+
+
+\newpage
+
+## Pairwise T-test: Mean perceived risk and mean perceived benefit (all energy technologies)
+
+The red and green pairs indicate that there is a statistically significant difference between the means of the two groups. 
+White and grey indicate - no differences between the means of the two groups.
+
+```{r, echo = FALSE, fig.width=14, fig.height=6}
+#Q2 :How are the perceptions of the risk of producing energy from nuclear fission different from that of other conventional sources of energy like coal or hydro power in India?
+#H : Nuclear energy will be perceived as riskier than other sources of energy (coal or hydro) in India like in the west.
+perceivedriskc <-joineddf %>% 
+  dplyr::select("Risky_Solar", "Risky_Hydro", "Risky_Wind", "Risky_Nuclear", "Risky_Coal", "Risky_Gas", "Risky_Oil") %>%
+  gather(key = "technology", value = "perceived_risk") %>% 
+  mutate(technology = gsub("Risky_", "", technology)) %>%
+  na.omit()
+
+
+result_ttest <- pairwise.t.test(perceivedriskc$perceived_risk, perceivedriskc$technology, p.adjust.method = "BH")
+
+# visualising the pairwaise t test results. the non significant pairs are grey 
+
+tidy_result_ttest <- broom::tidy(result_ttest)
+
+heatmap1 <- ggplot(tidy_result_ttest, aes(x = group1, y = group2, fill = p.value)) + 
+  geom_tile(color = "white") + 
+  scale_fill_gradient2(low = "firebrick2", high = "white", midpoint = 0.025, 
+                       limits = c(0, 0.05), space = "Lab", 
+                       name = "P-value") + 
+  theme_classic() + 
+  labs(x = "", y = "") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+   theme(axis.text.y = element_text(size=20), 
+        axis.text.x = element_text(size=20),
+        axis.title.y = element_text(size=20),
+        axis.title.x = element_text(size=20),
+        title = element_text(size=20),
+        legend.text = element_text(size=12))
+
+#Question- Why there is significant difference statistically - if the medians are the same in the boxplot.
+#Q3: How do perceptions of benefit from nuclear energy compare with other source of energy? 
+
+# H : benefits from all energy technologies will be similar 
+# include regression, heat maps, bar graphs? - decide which ones are good to include
+
+perceivedbenefitc <-joineddf %>% 
+  dplyr::select("Ben_Solar", "Ben_Hydro", "Ben_Wind", "Ben_Nuclear", "Ben_Coal", "Ben_Gas", "Ben_Oil") %>%
+  gather(key = "technology", value = "perceived_benefit") %>% 
+  mutate(technology = gsub("Ben_", "", technology)) %>%
+  na.omit()
+
+
+result_ttestben <- pairwise.t.test(perceivedbenefitc$perceived_benefit, perceivedbenefitc$technology, p.adjust.method = "BH")
+
+# visualising the pairwaise t test results. the non significant pairs are grey 
+
+tidy_resultbc <- broom::tidy(result_ttestben)
+
+library(ggplot2)
+heatmap2 <- ggplot(tidy_resultbc, aes(x = group1, y = group2, fill = p.value)) + 
+  geom_tile(color = "white") + 
+  scale_fill_gradient2(low = "palegreen3", high = "white", midpoint = 0.025, 
+                       limits = c(0, 0.05), space = "Lab", 
+                       name = "P-value") + 
+  theme_classic() + 
+  labs(x = "", y = "") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+   theme(axis.text.y = element_text(size=20), 
+        axis.text.x = element_text(size=20),
+        axis.title.y = element_text(size=20),
+        axis.title.x = element_text(size=20),
+        title = element_text(size=20),
+        legend.text = element_text(size=12))
+
+
+grid.arrange(heatmap1, heatmap2, ncol=2)
+
+```
+
+
+
+
+\newpage 
+
+## Benefit - Risk for each technology 
+```{r, echo = FALSE}
+
+
+# combining risk and benefit from each energy technology 
+# Filter variables of interest
+joineddf_subset <- joineddf %>%
+  dplyr::select(!starts_with(c("Ben_IND", "Risky_IND")))%>%
+  dplyr::select(starts_with("Risky"), 
+         starts_with("Ben"))
+
+acceptance <- joineddf_subset %>%
+  na.omit()%>%
+  mutate(Nuclear = Ben_Nuclear - Risky_Nuclear,
+         Hyrdo = Ben_Hydro - Risky_Hydro,
+         Wind = Ben_Wind - Risky_Wind,
+         Solar = Ben_Solar - Risky_Solar,
+         Coal = Ben_Coal - Risky_Coal,
+         Gas = Ben_Gas - Risky_Gas,
+         Oil = Ben_Oil - Risky_Oil)%>%
+  dplyr::select(-starts_with(c("Risky", "Ben")))
+
+#str(acceptance)
+
+
+# Compute the mean of each column
+mean_acceptance <- data.frame(col = names(acceptance), mean_val = sapply(acceptance, mean))
+
+# Compute standard error (not deviation)(divided by root of n)
+sem <- function(x) sqrt(var(x, na.rm = TRUE) / length(na.omit(x)))
+sem_acceptance <- data.frame(col = names(acceptance), sem_val = sapply(acceptance, sem))
+
+mean_acceptance <- merge(mean_acceptance, sem_acceptance, by = "col")
+
+
+# Plot
+ggplot(mean_acceptance, aes(x = col, y = mean_val, fill = ifelse(mean_val >= 0, 'Above 0', 'Below 0'))) + 
+  geom_bar(stat = "identity") +
+  geom_errorbar(aes(ymin = mean_val - sem_val, ymax = mean_val + sem_val), width = 0.2) +
+  geom_text(aes(label = round(mean_val, 2)), vjust = -0.9) +
+  scale_fill_manual(values = c('Above 0' = 'palegreen3', 'Below 0' = 'firebrick2')) +
+  labs(fill = "Legend") +
+  xlab("Energy Technologies") +
+  ylab("Mean Value") +
+  ggtitle("Benefit- Risk for Each Energy Technology (n = 1184)") +
+  theme_minimal()+
+  ylim(-0.5, 1.75)
+
+
+
+
+```
+
+
+
+\newpage
+
+# Claim 1: Demographic variables: nuclear, solar, coal 
+
+```{r, echo=FALSE}
+
+
+# # Convert `caste` into binary variable 'upper' (1) vs 'non-upper' (0)
+joineddf$Uppercaste <- ifelse(joineddf$caste %in% c('Brahmin', 'General'), 1, 0)
+# Convert `gender` into binary variable 'male' (1) vs 'female' (0)
+joineddf$Male <- ifelse(joineddf$gender == 'Male', 1, 0)
+# Convert `religion` into binary variable 'Hinduism' (1) vs 'Non-Hinduism' (0)
+joineddf$Hindu <- ifelse(joineddf$religion == 'Hinduism', 1, 0)
+codedmodule2$State <- as.factor(codedmodule2$State)
+codedmodule2$gender <- as.factor(codedmodule2$gender)
+codedmodule2$Urban <- as.factor(codedmodule2$urban_rural)
+joineddf$Urban <- as.factor(joineddf$urban_rural)
+codedmodule2$caste <- as.factor(codedmodule2$caste)
+codedmodule2$religion <- as.factor(codedmodule2$religion)
+# # Convert `caste` into binary variable 'upper' (1) vs 'non-upper' (0)
+codedmodule2$Uppercaste <- ifelse(codedmodule2$caste %in% c('Brahmin', 'General'), 1, 0)
+# Convert `gender` into binary variable 'male' (1) vs 'female' (0)
+codedmodule2$Male <- ifelse(codedmodule2$gender == 'Male', 1, 0)
+# Convert `religion` into binary variable 'Hinduism' (1) vs 'Non-Hinduism' (0)
+codedmodule2$Hindu <- ifelse(codedmodule2$religion == 'Hinduism', 1, 0)
+
+joineddf1 <- joineddf %>%
+            dplyr::select(Risky_Nuclear, Risky_Solar, Risky_Coal, Uppercaste, Male, Hindu, Urban, age, State) %>%
+            na.omit()
+
+# lm on nuclear energy with all demovars
+
+alldemos <- joineddf1 %>%
+            dplyr::select(Risky_Nuclear, Uppercaste, Male, Hindu, Urban, age, State) %>%
+            mutate(RiskNuclear = Risky_Nuclear)%>%
+  mutate_at(vars(age), funs(case_when(. == "18-24 years old" ~ 1, 
+                                      . == "25-34 years old" ~ 2,
+                                      . ==  "35-44 years old" ~3,
+                                      . == "45-54 years old" ~ 4,
+                                      . == "55-64 years old" ~ 5,
+                                      . == "65-74 years old" ~ 6,
+                                      . == "75 years or older" ~ 7)))
+
+alldemoslm1 <- lm(RiskNuclear ~ Uppercaste + Male + Hindu + Urban + age , data = alldemos)
+
+alldemoslm2<- lm(RiskNuclear ~ Uppercaste + Male + Hindu + Urban + age + State, data = alldemos)
+
+#lm on solar with all demovars 
+
+salldemos <- joineddf1 %>%
+            dplyr::select(Risky_Solar,Uppercaste, Male, Hindu, Urban, age, State)%>%
+            mutate(RiskSolar = Risky_Solar)%>%
+  mutate_at(vars(age), funs(case_when(. == "18-24 years old" ~ 1, 
+                                      . == "25-34 years old" ~ 2,
+                                      . ==  "35-44 years old" ~3,
+                                      . == "45-54 years old" ~ 4,
+                                      . == "55-64 years old" ~ 5,
+                                      . == "65-74 years old" ~ 6,
+                                      . == "75 years or older" ~ 7)))
+
+salldemoslm1 <- lm(RiskSolar ~ Uppercaste + Male + Hindu + Urban + age , data = salldemos)
+
+salldemoslm2<- lm(RiskSolar ~ Uppercaste + Male + Hindu + Urban + age + State, data = salldemos)
+
+#lm on coal with all demovars 
+calldemos <- joineddf1 %>%
+            dplyr::select(Risky_Coal,Uppercaste, Male, Hindu, Urban, age, State)%>%
+            mutate(RiskCoal = Risky_Coal)%>%
+            mutate_at(vars(age), funs(case_when(. == "18-24 years old" ~ 1, 
+                                      . == "25-34 years old" ~ 2,
+                                      . ==  "35-44 years old" ~3,
+                                      . == "45-54 years old" ~ 4,
+                                      . == "55-64 years old" ~ 5,
+                                      . == "65-74 years old" ~ 6,
+                                      . == "75 years or older" ~ 7)))
+
+calldemoslm1 <- lm(RiskCoal ~ Uppercaste + Male + Hindu + Urban + age, data = calldemos)
+
+calldemoslm2<- lm(RiskCoal ~ Uppercaste + Male + Hindu + Urban + age + State, data = calldemos)
+
+
+
+
+
+```
+
+```{r, echo=FALSE}
+
+# trying linear regression with acceptance scale 
+
+joineddf_subset1 <- joineddf %>%
+  dplyr::select(!starts_with(c("Ben_IND", "Risky_IND")))%>%
+  dplyr::select(starts_with("Risky"), 
+         starts_with("Ben"), Uppercaste, Male, Hindu, Urban, age)
+
+acceptance1 <- joineddf_subset1 %>%
+  na.omit()%>%
+  mutate(NetBenNuclear = Ben_Nuclear - Risky_Nuclear,
+         NetBeneHyrdo = Ben_Hydro - Risky_Hydro,
+         NetBeneWind = Ben_Wind - Risky_Wind,
+         NetBenSolar = Ben_Solar - Risky_Solar,
+         NetBenCoal = Ben_Coal - Risky_Coal,
+         NetBenGas = Ben_Gas - Risky_Gas,
+         NetBenOil = Ben_Oil - Risky_Oil)%>%
+  dplyr::select(-starts_with(c("Risky", "Ben")))%>%
+  mutate_at(vars(age), funs(case_when(. == "18-24 years old" ~ 1, 
+                                      . == "25-34 years old" ~ 2,
+                                      . ==  "35-44 years old" ~3,
+                                      . == "45-54 years old" ~ 4,
+                                      . == "55-64 years old" ~ 5,
+                                      . == "65-74 years old" ~ 6,
+                                      . == "75 years or older" ~ 7)))
+
+
+alldemoslm3<- lm(NetBenNuclear ~ Uppercaste + Male + Hindu + Urban + age, data = acceptance1)
+#summary(alldemoslm3)
+
+salldemoslm3<- lm(NetBenSolar ~ Uppercaste + Male + Hindu + Urban + age, data = acceptance1)
+calldemoslm3<- lm(NetBenCoal ~ Uppercaste + Male + Hindu + Urban + age, data = acceptance1)
+
+
+```
+
+
+\blandscape
+
+## Linear Regression with demographic variables (caste, religion, gender and age)
+
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
+
+#stargazer code for all demographic variable lms 
+
+
+cat("\\begingroup")
+cat("\\small")  # Adjusts the font size
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(alldemoslm1, salldemoslm1, calldemoslm1,alldemoslm3, salldemoslm3, calldemoslm3,
+          title = "Linear Models: Perceived Risk and Net Perceived Benefit(Nuclear, Solar and Coal)",
+          type = "latex"
+)
+cat("\\endgroup")
+
+
+```
+
+\elandscape
+
+
+```{r, echo=FALSE}
+
+
+stargazer(alldemoslm1, salldemoslm1, calldemoslm1, alldemoslm3, salldemoslm3, calldemoslm3, 
+          type = "text", # Choose "html" or "latex" for different formats
+          title = "Regression Models Summary",
+          align = TRUE)
+
+```
+
+
+\newpage
+
+# Claim 2: Regional differences 
+
+We see huge differences for perceived risk and perceived benefit for each technology from state to state. These graphs explore that. The number of respondents from each state are also reported below. 
 
 ## Perceived risk by State
 
@@ -280,9 +820,178 @@ state_ben %>% ggplot(aes(fill= factor(Perceived_Benefit, levels=c("Rather not sa
         strip.text = element_text(size=12))
 
 ```
+## Radar chart - risk and benefit by state
+
+```{r, echo=FALSE}
+library(tidyverse)
+
+# Filter variables of interest
+joineddf_subset2 <- joineddf %>%
+  dplyr::select(!starts_with(c("Ben_IND", "Risky_IND")))%>%
+  dplyr::select(starts_with("Risky"), 
+         starts_with("Ben"), starts_with("State"))
 
 
-```{r}
+#long_df2 <- joineddf_subset %>%
+#gather(key = "Type", value = "Value")
+# Reshape data to long format
+long_df2 <- joineddf_subset2 %>%
+  pivot_longer(cols = -State, names_to = "variable", values_to = "value")
+
+
+# Separate out Risky and Ben columns
+risky_df2 <- long_df2 %>% filter(str_detect(variable, "^Risky"))
+ben_df2 <- long_df2 %>% filter(str_detect(variable, "^Ben"))
+
+# Extract the technology type (Hydro, Solar, etc.)
+risky_df2$Tech <- str_replace(risky_df2$variable, "Risky_", "")
+ben_df2$Tech <- str_replace(ben_df2$variable, "Ben_", "")
+
+# Calculate the mean for each technology for Risky
+risky_mean2 <- risky_df2 %>%
+  group_by(State,Tech) %>%
+  dplyr::summarize(Mean_Value = mean(value, na.rm = TRUE),
+          sd = sd(value, na.rm = TRUE),
+          se = sd(value, na.rm = TRUE) / sqrt(n()),
+          .groups = "drop")
+
+# Do the same for Ben technologies
+ben_mean2 <- ben_df2 %>%
+  group_by(State,Tech) %>%
+  dplyr::summarize(Mean_Value = mean(value, na.rm = TRUE),
+          sd = sd(value, na.rm = TRUE),
+          se = sd(value, na.rm = TRUE) / sqrt(n()),
+          .groups = "drop")
+
+# Combine the two data frames into one for plotting
+combined_mean2 <- bind_rows(
+  mutate(risky_mean2, Category = "Risky"),
+  mutate(ben_mean2, Category = "Beneficial")
+)
+
+# New order of technologies
+new_tech_order <- c("Solar", "Wind", "Hydro", "Oil", "Coal", "Gas","Nuclear")
+
+# Apply this new order to the 'Tech' column in your combined_mean dataset
+combined_mean2$Tech <- factor(combined_mean2$Tech, levels = new_tech_order)
+
+# Split the data by state
+data_by_state <- split(combined_mean2, combined_mean2$State)
+
+
+```
+
+
+```{r, echo=FALSE}
+# Create a list to store plots
+plots_list <- list()
+
+for (state in names(data_by_state)) {
+  # Subset data for each state
+  state_data <- data_by_state[[state]]
+
+  # Split into beneficial and risky data
+  ben_mean <- subset(state_data, Category == "Beneficial")
+  risky_mean <- subset(state_data, Category == "Risky")
+
+  # Generate plots for each category
+  ben_plot <- ggplot(ben_mean, aes(y = Tech, x = Mean_Value)) +
+    geom_bar(stat = "identity", fill = "palegreen3") +
+    geom_errorbar(aes(xmin = Mean_Value - se, xmax = Mean_Value + se), width = 0.2) +
+    coord_cartesian(xlim = c(5, 1)) + 
+    labs(title = paste("Perceived Benefit in", state), x = "Mean Values") +
+    theme(axis.title.y = element_blank()) +
+    geom_vline(xintercept = mean_benefit, linetype="dotted", color = "black", size = 0.5)
+
+  risky_plot <- ggplot(risky_mean, aes(y = Tech, x = Mean_Value)) +
+    geom_bar(stat = "identity", fill = "firebrick2") +
+    geom_errorbar(aes(xmin = Mean_Value - se, xmax = Mean_Value + se), width = 0.2) +
+    coord_cartesian(xlim = c(1, 5)) + 
+    labs(title = paste("Perceived Risk in", state), x = "Mean Values") +
+    theme(axis.text.y = element_blank(), axis.title.y = element_blank())+
+    geom_vline(xintercept = mean_risk, linetype="dotted", color = "black", size = 0.5)
+
+  # Combine the plots side by side
+  combined_plot <- grid.arrange(ben_plot, risky_plot, ncol=2)
+  plots_list[[state]] <- combined_plot
+}
+
+```
+
+## Net benefit by state 
+
+
+```{r, echo=FALSE}
+library(dplyr)
+library(ggplot2)
+
+# Including the State variable in the dataset
+joineddf_subset_state <- joineddf %>%
+  dplyr::select(starts_with("Risky"), 
+         starts_with("Ben"), 
+         State)
+
+acceptance_state <- joineddf_subset_state %>%
+  na.omit() %>%
+  mutate(Nuclear = Ben_Nuclear - Risky_Nuclear,
+         Hydro = Ben_Hydro - Risky_Hydro,
+         Wind = Ben_Wind - Risky_Wind,
+         Solar = Ben_Solar - Risky_Solar,
+         Coal = Ben_Coal - Risky_Coal,
+         Gas = Ben_Gas - Risky_Gas,
+         Oil = Ben_Oil - Risky_Oil) %>%
+  dplyr::select(-starts_with(c("Risky", "Ben")))
+
+# Calculate mean and standard error for each state and technology
+mean_acceptance_state <- acceptance_state %>%
+  group_by(State) %>%
+  summarise(across(Nuclear:Oil, list(mean = ~mean(., na.rm = TRUE), 
+                                     sem = ~sqrt(var(., na.rm = TRUE) / length(na.omit(.))))))
+
+```
+
+```{r, echo=FALSE}
+
+
+
+# Reshape data for plotting
+long_mean <- mean_acceptance_state %>%
+  pivot_longer(cols = -State, names_to = "Technology_SEM", values_to = "mean_val") %>%
+  separate(Technology_SEM, into = c("Technology", "Metric"), sep = "_") %>%
+  filter(Metric == "mean") %>%
+  select(-Metric)
+
+long_sem <- mean_acceptance_state %>%
+  pivot_longer(cols = -State, names_to = "Technology_SEM", values_to = "sem_val") %>%
+  separate(Technology_SEM, into = c("Technology", "Metric"), sep = "_") %>%
+  filter(Metric == "sem") %>%
+  select(-Metric)
+
+
+# Merge mean and SEM data
+plot_data <- left_join(long_mean, long_sem, by = c("State", "Technology"))
+
+
+# Create the plot
+ggplot(plot_data, aes(x = Technology, y = mean_val, fill = ifelse(mean_val >= 0, 'Above 0', 'Below 0'))) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  geom_errorbar(aes(ymin = mean_val - sem_val, ymax = mean_val + sem_val), 
+                position = position_dodge(), width = 0.25) +
+  facet_wrap(~ State) +
+  scale_fill_manual(values = c('Above 0' = 'palegreen3', 'Below 0' = 'firebrick2')) +
+  labs(title = "Net Benefit (Perceived Risk - Perceived Benefit) by State",
+       x = "Energy Technologies", y = "Net Benefit", fill = "Legend") +
+  theme_minimal() +
+  ylim(-1.75, 3.5)
+
+```
+
+
+
+
+```{r, echo=FALSE}
+
+
 staterisky <- joineddf %>%
   dplyr::select(!starts_with(c("Ben_IND", "Risky_IND")))%>%
   dplyr::select(starts_with("Risky"), State)
@@ -298,14 +1007,7 @@ staterisky_mean <- staterisky %>%
     Mean_Risky_Gas = mean(Risky_Gas, na.rm = TRUE),
     Mean_Risky_Oil = mean(Risky_Oil, na.rm = TRUE)
   )
- 
 
-str(staterisky_mean)
-
-# Load required packages
-library(dplyr)
-library(tidyr)
-library(ggplot2)
 
 # Convert to long format
 long_data <- staterisky_mean %>%
@@ -313,143 +1015,630 @@ long_data <- staterisky_mean %>%
   mutate(Technology = gsub("Mean_Risky_", "", Technology))
 
 # Order Technologies
-technology_order <- c("Nuclear", "Gas", "Coal", "Oil", "Hydro", "Wind", "Solar")
+technology_order <- c("Coal", "Gas", "Nuclear", "Oil", "Hydro", "Wind", "Solar")
 long_data$Technology <- factor(long_data$Technology, levels = technology_order)
 
+cbbPalette <- c("#000000","#CC79A7","#F0E442","#E69F00","#56B4E9","#009E73","#D55E00")
+
+names(cbbPalette) <- technology_order
+
+# Order States (assuming you want an alphabetical order, modify as needed)
+states_order <- c( "Rajasthan", "Maharashtra", "Tamil Nadu", "Uttar Pradesh",  "West Bengal")
+long_data$State <- factor(long_data$State, levels = states_order)
+
 # Plot the graph
-ggplot(long_data, aes(x = Technology, y = Mean_Score, color = State, group = State)) +
-  geom_line(size = 1) +
-  geom_point(size = 3) +
-  labs(title = "Mean Perceived Risk by State",
-       x = "Technology", y = "Mean Score") +
+stateplot1 <- ggplot(long_data, aes(x = State, y = Mean_Score, color = Technology, group = Technology)) +
+  geom_line(size = 0.7) +
+  geom_point(size = 2) +
+  labs(title = " ",
+       x = "State", y = "Means") +
+  ylim(1,5)+
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  scale_color_manual(values=cbbPalette)
 
 
+```
+
+```{r, echo= FALSE}
+
+
+# Reshape the data from wide to long format
+staterisky_long <- staterisky %>%
+  pivot_longer(
+    cols = starts_with("Risky_"),
+    names_to = "Technology",
+    values_to = "Riskiness"
+  ) %>%
+  mutate(Technology = sub("Risky_", "", Technology))
+
+# Calculate the sample size for each state
+
+state_sample_size <- staterisky %>%
+  group_by(State) %>%
+  summarize(n = n())
+
+
+# Join this back to the main data frame
+staterisky_long <- staterisky_long %>%
+  left_join(state_sample_size, by = "State")
+
+# Calculate the weighted mean for each technology in each state
+weighted_means <- staterisky_long %>%
+  group_by(State, Technology) %>%
+  summarize(weighted_mean = sum(Riskiness / n, na.rm = TRUE) / sum(1 / n, na.rm = TRUE), .groups = 'drop')
+
+
+
+```
+
+```{r, echo=FALSE}
+
+
+
+weighted_means$Technology <- factor(weighted_means$Technology, levels = technology_order)
+states_order <- c( "Rajasthan", "Maharashtra", "Tamil Nadu", "Uttar Pradesh",  "West Bengal")
+weighted_means$State <- factor(weighted_means$State, levels = states_order)
+
+stateplot2 <- ggplot(weighted_means, aes(x = State, y = weighted_mean, color = Technology, group = Technology)) +
+  geom_line(size = 0.7) +
+  geom_point(size = 2) +
+  labs(title = " ",
+       x = "State", y = "Weighted Means") +
+  ylim(0.5,4.5)+
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_color_manual(values = cbbPalette)
+
+```
+
+
+\newpage 
+## Mean Perceived Risk and Weighted Mean
+
+
+
+```{r, echo=FALSE, fig.width=8, fig.height=4,out.width='100%', out.height='100%'}
+library(gridExtra)
+# mean perceived risk and zscores by state side by side 
+
+spacer <- grid::rectGrob(gp = grid::gpar(col = "white"))
+
+grid.arrange(stateplot1, spacer, stateplot2, ncol=3, widths=c(0.8, 0.06, 0.8))
+```
+
+\newpage
+## Mean Perceived risk and weighten means by Technologies- solar, coal and nuclear 
+
+
+```{r, echo=FALSE}
+
+
+staterisky3t <- joineddf %>%
+  dplyr::select(!starts_with(c("Ben_IND", "Risky_IND")))%>%
+  dplyr::select(Risky_Solar, Risky_Nuclear, Risky_Coal, State)
+
+staterisky3t_mean <- staterisky3t %>%
+  group_by(State) %>%
+  summarise(
+    Mean_Risky_Solar = mean(Risky_Solar, na.rm = TRUE),
+    Mean_Risky_Nuclear = mean(Risky_Nuclear, na.rm = TRUE),
+    Mean_Risky_Coal = mean(Risky_Coal, na.rm = TRUE)
+  )
+
+
+# Convert to long format
+long_data3t <- staterisky3t_mean %>%
+  gather(Technology, Mean_Score, -State) %>%
+  mutate(Technology = gsub("Mean_Risky_", "", Technology))
+
+# Order Technologies
+technology_order <- c("Coal", "Gas", "Nuclear", "Oil", "Hydro", "Wind", "Solar")
+long_data3t$Technology <- factor(long_data3t$Technology, levels = technology_order)
+
+cbbPalette <- c("#000000","#CC79A7","#F0E442","#E69F00","#56B4E9","#009E73","#D55E00")
+
+names(cbbPalette) <- technology_order
+
+# Order States (assuming you want an alphabetical order, modify as needed)
+states_order <- c( "Rajasthan", "Maharashtra", "Tamil Nadu", "Uttar Pradesh",  "West Bengal")
+long_data3t$State <- factor(long_data3t$State, levels = states_order)
+
+# Plot the graph
+stateplot3t <- ggplot(long_data3t, aes(x = State, y = Mean_Score, color = Technology, group = Technology)) +
+  geom_line(size = 0.7) +
+  geom_point(size = 2) +
+  labs(title = " ",
+       x = "State", y = "Means") +
+  ylim(1,5)+
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  scale_color_manual(values=cbbPalette)
+
+
+```
+
+```{r, echo= FALSE}
+
+
+# Reshape the data from wide to long format
+staterisky3t_long <- staterisky3t %>%
+  pivot_longer(
+    cols = starts_with("Risky_"),
+    names_to = "Technology",
+    values_to = "Riskiness"
+  ) %>%
+  mutate(Technology = sub("Risky_", "", Technology))
+
+# Calculate the sample size for each state
+
+state_sample_size3t <- staterisky3t %>%
+  group_by(State) %>%
+  summarize(n = n())
+
+
+# Join this back to the main data frame
+staterisky3t_long <- staterisky3t_long %>%
+  left_join(state_sample_size3t, by = "State")
+
+# Calculate the weighted mean for each technology in each state
+weighted_means3t <- staterisky3t_long %>%
+  group_by(State, Technology) %>%
+  summarize(weighted_mean = sum(Riskiness / n, na.rm = TRUE) / sum(1 / n, na.rm = TRUE), .groups = 'drop')
+
+
+
+```
+
+```{r, echo=FALSE}
+
+
+
+weighted_means3t$Technology <- factor(weighted_means3t$Technology, levels = technology_order)
+states_order <- c( "Rajasthan", "Maharashtra", "Tamil Nadu", "Uttar Pradesh",  "West Bengal")
+weighted_means3t$State <- factor(weighted_means3t$State, levels = states_order)
+
+stateplot3t2 <- ggplot(weighted_means3t, aes(x = State, y = weighted_mean, color = Technology, group = Technology)) +
+  geom_line(size = 0.7) +
+  geom_point(size = 2) +
+  labs(title = " ",
+       x = "State", y = "Weighted Means") +
+  ylim(0.5,4.5)+
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_color_manual(values = cbbPalette)
 
 ```
 
 
 
 
+```{r, echo=FALSE, fig.width=8, fig.height=4,out.width='100%', out.height='100%'}
+library(gridExtra)
+# mean perceived risk and zscores by state side by side 
 
-```{r}
-# Using dplyr and tidyr
+spacer <- grid::rectGrob(gp = grid::gpar(col = "white"))
 
-standardized_data <- long_data %>%
-  group_by(Technology) %>%
+grid.arrange(stateplot3t, spacer, stateplot3t2, ncol=3, widths=c(0.8, 0.06, 0.8))
+```
+
+
+## Zscores - 3 techs - solar, nuclear and coal 
+
+```{r, echo = FALSE, fig.width=8, fig.height=4}
+
+
+
+# Extract only Nuclear
+nuclear_data <- staterisky3t_mean %>%
+  dplyr::select(State, Mean_Risky_Nuclear)%>%
+  mutate(
+    Z_Risky_Nuclear = (Mean_Risky_Nuclear - mean(Mean_Risky_Nuclear, na.rm = TRUE)) / 
+                      sd(Mean_Risky_Nuclear, na.rm = TRUE)
+  )
+
+mean_nuclear_state <- ggplot(nuclear_data, aes(x = State, y = Mean_Risky_Nuclear, group = 1)) +
+  geom_line(color = "#F0BA32", size = 1) +
+  geom_point(color = "#F0BA32", size = 3) +
+  labs(title = "Means: Perceived Risk of Nuclear Energy",
+       x = "State", y = "Mean Perceived Risk") +
+  theme_minimal() +
+  ylim(1,5)+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Plot the z-scores
+zscore_nuclear_state <- ggplot(nuclear_data, aes(x = State, y = Z_Risky_Nuclear, group = 1)) +
+  geom_line(color = "#F0BA32", size = 1) +
+  geom_point(color = "#F0BA32", size = 3) +
+  labs(title = "Z-scores: Perceived Risk of Nuclear Energy",
+       x = "State", y = "Z-Score") +
+  ylim(-1 ,2)+
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+# Extract only Solar
+solar_data <- staterisky3t_mean %>%
+  dplyr::select(State, Mean_Risky_Solar)%>%
+  mutate(
+    Z_Risky_Solar = (Mean_Risky_Solar - mean(Mean_Risky_Solar, na.rm = TRUE)) / 
+                      sd(Mean_Risky_Solar, na.rm = TRUE)
+  )
+
+mean_solar_state <- ggplot(solar_data, aes(x = State, y = Mean_Risky_Solar, group = 1)) +
+  geom_line(color = "#D55E00", size = 1) +
+  geom_point(color = "#D55E00", size = 3) +
+  labs(title = "Means: Perceived Risk of Solar Energy",
+       x = "State", y = "Mean Perceived Risk") +
+  theme_minimal() +
+  ylim(1,5)+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Plot the z-scores
+zscore_solar_state <- ggplot(solar_data, aes(x = State, y = Z_Risky_Solar, group = 1)) +
+  geom_line(color = "#D55E00", size = 1) +
+  geom_point(color = "#D55E00", size = 3) +
+  labs(title = "Z-scores: Perceived Risk of Solar Energy",
+       x = "State", y = "Z-Score") +
+  ylim(-1 ,2)+
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+# Extract only Coal
+coal_data <- staterisky3t_mean %>%
+  dplyr::select(State, Mean_Risky_Coal)%>%
+  mutate(
+    Z_Risky_Coal = (Mean_Risky_Coal - mean(Mean_Risky_Coal, na.rm = TRUE)) / 
+                      sd(Mean_Risky_Coal, na.rm = TRUE)
+  )
+
+mean_coal_state <- ggplot(coal_data, aes(x = State, y = Mean_Risky_Coal, group = 1)) +
+  geom_line(color = "#000000", size = 1) +
+  geom_point(color = "#000000", size = 3) +
+  labs(title = "Means: Perceived Risk of Coal",
+       x = "State", y = "Mean Perceived Risk") +
+  theme_minimal() +
+  ylim(1,5)+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Plot the z-scores
+zscore_coal_state <- ggplot(coal_data, aes(x = State, y = Z_Risky_Coal, group = 1)) +
+  geom_line(color = "#000000", size = 1) +
+  geom_point(color = "#000000", size = 3) +
+  labs(title = "Z-scores: Perceived Risk of Coal",
+       x = "State", y = "Z-Score") +
+  ylim(-2 ,1)+
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+library(gridExtra)
+
+# Assuming mean_nuclear_state and zscore_nuclear_state are both ggplot objects
+
+# We'll add a spacer grob for spacing between plots
+spacer <- grid::rectGrob(gp = grid::gpar(col = "white"))
+
+grid.arrange(stateplot3t, spacer, zscore_nuclear_state, ncol=3, widths=c(0.8, 0.06, 0.8))
+
+grid.arrange(zscore_solar_state, spacer, zscore_coal_state, ncol=3, widths=c(0.8, 0.06, 0.8))
+
+```
+
+
+```{r, echo=FALSE}
+stateben <- joineddf %>%
+  dplyr::select(!starts_with(c("Ben_IND", "Risky_IND")))%>%
+  dplyr::select(starts_with("Ben"), State)
+
+stateben_mean <- stateben %>%
+  group_by(State) %>%
+  summarise(
+    Mean_Ben_Hydro = mean(Ben_Hydro, na.rm = TRUE),
+    Mean_Ben_Solar = mean(Ben_Solar, na.rm = TRUE),
+    Mean_Ben_Wind = mean(Ben_Wind, na.rm = TRUE),
+    Mean_Ben_Nuclear = mean(Ben_Nuclear, na.rm = TRUE),
+    Mean_Ben_Coal = mean(Ben_Coal, na.rm = TRUE),
+    Mean_Ben_Gas = mean(Ben_Gas, na.rm = TRUE),
+    Mean_Ben_Oil = mean(Ben_Oil, na.rm = TRUE)
+  )
+
+# Convert to long format
+long_data2 <- stateben_mean %>%
+  gather(Technology, Mean_Score, -State) %>%
+  mutate(Technology = gsub("Mean_Ben_", "", Technology))
+
+# Order Technologies
+technology_order <- c("Coal", "Gas", "Nuclear", "Oil", "Hydro", "Wind", "Solar")
+long_data2$Technology <- factor(long_data$Technology, levels = technology_order)
+
+cbbPalette <- c("#000000","#CC79A7","#F0E442","#E69F00","#56B4E9","#009E73","#D55E00")
+
+names(cbbPalette) <- technology_order
+
+# Order States (assuming you want an alphabetical order, modify as needed)
+states_order <- c( "Rajasthan", "Maharashtra", "Tamil Nadu", "Uttar Pradesh",  "West Bengal")
+long_data2$State <- factor(long_data2$State, levels = states_order)
+
+# Plot the graph
+stateplotben1 <- ggplot(long_data2, aes(x = State, y = Mean_Score, color = Technology, group = Technology)) +
+  geom_line(size = 0.7) +
+  geom_point(size = 2) +
+  labs(title = "Mean Perceived Benefit by State",
+       x = "State", y = "Mean Score") +
+  ylim(1,5)+
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  scale_color_manual(values=cbbPalette)
+```
+
+\newpage 
+
+## Mean Perceived Benefit and Z-scores by State 
+
+```{r, echo=FALSE}
+
+
+standardized_data2 <- long_data2 %>%
+  group_by(State) %>% #z scores are by state- that means mean_score - overall mean by state (including all technologies) divided by sd by state
   mutate(
     Overall_Mean = mean(Mean_Score, na.rm = TRUE),
     Std_Dev = sd(Mean_Score, na.rm = TRUE)
   ) %>%
   ungroup() %>%
-  mutate(Standardized_Score = (Mean_Score - Overall_Mean) / Std_Dev) %>%
-  dplyr::select(-Overall_Mean, -Std_Dev)  # 
+  mutate(Standardized_Score = (Mean_Score - Overall_Mean) / Std_Dev) #%>%
+  #dplyr::select(-Overall_Mean, -Std_Dev)  # 
 
 # Order Technologies
-technology_order <- c("Nuclear", "Gas", "Coal", "Oil", "Hydro", "Wind", "Solar")
-standardized_data$Technology <- factor(standardized_data$Technology, levels = technology_order)
+standardized_data2$Technology <- factor(standardized_data2$Technology, levels = technology_order)
+
+stateplotben2 <- ggplot(standardized_data2, aes(x = State, y = Standardized_Score, color = Technology, group = Technology)) +
+  geom_line(size = 0.7) +
+  geom_point(size = 2) +
+  labs(title = "Z Scores for Perceived Benefit by State",
+       x = "State", y = "Z Score") +
+  ylim(-3,2)+
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_color_manual(values = cbbPalette)
+
+```
+
+
+```{r, echo=FALSE, fig.width=8, fig.height=4, out.width='100%', out.height='100%'}
+library(gridExtra)
+# mean perceived risk and zscores by state side by side 
+
+spacer <- grid::rectGrob(gp = grid::gpar(col = "white"))
+
+grid.arrange(stateplotben1, spacer, stateplotben2, ncol=3, widths=c(0.8, 0.06, 0.8))
+```
+
+\newpage 
+
+## Mean Perceived Benefit and Z-scores by State - coal solar and nuclear 
+
+
+
+
+```{r, echo = FALSE, fig.width=8, fig.height=4}
+
+
+staterisky_mean <- staterisky %>%
+  group_by(State) %>%
+  summarise(
+    Mean_Risky_Hydro = mean(Risky_Hydro, na.rm = TRUE),
+    Mean_Risky_Solar = mean(Risky_Solar, na.rm = TRUE),
+    Mean_Risky_Wind = mean(Risky_Wind, na.rm = TRUE),
+    Mean_Risky_Nuclear = mean(Risky_Nuclear, na.rm = TRUE),
+    Mean_Risky_Coal = mean(Risky_Coal, na.rm = TRUE),
+    Mean_Risky_Gas = mean(Risky_Gas, na.rm = TRUE),
+    Mean_Risky_Oil = mean(Risky_Oil, na.rm = TRUE)
+  )
+
+
+# Extract only Nuclear
+nuclear_data <- staterisky_mean %>%
+  dplyr::select(State, Mean_Risky_Nuclear)%>%
+  mutate(
+    Z_Risky_Nuclear = (Mean_Risky_Nuclear - mean(Mean_Risky_Nuclear, na.rm = TRUE)) / 
+                      sd(Mean_Risky_Nuclear, na.rm = TRUE)
+  )
+
+mean_nuclear_state <- ggplot(nuclear_data, aes(x = State, y = Mean_Risky_Nuclear, group = 1)) +
+  geom_line(color = "#F0BA32", size = 1) +
+  geom_point(color = "#F0BA32", size = 3) +
+  labs(title = "Means: Perceived Risk of Nuclear Energy",
+       x = "State", y = "Mean Perceived Risk") +
+  theme_minimal() +
+  ylim(1,5)+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Plot the z-scores
+zscore_nuclear_state <- ggplot(nuclear_data, aes(x = State, y = Z_Risky_Nuclear, group = 1)) +
+  geom_line(color = "#F0BA32", size = 1) +
+  geom_point(color = "#F0BA32", size = 3) +
+  labs(title = "Z-scores: Perceived Risk of Nuclear Energy",
+       x = "State", y = "Z-Score") +
+  ylim(-1 ,2)+
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+
+library(gridExtra)
+
+# Assuming mean_nuclear_state and zscore_nuclear_state are both ggplot objects
+
+# We'll add a spacer grob for spacing between plots
+spacer <- grid::rectGrob(gp = grid::gpar(col = "white"))
+
+grid.arrange(mean_nuclear_state, spacer, zscore_nuclear_state, ncol=3, widths=c(0.8, 0.06, 0.8))
+
+
+
+```
+
+
+
+\newpage 
+
+
+```{r, echo=FALSE}
+# Assuming you've already processed staterisky_mean as in your given code
+
+staterisky3 <- joineddf %>%
+  dplyr::select(!starts_with(c("Ben_IND", "Risky_IND")))%>%
+  dplyr::select(Risky_Solar,Risky_Nuclear, Risky_Coal, State)
+
+staterisky3_mean <- staterisky3 %>%
+  group_by(State) %>%
+  summarise(
+    Mean_Risky_Solar = mean(Risky_Solar, na.rm = TRUE),
+    Mean_Risky_Nuclear = mean(Risky_Nuclear, na.rm = TRUE),
+    Mean_Risky_Coal = mean(Risky_Coal, na.rm = TRUE),
+  )
+
+
+# Convert to long format
+long_data3 <- staterisky3_mean %>%
+  gather(Technology, Mean_Score, -State) %>%
+  mutate(Technology = gsub("Mean_Risky_", "", Technology))
+
+# Order Technologies
+technology_order <- c("Coal", "Gas", "Nuclear", "Oil", "Hydro", "Wind", "Solar")
+long_data3$Technology <- factor(long_data3$Technology, levels = technology_order)
+
+cbbPalette <- c("#000000","#CC79A7","#F0E442","#E69F00","#56B4E9","#009E73","#D55E00")
+
+names(cbbPalette) <- technology_order
+
+# Order States (assuming you want an alphabetical order, modify as needed)
+states_order <- c( "Rajasthan", "Maharashtra", "Tamil Nadu", "Uttar Pradesh",  "West Bengal")
+long_data3$State <- factor(long_data3$State, levels = states_order)
 
 # Plot the graph
-ggplot(standardized_data, aes(x = Technology, y = Standardized_Score, color = State, group = State)) +
-  geom_line(size = 1) +
-  geom_point(size = 3) +
-  labs(title = "Standardised Scores of Technologies by State",
-       x = "Technology", y = "Z Score") +
+stateplot3 <- ggplot(long_data3, aes(x = State, y = Mean_Score, color = Technology, group = Technology)) +
+  geom_line(size = 0.7) +
+  geom_point(size = 2) +
+  labs(title = "Mean Perceived Risk",
+       x = "State", y = "Mean Score") +
+  ylim(1,5)+
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  scale_color_manual(values=cbbPalette)
 
 ```
 
 
-```{r}
-# Switch roles of State and Technology for plotting
-ggplot(standardized_data, aes(x = State, y = Standardized_Score, color = Technology, group = Technology)) +
-  geom_line(size = 1) +
-  geom_point(size = 3) +
-  labs(title = "Standardised Scores of Technologies by State",
-       x = "State", y = "Z Score") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-```
 
 
 ```{r, echo = FALSE}
 
+staterisky_long <- staterisky_long %>%
+  group_by(State) %>%
+  mutate(Riskiness_Z = scale(Riskiness, center = TRUE, scale = TRUE))
 
-# combining risk and benefit from each energy technology 
+ggplot(staterisky_long, aes(x = Technology, y = Riskiness_Z, fill = State)) +
+  geom_boxplot() +
+  facet_wrap(~ State) +
+  theme_minimal() +
+  labs(title = "Boxplot of Riskiness Z-scores by State and Technology", 
+       x = "Technology", 
+       y = "Z-score")
 
-acceptance <- joineddf_subset %>%
-  na.omit()%>%
-  mutate(Nuclear = Ben_Nuclear - Risky_Nuclear,
-         Hyrdo = Ben_Hydro - Risky_Hydro,
-         Wind = Ben_Wind - Risky_Wind,
-         Solar = Ben_Solar - Risky_Solar,
-         Coal = Ben_Coal - Risky_Coal,
-         Gas = Ben_Gas - Risky_Gas,
-         Oil = Ben_Oil - Risky_Oil)%>%
-  select(-starts_with(c("Risky", "Ben")))
+ggplot(staterisky_long, aes(x = Riskiness_Z, fill = Technology)) +
+  geom_density(alpha = 0.7) +
+  facet_wrap(~ State) +
+  theme_minimal() +
+  labs(title = "Density Plot of Riskiness Z-scores by State and Technology", 
+       x = "Z-score", 
+       y = "Density")
 
-#str(acceptance)
+technology_order <- c("Coal", "Gas", "Nuclear", "Oil", "Hydro", "Wind", "Solar")
+staterisky_long$Technology <- factor(staterisky_long$Technology, levels = technology_order)
+cbbPalette <- c("#000000","#CC79A7","#F0E442","#E69F00","#56B4E9","#009E73","#D55E00")
 
+names(cbbPalette) <- technology_order
 
-# Compute the mean of each column
-mean_acceptance <- data.frame(col = names(acceptance), mean_val = sapply(acceptance, mean))
-
-# Compute standard error (not deviation)(divided by root of n)
-sem <- function(x) sqrt(var(x, na.rm = TRUE) / length(na.omit(x)))
-sem_acceptance <- data.frame(col = names(acceptance), sem_val = sapply(acceptance, sem))
-
-mean_acceptance <- merge(mean_acceptance, sem_acceptance, by = "col")
-
-
-# Plot
-ggplot(mean_acceptance, aes(x = col, y = mean_val, fill = ifelse(mean_val >= 0, 'Above 0', 'Below 0'))) + 
-  geom_bar(stat = "identity") +
-  geom_errorbar(aes(ymin = mean_val - sem_val, ymax = mean_val + sem_val), width = 0.2) +
-  geom_text(aes(label = round(mean_val, 2)), vjust = -0.9) +
-  scale_fill_manual(values = c('Above 0' = 'palegreen3', 'Below 0' = 'firebrick2')) +
-  labs(fill = "Legend") +
-  xlab("Energy Technologies") +
-  ylab("Mean Value") +
-  ggtitle("Benefit- Risk for Each Energy Technology") +
-  theme_minimal()+
-  ylim(-0.5, 1.75)
+ggplot(staterisky_long, aes(x = Riskiness_Z, color = Technology)) +
+  geom_density() +
+  facet_wrap(~ State) +
+  theme_minimal() +
+  labs(title = "Density Plot of Riskiness Z-scores by State and Technology", 
+       x = "Z-score", 
+       y = "Density")+
+  scale_color_manual(values=cbbPalette)
 
 
+
+# Assuming you have the ggplot2 package loaded
+# Filter the dataset for only Coal, Nuclear, and Solar technologies
+filtered_data <- staterisky_long %>%
+  filter(Technology %in% c("Coal", "Nuclear", "Solar"))
+
+# Define your color palette (replace 'cbbPalette' with actual color values if needed)
+cbbPalette <- c("Coal" = "#000000", "Nuclear" = "#F0E442", "Solar" = "#D55E00")
+
+# Generate the plot
+ggplot(filtered_data, aes(x = Riskiness_Z, color = Technology)) +
+  geom_density() +
+  facet_wrap(~ State) +
+  theme_minimal() +
+  labs(title = "Density Plot of Riskiness Z-scores by State and Technology", 
+       x = "Z-score", 
+       y = "Density") +
+  scale_color_manual(values = cbbPalette)
 
 
 ```
-\newpage
 
-# Solar Energy - Linear Regression models 
+
+
 
 ```{r, echo=FALSE}
 
-salldemos <- joineddf %>%
-            dplyr::select(Risky_Solar,Uppercaste, Male, Hindu, Urban, age, State)%>%
-            na.omit()
+# trying linear regression with acceptance scale 
 
-salldemoslm1 <- lm(Risky_Solar ~ Uppercaste + Male + Hindu + Urban, data = salldemos)
-# Print model summary
-#summary(salldemoslm1)
-#plot(alldemoslm1)
+joineddf_subset2 <- joineddf %>%
+  dplyr::select(!starts_with(c("Ben_IND", "Risky_IND")))%>%
+  dplyr::select(starts_with("Risky"), 
+         starts_with("Ben"), Uppercaste, Male, Hindu, Urban, age, State)
 
-# lm suggests there is no significant white male effect or upper caste male effect for risk perception from nuclear energy in India. 
-# the coefficients are very small and so is the r squared - rsquared is minimal. 
+acceptance2 <- joineddf_subset2 %>%
+  na.omit()%>%
+  mutate(NetBenNuclear = Ben_Nuclear - Risky_Nuclear,
+         NetBenHyrdo = Ben_Hydro - Risky_Hydro,
+         NetBenWind = Ben_Wind - Risky_Wind,
+         NetBenSolar = Ben_Solar - Risky_Solar,
+         NetBenCoal = Ben_Coal - Risky_Coal,
+         NetBenGas = Ben_Gas - Risky_Gas,
+         NetBenOil = Ben_Oil - Risky_Oil)%>%
+  dplyr::select(-starts_with(c("Risky", "Ben")))%>%
+  mutate_at(vars(age), funs(case_when(. == "18-24 years old" ~ 1, 
+                                      . == "25-34 years old" ~ 2,
+                                      . ==  "35-44 years old" ~3,
+                                      . == "45-54 years old" ~ 4,
+                                      . == "55-64 years old" ~ 5,
+                                      . == "65-74 years old" ~ 6,
+                                      . == "75 years or older" ~ 7)))
 
-# 2) lm with all demographic variables
-salldemoslm2<- lm(Risky_Solar ~ Uppercaste + Male + Hindu + Urban + age + State, data = salldemos)
-# Print model summary
-#summary(salldemoslm2)
-#plot(alldemoslm1)
+
+alldemoslm4<- lm(NetBenNuclear ~ Uppercaste + Male + Hindu + Urban + age + State, data = acceptance2)
+#summary(alldemoslm3)
+
+salldemoslm4<- lm(NetBenSolar ~ Uppercaste + Male + Hindu + Urban + age + State, data = acceptance2)
+calldemoslm4<- lm(NetBenCoal ~ Uppercaste + Male + Hindu + Urban + age + State, data = acceptance2)
 
 
 ```
 
+\blandscape
+\newpage
 
-## Only demographic variables
+## Linear Regression : Perceived Risk and Net Benefit- demographic variables including State
 
 ```{r, echo=FALSE, results='asis'}
 library(stargazer)
@@ -458,10 +1647,11 @@ library(stargazer)
 
 
 cat("\\begingroup")
+cat("\\small")  # Adjusts the font size
 cat("\\setlength{\\tabcolsep}{1pt}")
 cat("\\renewcommand{\\arraystretch}{0.7}")
-stargazer(salldemoslm1, salldemoslm2, 
-          title = "Results from 2 linear regression models",
+stargazer(alldemoslm2, salldemoslm2, calldemoslm2,alldemoslm4, salldemoslm4, calldemoslm4,
+          title = "Linear Models: Perceived Risk and Net Perceived Benefit(Nuclear, Solar and Coal)",
           type = "latex"
 )
 cat("\\endgroup")
@@ -469,9 +1659,75 @@ cat("\\endgroup")
 
 ```
 
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
+
+#stargazer code for all demographic variable lms 
 
 
-## Kahan Scale 
+# stargazer code for all demographic variable linear models
+
+stargazer(alldemoslm2, salldemoslm2, calldemoslm2, alldemoslm4, salldemoslm4, calldemoslm4,
+          title = "Linear Models: Perceived Risk and Net Perceived Benefit (Nuclear, Solar and Coal)",
+          type = "html"
+          )
+
+
+```
+
+\elandscape
+
+
+```{r, echo=FALSE}
+
+
+stargazer(alldemoslm2, salldemoslm2, calldemoslm2, alldemoslm4, salldemoslm4, calldemoslm4, 
+          type = "text", # Choose "html" or "latex" for different formats
+          title = "Regression Models Summary",
+          align = TRUE)
+
+```
+
+
+\newpage
+
+# Claim 3: Cultural, Political and Economic Values 
+
+
+
+```{r, echo = FALSE}
+
+library(lavaan)
+library(semTools)
+library(kableExtra)
+
+fascales <- codedmodule2 %>%
+  dplyr::select(starts_with(c("K_","Risky_Nuclear","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACENUCLEAR",  "POLLUTENUCLEAR", "HEALTHNUCLEAR", "JOBSNUCLEAR", "BEAUTYNUCLEAR", "PRIDENUCLEAR", "NPRIDENUCLEAR", "DEVNUCLEAR", "PROSPERNUCLEAR", "RELYNUCLEAR", "Uppercaste", "Male", "Hindu", "Urban", "State","age")))%>%
+  mutate_at(vars(age), funs(case_when(. == "18-24 years old" ~ 1, 
+                                      . == "25-34 years old" ~ 2,
+                                      . ==  "35-44 years old" ~3,
+                                      . == "45-54 years old" ~ 4,
+                                      . == "55-64 years old" ~ 5,
+                                      . == "65-74 years old" ~ 6,
+                                      . == "75 years or older" ~ 7))) %>%
+  na.omit()
+
+Kahan_fas <- '
+  KahanS =~ K_SHARM + K_SLIMCHOI + K_SPROTECT 
+  KahanH =~ K_HEQUAL+ K_ERADEQ1 + K_EWEALTH + K_ERADEQ2
+'
+Kahan_cfa <- cfa(Kahan_fas, data = fascales, std.lv = TRUE)
+
+Kahan_scores <- predict(Kahan_cfa, newdata = fascales)
+
+Kahan_Kscores <- cbind(fascales, Kahan_scores)
+
+
+```
+
+
+
+## CFA on eco-pol scale for Solar Energy
 
 
 ```{r, echo = FALSE}
@@ -491,102 +1747,138 @@ sKahan_cfa <- cfa(sKahan_fas, data = sfascales, std.lv = TRUE)
 # Print the summary of the CFA results, including fit measures
 #summary(sKahan_cfa, fit.measure= TRUE, standardized = TRUE)
 
-# RMSEA - between 0.05 and 0.08 (reasonable fit), less than 0.05 close fit and greater than 0.10 is poor fit 
-# CFI - greater than 0.90 or 0.95 indicates good fit
-#TFI - CFI>TFI >0.90 - indicates good fit
-#pvalue should be greater than 0.05 p > 0.0.5
-
-# creating table of factor scores 
-
 sKahan_scores <- predict(sKahan_cfa, newdata = sfascales)
 
 sKahan_Kscores <- cbind(sfascales, sKahan_scores)
 
-
-# 3) lm with kahan 
 sm1_kahan <- lm(Risky_Solar ~ Uppercaste + Male + Hindu + Urban + age + State + KahanS + KahanH , data = sKahan_Kscores)
-# Print model summary
-#summary(sm1_kahan)
-#plot(sm1_kahan)
+
+
+## CFA on ecopol vars for solar energy 
+
+secopol_fas <- '
+  Pdevelop =~ HEALTHSOLAR + BEAUTYSOLAR + DISPLACESOLAR + POLLUTESOLAR + INDUSTRYSMALL + OWNERREG + MECHANISATION
+  Ndevelop =~ DEVSOLAR + PRIDESOLAR + NPRIDESOLAR + PROSPERSOLAR + JOBSSOLAR
+'
+
+secopol_cfa <- cfa(secopol_fas, data = sfascales, std.lv = TRUE)
+#summary(secopol_cfa, fit.measure= TRUE, standardized = TRUE)
+
+
+
+# Cronbach's alpha test on Pdevelop and Ndevelop for Solar energy 
+
+solarpdevelop <- sfascales %>%
+  dplyr::select(HEALTHSOLAR, BEAUTYSOLAR, DISPLACESOLAR, POLLUTESOLAR, INDUSTRYSMALL, OWNERREG, MECHANISATION)%>%
+  na.omit()
+
+solarpdevelop.alpha <- psych::alpha(solarpdevelop, check.keys = TRUE)
+
+# alpha is strong at 0.75!
+
+solarndevelop <- sfascales %>%
+  dplyr::select(DEVSOLAR, PRIDESOLAR, NPRIDESOLAR, PROSPERSOLAR, JOBSSOLAR)%>%
+  na.omit()
+
+solarndevelop.alpha <- psych::alpha(solarndevelop, check.keys = TRUE)
+
+#alpha is strong at 0.86!
+
 
 ```
 
 
-```{r, echo=FALSE, results='asis'}
-library(stargazer)
+```{r, echo = FALSE}
+
+# Extract fit measures
+fitsecopol <- fitMeasures(secopol_cfa, fit.measures = c("CFI", "TLI", "RMSEA", "rmsea.ci.upper", "rmsea.ci.lower"))
+fitsecopol2 <- fitMeasures(secopol_cfa)
+# Convert to a data frame for presentation
+fitsecopoldf <- data.frame(Measure = names(fitsecopol), Value = fitsecopol) %>%
+  mutate(Measure = case_when(
+    Measure == "cfi" ~ "Comparative Fit Index (CFI) ",
+    Measure == "tli" ~ "Tucker-Lewis Index (TLI)",
+    Measure == "rmsea" ~ "Root Mean Square Error of Approximation(RMSEA)",
+    Measure == "rmsea.ci.upper" ~ "RMSEA 90 Percent confidence interval - lower",
+    Measure == "rmsea.ci.lower" ~ "RMSEA 90 Percent confidence interval - upper",
+    TRUE ~ as.character(Measure)
+  )) %>%
+  mutate(Value = round(Value, 3)) %>%
+  remove_rownames()
 
 
-cat("\\begingroup")
-cat("\\setlength{\\tabcolsep}{1pt}")
-cat("\\renewcommand{\\arraystretch}{0.7}")
-stargazer(salldemoslm1, salldemoslm2, sm1_kahan,
-          title = "Results from 3 linear regression models",
-          type = "latex"
-)
-cat("\\endgroup")
+#RMSEA - between 0.05 and 0.08 (reasonable fit), less than 0.05 close fit and greater than 0.10 is poor fit 
+#CFI - greater than 0.90 or 0.95 indicates good fit
+#TFI - CFI>TFI >0.90 - indicates good fit
 
 
 ```
 
+```{r, echo =FALSE}
+# Display fit measures using kable
+#knitr::kable(fitsecopoldf, caption = "Fit Measures: CFA on eco-pol scale for Solar Energy", booktabs = TRUE) %>%
+  #kable_styling(latex_options = c("striped", "hold_position"))
 
-\newpage
+```
 
-# Coal 
+
 
 
 ```{r, echo=FALSE}
 
-calldemos <- joineddf %>%
-            dplyr::select(Risky_Coal,Uppercaste, Male, Hindu, Urban, age, State)%>%
-            na.omit()
 
-calldemoslm1 <- lm(Risky_Coal ~ Uppercaste + Male + Hindu + Urban, data = calldemos)
-# Print model summary
-#summary(salldemoslm1)
-#plot(alldemoslm1)
+# Extract parameter estimates
+paramssolar <- parameterEstimates(secopol_cfa, standardized = TRUE)%>%
+   slice(1:(n()-14))
 
-# lm suggests there is no significant white male effect or upper caste male effect for risk perception from nuclear energy in India. 
-# the coefficients are very small and so is the r squared - rsquared is minimal. 
+  
+paramssolar1 <- paramssolar %>%
+  mutate(rhs = case_when(
+    rhs == "HEALTHSOLAR" ~ "Solar energy poses a great risk to the health of people living around it.",
+    rhs == "BEAUTYSOLAR" ~ "Solar energy spoils the natural beauty of the landscape.",
+    rhs == "DISPLACESOLAR" ~ "Solar energy is leading to displacement of people from their land.",
+    rhs == "POLLUTESOLAR" ~ "Solar energy increases pollution of air/water/land.",
+    rhs == "INDUSTRYSMALL" ~ "Large corporations are destroying the local industries in India and benefiting only a handful of people.",
+    rhs == "OWNERREG" ~ "Regardless of ownership, the government should pass strong regulations and implement them.",
+    rhs == "DEVSOLAR" ~ "Solar energy pushes forward the country's development.",
+    rhs == "PRIDESOLAR" ~ "I would be proud if my community used solar energy",
+    rhs == "NPRIDESOLAR" ~ "Solar energy is a mark of pride for our nation.",
+    rhs == "PROSPERSOLAR" ~ "Solar energy brings economic prosperity to the surrounding regions.",
+    rhs == "JOBSSOLAR" ~ "Solar energy will bring jobs to the local community.",
+    TRUE ~ as.character(rhs)
+  )) %>%
+  dplyr::select(!c(lhs,op, std.nox)) %>%
+    rename(
+    "Items" = rhs,
+    "Loadings" = est,
+    "Standard Error" = se,
+    "zvalue" = z) %>%
+  mutate(across(c("Loadings", "Standard Error", "zvalue"), round, 3))
+   
 
-# 2) lm with all demographic variables
-calldemoslm2<- lm(Risky_Coal ~ Uppercaste + Male + Hindu + Urban + age + State, data = calldemos)
-# Print model summary
-#summary(salldemoslm2)
-#plot(alldemoslm1)
+paramssolar1$Scale <- NA
+paramssolar1$Scale[1:6] <- "People Centered Development"
+paramssolar1$Scale[7:11] <- "Nationalist Development"
+paramssolar1<- paramssolar1[, c("Scale", setdiff(names(paramssolar1), "Scale"))]
+CFAsolar <- knitr::kable(paramssolar1, booktabs = TRUE, caption = "Confirmatory Factor Analysis(CFA) on newly developed eco-pol scale") %>%
+  kable_styling(latex_options = c("striped","scale_down", "hold_position", "repeat_header"))%>%
+  column_spec(column = 2, width = "4cm")
 
+# Print the table
+CFAsolar %>%
+  landscape()
 
 ```
 
 
-## Only demographic variables
 
-```{r, echo=FALSE, results='asis'}
-library(stargazer)
-
-#stargazer code for all demographic variable lms 
-
-
-cat("\\begingroup")
-cat("\\setlength{\\tabcolsep}{1pt}")
-cat("\\renewcommand{\\arraystretch}{0.7}")
-stargazer(calldemoslm1, calldemoslm2, 
-          title = "Results from 2 linear regression models",
-          type = "latex"
-)
-cat("\\endgroup")
-
-
-```
-
-
-
-## Kahan Scale 
-
+\newpage
+## CFA on eco-pol scale for Coal
 
 ```{r, echo = FALSE}
-# kahan scores for solar 
+# kahan scores for coal and CFA on ecopol vars  
 cfascales <- codedmodule2 %>%
-  dplyr::select(starts_with(c("K_","Risky_Coal","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACESOLAR",  "POLLUTESOLAR", "HEALTHSOLAR", "JOBSSOLAR", "BEAUTYSOLAR", "PRIDESOLAR", "NPRIDESOLAR", "DEVSOLAR", "PROSPERSOLAR", "RELYSOLAR", "Uppercaste", "Male", "Hindu", "Urban", "State","age")))%>%
+  dplyr::select(starts_with(c("K_","Risky_Coal","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACECOAL",  "POLLUTECOAL", "HEALTHCOAL", "JOBSCOAL", "BEAUTYCOAL", "PRIDECOAL", "NPRIDECOAL", "DEVCOAL", "PROSPERCOAL", "RELYCOAL", "Uppercaste", "Male", "Hindu", "Urban", "State","age"))) %>%
   na.omit()
 
 cKahan_fas <- '
@@ -597,19 +1889,21 @@ cKahan_fas <- '
 # Run CFA
 cKahan_cfa <- cfa(cKahan_fas, data = cfascales, std.lv = TRUE)
 
-# Print the summary of the CFA results, including fit measures
-#summary(sKahan_cfa, fit.measure= TRUE, standardized = TRUE)
-
-# RMSEA - between 0.05 and 0.08 (reasonable fit), less than 0.05 close fit and greater than 0.10 is poor fit 
-# CFI - greater than 0.90 or 0.95 indicates good fit
-#TFI - CFI>TFI >0.90 - indicates good fit
-#pvalue should be greater than 0.05 p > 0.0.5
-
-# creating table of factor scores 
 
 cKahan_scores <- predict(cKahan_cfa, newdata = cfascales)
 
 cKahan_Kscores <- cbind(cfascales, cKahan_scores)
+
+
+
+cecopol_fas <- '
+  Pdevelop =~ HEALTHCOAL + BEAUTYCOAL + DISPLACECOAL + POLLUTECOAL + INDUSTRYSMALL + OWNERREG + MECHANISATION
+  Ndevelop =~ DEVCOAL + PROSPERCOAL + JOBSCOAL + PRIDECOAL + NPRIDECOAL 
+'
+
+cecopol_cfa <- cfa(cecopol_fas, data = cfascales, std.lv = TRUE)
+#summary(cecopol_cfa, fit.measure= TRUE, standardized = TRUE)
+
 
 
 # 3) lm with kahan 
@@ -618,21 +1912,107 @@ cm1_kahan <- lm(Risky_Coal ~ Uppercaste + Male + Hindu + Urban + age + State + K
 #summary(cm1_kahan)
 #plot(cm1_kahan)
 
+# Cronbach's alpha test on Pdevelop and Ndevelop for Solar energy 
+
+coalpdevelop <- cfascales %>%
+  dplyr::select(HEALTHCOAL, BEAUTYCOAL, DISPLACECOAL, POLLUTECOAL, INDUSTRYSMALL, OWNERREG, MECHANISATION)%>%
+  na.omit()
+
+coalpdevelop.alpha <- psych::alpha(coalpdevelop, check.keys = TRUE)
+
+# alpha is strong at 0.78!
+
+coalndevelop <- cfascales %>%
+  dplyr::select(DEVCOAL, PRIDECOAL, NPRIDECOAL, PROSPERCOAL, JOBSCOAL,)%>%
+  na.omit()
+
+coalndevelop.alpha <- psych::alpha(coalndevelop, check.keys = TRUE)
+
+#alpha
+
+
+```
+
+```{r, echo = FALSE}
+
+# Extract fit measures
+fitcecopol <- fitMeasures(cecopol_cfa, fit.measures = c("CFI", "TLI", "RMSEA", "rmsea.ci.upper", "rmsea.ci.lower"))
+fitcecopol2 <- fitMeasures(cecopol_cfa)
+# Convert to a data frame for presentation
+fitcecopoldf <- data.frame(Measure = names(fitcecopol), Value = fitcecopol) %>%
+  mutate(Measure = case_when(
+    Measure == "cfi" ~ "Comparative Fit Index (CFI) ",
+    Measure == "tli" ~ "Tucker-Lewis Index (TLI)",
+    Measure == "rmsea" ~ "Root Mean Square Error of Approximation(RMSEA)",
+    Measure == "rmsea.ci.upper" ~ "RMSEA 90 Percent confidence interval - lower",
+    Measure == "rmsea.ci.lower" ~ "RMSEA 90 Percent confidence interval - upper",
+    TRUE ~ as.character(Measure)
+  )) %>%
+  mutate(Value = round(Value, 3)) %>%
+  remove_rownames()
+
+
+#RMSEA - between 0.05 and 0.08 (reasonable fit), less than 0.05 close fit and greater than 0.10 is poor fit 
+#CFI - greater than 0.90 or 0.95 indicates good fit
+#TFI - CFI>TFI >0.90 - indicates good fit
+
+
+```
+
+```{r, echo =FALSE}
+# Display fit measures using kable
+#knitr::kable(fitcecopoldf, caption = "Fit Measures: CFA on eco-pol scale for Coal", booktabs = TRUE) %>%
+  #kable_styling(latex_options = c("striped", "hold_position"))
+
 ```
 
 
-```{r, echo=FALSE, results='asis'}
-library(stargazer)
+
+```{r, echo=FALSE}
 
 
-cat("\\begingroup")
-cat("\\setlength{\\tabcolsep}{1pt}")
-cat("\\renewcommand{\\arraystretch}{0.7}")
-stargazer(calldemoslm1, calldemoslm2, cm1_kahan,
-          title = "Results from 3 linear regression models",
-          type = "latex"
-)
-cat("\\endgroup")
+# Extract parameter estimates
+paramscoal <- parameterEstimates(cecopol_cfa, standardized = TRUE)%>%
+   slice(1:(n()-12))
 
+  
+paramscoal1 <- paramscoal %>%
+  mutate(rhs = case_when(
+    rhs == "HEALTHCOAL" ~ "Coal powered plants poses a great risk to the health of people living around it.",
+    rhs == "BEAUTYCOAL" ~ "Coal powered plants spoils the natural beauty of the landscape.",
+    rhs == "DISPLACECOAL" ~ "Coal powered plants is leading to displacement of people from their land.",
+    rhs == "POLLUTECOAL" ~ "Coal powered plants increases pollution of air/water/land.",
+    rhs == "INDUSTRYSMALL" ~ "Large corporations are destroying the local industries in India and benefiting only a handful of people.",
+    rhs == "OWNERREG" ~ "Regardless of ownership, the government should pass strong regulations and implement them.",
+    rhs == "DEVCOAL" ~ "Coal powered plants pushes forward the country's development.",
+    rhs == "PROSPERCOAL" ~ "Coal powered plants brings economic prosperity to the surrounding regions.",
+    rhs == "JOBSCOAL" ~ "Coal powered plants will bring jobs to the local community.",
+    TRUE ~ as.character(rhs)
+  )) %>%
+  dplyr::select(!c(lhs,op, std.nox)) %>%
+    rename(
+    "Items" = rhs,
+    "Loadings" = est,
+    "Standard Error" = se,
+    "zvalue" = z) %>%
+  mutate(across(c("Loadings", "Standard Error", "zvalue"), round, 3))
+   
+
+paramscoal1$Scale <- NA
+paramscoal1$Scale[1:6] <- "People Centered Development"
+paramscoal1$Scale[7:9] <- "Nationalist Development"
+paramscoal1<- paramscoal1[, c("Scale", setdiff(names(paramscoal1), "Scale"))]
+CFAcoal <- knitr::kable(paramscoal1, booktabs = TRUE, caption = "Confirmatory Factor Analysis(CFA) on newly developed eco-pol scale") %>%
+  kable_styling(latex_options = c("striped","scale_down", "hold_position", "repeat_header"))%>%
+  column_spec(column = 2, width = "4cm")
+
+# Print the table
+CFAcoal %>%
+  landscape()
 
 ```
+
+
+
+
+

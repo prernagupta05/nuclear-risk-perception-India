@@ -1,7 +1,14 @@
 ---
 title: "FAoptions"
+header-includes:
+- \usepackage{pdflscape}
+- \newcommand{\blandscape}{\begin{landscape}}
+- \newcommand{\elandscape}{\end{landscape}}
 output:
-  word_document: null
+  pdf_document: 
+    toc: yes
+    toc_depth: 2
+    keep_tex: yes
   keep_md: yes
 ---
 
@@ -14,6 +21,7 @@ suppressPackageStartupMessages(library(tsibble))
 suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(knitr))
 suppressPackageStartupMessages(library(psych))
+suppressPackageStartupMessages(library(lavaan))
 library(officer)
 library(magrittr)
 
@@ -63,14 +71,14 @@ codedmodule2 <- module2 %>%
                                                                         . == "Strongly agree" ~ 5))) %>%
   
 # code likert scale for variables for Kahan scale into numbers
-  mutate_at(vars(starts_with (c("K_I","K_H","DISPLACE", "POLLUTE", "HEALTH", "JOBS", "BEAUTY", "PRIDE", "NPRIDE", "DEV", "PROSPER", "RELY"))), funs(case_when(. == "Strongly disagree" ~ 1, 
+  mutate_at(vars(starts_with (c("K_S","K_H","DISPLACE", "POLLUTE", "HEALTH", "JOBS", "BEAUTY", "PRIDE", "NPRIDE", "DEVNUCLEAR","DEVSOLAR", "DEVCOAL", "PROSPER", "RELY"))), funs(case_when(. == "Strongly disagree" ~ 1, 
                . == "Somewhat disagree" ~ 2,
                . == "Neither agree nor disagree" ~3,
                . == "Somewhat agree" ~ 4,
                . == "Strongly agree" ~ 5))) %>%
   
 # reverse code for likert scale for variables for Kahan scale into numbers
-mutate_at(vars(starts_with (c("K_S","K_E"))), funs(case_when(. == "Strongly disagree" ~ 5, 
+mutate_at(vars(starts_with (c("K_I","K_E"))), funs(case_when(. == "Strongly disagree" ~ 5, 
                                                                . == "Somewhat disagree" ~ 4,
                                                                . == "Neither agree nor disagree" ~3,
                                                                . == "Somewhat agree" ~ 2,
@@ -83,28 +91,69 @@ mutate_at(vars(starts_with (c("K_S","K_E"))), funs(case_when(. == "Strongly disa
                         . == "Somewhat agree" ~ 4,
                         . == "Strongly agree" ~ 5))) %>%
 
-# reverse code eco-pol scale variables into numbers 
- mutate_at(vars(DECISIONCEN,INDUSTRYLARGE,ECONOMYGLOBAL,OWNERPVT,OWNERNOREG), funs(case_when(. == "Strongly disagree" ~ 5, 
-                                                                                                         . == "Somewhat disagree" ~ 4,
+# no - reverse code eco-pol scale variables into numbers 
+ mutate_at(vars(DECISIONCEN,INDUSTRYLARGE,ECONOMYGLOBAL,OWNERPVT,OWNERNOREG, DEVOVERENV), funs(case_when(. == "Strongly disagree" ~ 1, 
+                                                                                                         . == "Somewhat disagree" ~ 2,
                                                                                                          . == "Neither agree nor disagree" ~3,
-                                                                                                         . == "Somewhat agree" ~ 2,
-                                                                                                         . == "Strongly agree" ~ 1)))
+                                                                                                         . == "Somewhat agree" ~ 4,
+                                                                                                         . == "Strongly agree" ~ 5)))%>%
+  mutate_all(~ifelse(. == "Rather not say/ Don't know", "Rather not say/Don't know", .))%>%
+  mutate_all(~ifelse(. == "West bengal", "West Bengal", .))%>%
+  mutate_all(~ifelse(. == "WEST BENGAL", "West Bengal", .))%>%
+  mutate_all(~ifelse(. == "Up", "Uttar Pradesh", .))%>%
+  mutate_all(~ifelse(. == "Tamilnadu", "Tamil Nadu", .))%>%
+  mutate_all(~ifelse(. == "UP", "Uttar Pradesh", .))%>%
+  mutate_at(vars(age), funs(case_when(. == "18-24 years old" ~ 1, 
+                                      . == "25-34 years old" ~ 2,
+                                      . ==  "35-44 years old" ~3,
+                                      . == "45-54 years old" ~ 4,
+                                      . == "55-64 years old" ~ 5,
+                                      . == "65-74 years old" ~ 6,
+                                      . == "75 years or older" ~ 7)))
+```
+
+```{r, echo = FALSE}
+
+
+#sort demo vars 
+
+
+codedmodule2$State <- as.factor(codedmodule2$State)
+codedmodule2$gender <- as.factor(codedmodule2$gender)
+codedmodule2$Urban <- as.factor(codedmodule2$urban_rural)
+
+codedmodule2$caste <- as.factor(codedmodule2$caste)
+codedmodule2$religion <- as.factor(codedmodule2$religion)
+# # Convert `caste` into binary variable 'upper' (1) vs 'non-upper' (0)
+codedmodule2$Uppercaste <- ifelse(codedmodule2$caste %in% c('Brahmin', 'General'), 1, 0)
+# Convert `gender` into binary variable 'male' (1) vs 'female' (0)
+codedmodule2$Male <- ifelse(codedmodule2$gender == 'Male', 1, 0)
+# Convert `religion` into binary variable 'Hinduism' (1) vs 'Non-Hinduism' (0)
+codedmodule2$Hindu <- ifelse(codedmodule2$religion == 'Hinduism', 1, 0)
+
+codedmodule21 <- codedmodule2 %>%
+            dplyr::select(Risky_Nuclear, Risky_Solar, Risky_Coal, Uppercaste, Male, Hindu, Urban, age, State) %>%
+            na.omit()
+
+# lm on nuclear energy with all demovars
+
+alldemos <- codedmodule21 %>%
+            dplyr::select(Risky_Nuclear, Uppercaste, Male, Hindu, Urban, age, State) %>%
+  mutate_at(vars(age), funs(case_when(. == "18-24 years old" ~ 1, 
+                                      . == "25-34 years old" ~ 2,
+                                      . ==  "35-44 years old" ~3,
+                                      . == "45-54 years old" ~ 4,
+                                      . == "55-64 years old" ~ 5,
+                                      . == "65-74 years old" ~ 6,
+                                      . == "75 years or older" ~ 7)))
 ```
 
 
-# Two factor solution is slightly different for Nuclear, Solar and Coal. 
 
-
-## Nuclear 
 
 ```{r, echo=FALSE}
-
-library(psych)
-library(tidyverse)
-
-
 fascales <- codedmodule2 %>%
-  dplyr::select(starts_with(c("K_","Risky_Nuclear","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACENUCLEAR",  "POLLUTENUCLEAR", "HEALTHNUCLEAR", "JOBSNUCLEAR", "BEAUTYNUCLEAR", "PRIDENUCLEAR", "NPRIDENUCLEAR", "DEVNUCLEAR", "PROSPERNUCLEAR", "RELYNUCLEAR", "Uppercaste", "Male", "Hindu", "Urban", "State","age")))%>%
+  dplyr::select(starts_with(c("K_","Risky_Nuclear","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACENUCLEAR",  "POLLUTENUCLEAR", "HEALTHNUCLEAR", "JOBSNUCLEAR", "BEAUTYNUCLEAR", "PRIDENUCLEAR", "NPRIDENUCLEAR", "DEVNUCLEAR", "PROSPERNUCLEAR", "RELYNUCLEAR","SYSTEMDEMO","SYSTEMRELIGION", "SYSTEMTECHNO","SYSTEMTOTAL", "Uppercaste", "Male", "Hindu", "Urban", "State","age")))%>%
   mutate_at(vars(age), funs(case_when(. == "18-24 years old" ~ 1, 
                                       . == "25-34 years old" ~ 2,
                                       . ==  "35-44 years old" ~3,
@@ -113,64 +162,162 @@ fascales <- codedmodule2 %>%
                                       . == "65-74 years old" ~ 6,
                                       . == "75 years or older" ~ 7))) %>%
   na.omit()
+```
+
+```{r, echo=FALSE}
+# Q6: Does the Kahan scale explain perception of risk from nuclear energy and other DVs ? 
+
+# we conducted fa on the kahan scale 
+# CFA for Kahan scale. We shouldn't do FA here since this a well used scale with theoretical basis for factor distinctions and also previous studies using the same scale 
+
+library(lavaan)
+library(semTools)
+library(kableExtra)
+
+fascales <- codedmodule2 %>%
+  filter(
+    rowSums(is.na(dplyr::select(., starts_with("K_")))) == 0 &  # This line ensures that rows with any NA in columns starting with         "K_" are   filtered out.
+    !is.na(WEALTHLIM) & 
+    !is.na(MECHANISATION) & 
+    !is.na(DECISIONDECEN) & 
+    !is.na(DECISIONCEN) & 
+    !is.na(INDUSTRYLARGE) & 
+    !is.na(INDUSTRYSMALL) & 
+    !is.na(ECONOMYGLOBAL) & 
+    !is.na(ECONOMYLOCAL) & 
+    !is.na(ENVOVERDEV) & 
+    !is.na(DEVOVERENV) & 
+    !is.na(OWNERPVT) & 
+    !is.na(OWNERNOREG) & 
+    !is.na(OWNERPUB) & 
+    !is.na(OWNERREG) & 
+    !is.na(DISPLACENUCLEAR) & 
+    !is.na(POLLUTENUCLEAR) & 
+    !is.na(HEALTHNUCLEAR) & 
+    !is.na(JOBSNUCLEAR) & 
+    !is.na(BEAUTYNUCLEAR) & 
+    !is.na(PRIDENUCLEAR) & 
+    !is.na(NPRIDENUCLEAR) & 
+    !is.na(DEVNUCLEAR) & 
+    !is.na(PROSPERNUCLEAR) & 
+    !is.na(RELYNUCLEAR)
+  )
+
+fascales2 <- codedmodule2 %>%dplyr::select(starts_with(c("K_","Risky_Nuclear","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACENUCLEAR",  "POLLUTENUCLEAR", "HEALTHNUCLEAR", "JOBSNUCLEAR", "BEAUTYNUCLEAR", "PRIDENUCLEAR", "NPRIDENUCLEAR", "DEVNUCLEAR", "PROSPERNUCLEAR", "RELYNUCLEAR", "Uppercaste", "Male", "Hindu", "Urban", "State","age")))%>%na.omit()
+
+
+Kahan_fas <- '
+  KahanS =~ K_SHARM + K_SLIMCHOI + K_SPROTECT 
+  KahanH =~ K_HEQUAL+ K_ERADEQ1 + K_EWEALTH + K_ERADEQ2
+'
+
+# Run CFA
+Kahan_cfa <- cfa(Kahan_fas, data = fascales, std.lv = TRUE)
+
+# Print the summary of the CFA results, including fit measures
+#summary(Kahan_cfa, fit.measure= TRUE, standardized = TRUE)
+
+# RMSEA - between 0.05 and 0.08 (reasonable fit), less than 0.05 close fit and greater than 0.10 is poor fit 
+# CFI - greater than 0.90 or 0.95 indicates good fit
+#TFI - CFI>TFI >0.90 - indicates good fit
+#pvalue should be greater than 0.05 p > 0.0.5
+
+# after having removed a few variables that had very low loading, the model is now a good fit, we have two latent variables - Hierarchy- egalitarian and Communitarian. Again we see that individualistic variables just don't fit here. 
+
+# creating table of factor scores 
+
+Kahan_scores <- predict(Kahan_cfa, newdata = fascales)
+
+Kahan_Kscores <- cbind(fascales, Kahan_scores)
+
+
+## RMSEA is still pretty big. 
+
+
+```
+
+
+```{r, echo = FALSE}
+
+# the psych code for FA on eco-pol scale for nuclear energy - all vars combined 
+
+library(psych)
+library(tidyverse)
+
+
+
 ecopolall <- fascales %>%
-        dplyr::select("WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACENUCLEAR",  "POLLUTENUCLEAR", "HEALTHNUCLEAR", "JOBSNUCLEAR", "BEAUTYNUCLEAR", "PRIDENUCLEAR", "NPRIDENUCLEAR", "DEVNUCLEAR", "PROSPERNUCLEAR", "RELYNUCLEAR")%>%
+        dplyr::select("WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACENUCLEAR",  "POLLUTENUCLEAR", "HEALTHNUCLEAR", "BEAUTYNUCLEAR", "PRIDENUCLEAR", "NPRIDENUCLEAR", "DEVNUCLEAR", "RELYNUCLEAR","PROSPERNUCLEAR", "JOBSNUCLEAR")%>%
     rename(
-      "Limits on Wealth " = "WEALTHLIM",
+      "Limits on Wealth" = "WEALTHLIM",
       "Anti Mechanisation of work" = "MECHANISATION",
       "Pro Decentralisation" = "DECISIONDECEN",
       "Pro Centralisation" = "DECISIONCEN",
       "Pro Large Industries" = "INDUSTRYLARGE",
-      "Anti Large Industries " = "INDUSTRYSMALL",
+      "Anti Large Industries" = "INDUSTRYSMALL",
       "Pro Globaleconomy" = "ECONOMYGLOBAL",
       "Pro Localeconomy" = "ECONOMYLOCAL",
       "Environment over Development" = "ENVOVERDEV",
       "Development over Environment" = "DEVOVERENV",
-      "Pro Private ownership " = "OWNERPVT",
+      "Pro Private ownership" = "OWNERPVT",
       "Anti Regulations" = "OWNERNOREG",
       "Pro Public ownership" = "OWNERPUB",
       "Pro Regulations" = "OWNERREG",
       "Displacement risk(nuclear)" = "DISPLACENUCLEAR",
-      "Pollution risk(nuclear) " = "POLLUTENUCLEAR",
+      "Pollution risk(nuclear)" = "POLLUTENUCLEAR",
       "Health risk(nuclear)" = "HEALTHNUCLEAR",
       "Job opportunities(nuclear)" = "JOBSNUCLEAR",
       "Spoils Natural Beauty(nuclear)" = "BEAUTYNUCLEAR",
+      "Local prosperity(nuclear)" = "PROSPERNUCLEAR",
       "Community pride(nuclear)" = "PRIDENUCLEAR",
       "National pride(nuclear)" = "NPRIDENUCLEAR",
       "National development(nuclear)" = "DEVNUCLEAR",
-      "Local prosperity(nuclear)" = "PROSPERNUCLEAR",
       "Reliance on government(nuclear)" = "RELYNUCLEAR"
     )
 
 
 ecopolall2.fa <- fa(ecopolall, nfactors = 2, rotate = "varimax")
 
+#print.psych(ecopolall2.fa, cut = 0.4, sort = TRUE)
+
+ecopol_fas <- '
+  Pdevelop =~ HEALTHNUCLEAR + BEAUTYNUCLEAR + DISPLACENUCLEAR + POLLUTENUCLEAR + INDUSTRYSMALL + OWNERREG + MECHANISATION
+  Ndevelop =~ DEVNUCLEAR + PROSPERNUCLEAR + PRIDENUCLEAR + NPRIDENUCLEAR + JOBSNUCLEAR
+'
+ecopol_cfa <- cfa(ecopol_fas, data = fascales, std.lv = TRUE)
+#summary(ecopol_cfa, fit.measure= TRUE, standardized = TRUE)
 
 ```
 
+\blandscape
+# FA on Combined Scale (2 Factor Solution): People Centered Development and Nationalist Development 
+## Nuclear Energy: EFA on Combined Scale (2 Factor Solution)
 
 ```{r, echo=FALSE}
 
 library(flextable)
 
-set_flextable_defaults(docx.landscape = TRUE)
+flex <- function(data, title=NULL, col_widths=NULL) {
+  tbl <- flextable(data) %>%
+           #padding(padding = 1, part = "all") %>%
+           #set_table_properties(layout = "autofit") %>%
+           fontsize(size=10, part="all") %>%
+           set_caption(title, 
+                       autonum = officer::run_autonum(seq_id = "tab", 
+                                                      pre_label = "Table ", 
+                                                      post_label = "\n", 
+                                                      bkm = "anytable"))
+  
+  # If col_widths is provided, set column widths
+  if(!is.null(col_widths)) {
+    for(col in names(col_widths)){
+      tbl <- width(tbl, j = col, width = col_widths[[col]])
+    }
+  }
 
-flex <- function(data, title=NULL) {
-  # this grabs the data and converts it to a flextbale
-  flextable(data) %>%
-  # this makes the table fill the page width
-  set_table_properties(layout = "autofit", width = 1) %>%
-  # font size
-  fontsize(size=10, part="all") %>%
-    #this adds a ttitlecreates an automatic table number
-      set_caption(title, 
-                  autonum = officer::run_autonum(seq_id = "tab", 
-                                                 pre_label = "Table ", 
-                                                 post_label = "\n", 
-                                                 bkm = "anytable")) #%>%
-  # font type
-  #font(fontname="Times New Roman", part="all")
+  return(tbl)
 }
+
 
 rename_map <- c(
   "Limits on Wealth" = "A limit should be put to how much wealth a person can amass",
@@ -186,7 +333,7 @@ rename_map <- c(
   "Pro Private ownership" = "All businesses and industries should be owned privately",
   "Anti Regulations" = "There is too much red-tape and the government should not interfere with businesses and industries",
   "Pro Public ownership" = "The government should own most large businesses and industries",
-  "Pro Regulations" = " Regardless of ownership, the government should pass strong regulations and implement them",
+  "Pro Regulations" = "Regardless of ownership, the government should pass strong regulations and implement them",
   "Displacement risk(nuclear)" = "Nuclear energy is leading to displacement of people from their land",
   "Spoils Natural Beauty(nuclear)" = "Nuclear energy spoils the natural beauty of the landscape",
   "Pollution risk(nuclear)" = "Nuclear energy increases pollution of air/water/land",
@@ -229,17 +376,28 @@ fa_table <- function(x, cut) {
       code = names(rename_map)[match(item, rename_map)], # extracting short form
       across(where(is.numeric), round, 3)
     ) %>%
-    select(code, everything()) # reorder columns to bring code to the front
+    dplyr::select(code, everything()) # reorder columns to bring code to the front
 }
 
 fa_table(ecopolall2.fa, .4) %>%
   rename(Pdevelop = MR1, Ndevelop = MR2, Items= item) %>%
-  flex("2 factor solution") %>%
-  autofit()
+  flex("2 factor solution", col_widths = list(Items = 4.5, code = 1.5))
 
 
 ```
 
+
+
+
+
+
+
+
+
+
+
+
+\elandscape
 
 
 ```{r, echo = FALSE}
@@ -248,13 +406,66 @@ ecopolall2.fa[["Vaccounted"]] %>%
   rownames_to_column("Property") %>%
   rename(Pdevelop = MR1, Ndevelop = MR2) %>%
     mutate(across(where(is.numeric), round, 3)) %>%
-    flex("Eigenvalues and Variance Explained for 2 Factor Solution")
+    flex("Eigenvalues and Variance Explained for Combined Scale (2 Factor Solution)")
 ```
 
 
+```{r, echo=FALSE}
 
-\newpage
-## Solar
+## Nuclear - linear regression with 2 Factor solution 
+
+# Linear Model with 2 factor solution for  Risk perception from Nuclear Energy 
+
+ecopolall_scores <- psych::factor.scores(ecopolall, ecopolall2.fa)
+
+# The factor scores will be stored in the scores element of the returned list
+scores1 <- ecopolall_scores$scores
+
+#binding factor scores to the dataset
+
+fascale_scores <- cbind(Kahan_Kscores, scores1) %>%
+  rename(Pdevelop = MR1)%>%
+  rename(Ndevelop = MR2)
+
+nuclear2fa <- lm(Risky_Nuclear ~ age + Uppercaste + Male + Hindu + Urban + State + KahanS + KahanH + Pdevelop + Ndevelop, data = fascale_scores)
+
+#m2_allscales <- lm(Risky_Nuclear ~ age + Uppercaste + Male + Hindu + Urban +State+ KahanS + KahanH + NPRIDENUCLEAR + PRIDENUCLEAR + DEVNUCLEAR + PROSPERNUCLEAR, data = fascale_scores)
+# Print model summary
+#summary(nuclear2fa)
+
+```
+```{r,echo = FALSE}
+acceptance2 <- fascale_scores %>%
+  mutate(Nuclear = Ben_Nuclear - Risky_Nuclear,
+         Hyrdo = Ben_Hydro - Risky_Hydro,
+         Wind = Ben_Wind - Risky_Wind,
+         Solar = Ben_Solar - Risky_Solar,
+         Coal = Ben_Coal - Risky_Coal,
+         Gas = Ben_Gas - Risky_Gas,
+         Oil = Ben_Oil - Risky_Oil)
+
+
+nuclearacceptlm <- lm(Nuclear ~ age + Uppercaste + Male + Hindu + Urban + State + KahanS + KahanH + Pdevelop + Ndevelop, data = acceptance2)
+
+#m2_allscales <- lm(Risky_Nuclear ~ age + Uppercaste + Male + Hindu + Urban +State+ KahanS + KahanH + NPRIDENUCLEAR + PRIDENUCLEAR + DEVNUCLEAR + PROSPERNUCLEAR, data = fascale_scores)
+# Print model summary
+#summary(nuclearacceptlm)
+
+
+
+
+ggplot(acceptance2, aes(x = Pdevelop, y = Nuclear)) +
+  geom_point() +  # or geom_line() depending on how you want to visualize it
+  facet_wrap(~ State) +  # This will create separate plots for each State
+  labs(title = "Net benefit Nuclear vs Pdevelop by State",
+       x = "Pdevelop",
+       y = "net ben Nuclear") +
+  theme_minimal()
+
+
+
+```
+
 
 ```{r, echo=FALSE}
 library(psych)
@@ -262,13 +473,6 @@ library(tidyverse)
 
 sfascales <- codedmodule2 %>%
   dplyr::select(starts_with(c("K_","Risky_Solar","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACESOLAR", "POLLUTESOLAR", "HEALTHSOLAR", "JOBSSOLAR", "BEAUTYSOLAR", "PRIDESOLAR", "NPRIDESOLAR", "DEVSOLAR", "PROSPERSOLAR", "RELYSOLAR", "Uppercaste", "Male", "Hindu", "Urban", "State","age")))%>%
-  mutate_at(vars(age), funs(case_when(. == "18-24 years old" ~ 1, 
-                                      . == "25-34 years old" ~ 2,
-                                      . ==  "35-44 years old" ~3,
-                                      . == "45-54 years old" ~ 4,
-                                      . == "55-64 years old" ~ 5,
-                                      . == "65-74 years old" ~ 6,
-                                      . == "75 years or older" ~ 7))) %>%
   na.omit()
 
 secopolall <- sfascales %>%
@@ -302,115 +506,218 @@ secopolall <- sfascales %>%
 
 secopolall2.fa <- fa(secopolall, nfactors = 2, rotate = "varimax")
 
+```
+
+
+ 
+```{r, echo = FALSE}
+
+# SOLAR : CFA on kahan scale and eco-pol scale 
+
+
+# kahan scores for solar 
+sfascales <- codedmodule2 %>%
+    filter(
+    rowSums(is.na(dplyr::select(., starts_with("K_")))) == 0 &  # This line ensures that rows with any NA in columns starting with         "K_" are   filtered out.
+    !is.na(WEALTHLIM) & 
+    !is.na(MECHANISATION) & 
+    !is.na(DECISIONDECEN) & 
+    !is.na(DECISIONCEN) & 
+    !is.na(INDUSTRYLARGE) & 
+    !is.na(INDUSTRYSMALL) & 
+    !is.na(ECONOMYGLOBAL) & 
+    !is.na(ECONOMYLOCAL) & 
+    !is.na(ENVOVERDEV) & 
+    !is.na(DEVOVERENV) & 
+    !is.na(OWNERPVT) & 
+    !is.na(OWNERNOREG) & 
+    !is.na(OWNERPUB) & 
+    !is.na(OWNERREG) & 
+    !is.na(DISPLACESOLAR) & 
+    !is.na(POLLUTESOLAR) & 
+    !is.na(HEALTHSOLAR) & 
+    !is.na(JOBSSOLAR) & 
+    !is.na(BEAUTYSOLAR) & 
+    !is.na(PRIDESOLAR) & 
+    !is.na(NPRIDESOLAR) & 
+    !is.na(DEVSOLAR) & 
+    !is.na(PROSPERSOLAR) & 
+    !is.na(RELYSOLAR)
+  )
+  
+  
+  
+  
+  #dplyr::select(starts_with(c("K_","Risky_Solar","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACESOLAR",  "POLLUTESOLAR", "HEALTHSOLAR", "JOBSSOLAR", "BEAUTYSOLAR", "PRIDESOLAR", "NPRIDESOLAR", "DEVSOLAR", "PROSPERSOLAR", "RELYSOLAR", "Uppercaste", "Male", "Hindu", "Urban", "State","age")))%>%na.omit()
+
+sKahan_fas <- '
+  KahanS =~ K_SHARM + K_SLIMCHOI + K_SPROTECT 
+  KahanH =~ K_HEQUAL+ K_ERADEQ1 + K_EWEALTH + K_ERADEQ2
+'
+
+# Run CFA
+sKahan_cfa <- cfa(sKahan_fas, data = sfascales, std.lv = TRUE)
+
+# Print the summary of the CFA results, including fit measures
+#summary(sKahan_cfa, fit.measure= TRUE, standardized = TRUE)
+
+sKahan_scores <- predict(sKahan_cfa, newdata = sfascales)
+
+sKahan_Kscores <- cbind(sfascales, sKahan_scores)
+
+sm1_kahan <- lm(Risky_Solar ~ Uppercaste + Male + Hindu + Urban + age + State + KahanS + KahanH , data = sKahan_Kscores)
+
+
+## CFA on ecopol vars for solar energy 
+
+secopol_fas <- '
+  Pdevelop =~ HEALTHSOLAR + BEAUTYSOLAR + DISPLACESOLAR + POLLUTESOLAR + INDUSTRYSMALL + OWNERREG + MECHANISATION
+  Ndevelop =~ DEVSOLAR + PRIDESOLAR + NPRIDESOLAR + PROSPERSOLAR
+'
+
+secopol_cfa <- cfa(secopol_fas, data = sfascales, std.lv = TRUE)
+summary(secopol_cfa, fit.measure= TRUE, standardized = TRUE)
+
+
+# Cronbach's alpha test on Pdevelop and Ndevelop for Solar energy 
+
+solarpdevelop <- sfascales %>%
+  dplyr::select(HEALTHSOLAR, BEAUTYSOLAR, DISPLACESOLAR, POLLUTESOLAR, INDUSTRYSMALL, OWNERREG, MECHANISATION)%>%
+  na.omit()
+
+solarpdevelop.alpha <- psych::alpha(solarpdevelop, check.keys = TRUE)
+
+# alpha is strong at c!
+
+solarndevelop <- sfascales %>%
+  dplyr::select(DEVSOLAR, PRIDESOLAR, NPRIDESOLAR, PROSPERSOLAR)%>%
+  na.omit()
+
+solarndevelop.alpha <- psych::alpha(solarndevelop, check.keys = TRUE)
+
+#alpha is strong at 0.86!
+
 
 ```
+
+\newpage
+
+## Solar Energy : CFA on Combined Scale (2 Factor Solution)
+
+Solar People Centered Development alpha = 0.75
+
+Solar Nationalist Development alpha = 0.86
+
+```{r, echo=FALSE}
+
+
+# Extract parameter estimates
+sparams <- parameterEstimates(secopol_cfa, standardized = TRUE)%>%
+   slice(1:(n()-15))
+
+
+sparams1 <- sparams %>%
+  mutate(rhs = case_when(
+  rhs == "DISPLACESOLAR" ~ "Solar energy is leading to displacement of people from their land",
+  rhs == "BEAUTYSOLAR" ~ "Solar energy spoils the natural beauty of the landscape",
+  rhs == "POLLUTESOLAR" ~ "Solar energy increases pollution of air/water/land",
+  rhs == "HEALTHSOLAR" ~ "Solar energy poses a great risk to the health of people living around it",
+  rhs == "JOBSSOLAR" ~ "Solar energy will bring jobs to the local community",
+  rhs == "PRIDESOLAR" ~ "I would be proud if my community used Solar energy",
+  rhs == "NPRIDESOLAR" ~ "Solar energy is a mark of pride for our nation",
+  rhs == "DEVSOLAR" ~ "Solar energy pushes forward the country's development",
+  rhs == "PROSPERSOLAR" ~ "Solar energy brings economic prosperity to the surrounding regions",
+  rhs == "RELYSOLAR" ~ "I don't like the idea that I have to rely on the government for electricity from Solar energy",
+  rhs == "INDUSTRYSMALL" ~ "Large corporations are destroying the local industries in India and benefiting only a handful of people",
+  rhs == "OWNERREG" ~ "Regardless of ownership, the government should pass strong regulations and implement them",
+  rhs == "MECHANISATION" ~ "Rapid mechanization of work is taking away jobs from workers in this country",
+  
+    TRUE ~ as.character(rhs)
+  )) %>%
+  dplyr::select(!c(lhs,op, std.nox)) %>%
+    rename(
+    "Items" = rhs,
+    "Loadings" = est,
+    "Standard Error" = se,
+    "zvalue" = z) %>%
+  mutate(across(c("Loadings", "Standard Error", "zvalue"), round, 3))
+   
+
+sparams1$Scale <- NA
+sparams1$Scale[1:7] <- "People Centered Development"
+sparams1$Scale[8:10] <- "Nationalist Development"
+sparams1 <- sparams1[, c("Scale", setdiff(names(sparams1), "Scale"))]
+CFAsolar <- knitr::kable(sparams1, booktabs = TRUE, caption = "Confirmatory Factor Analysis(CFA) on Solar Energy") %>%
+  kable_styling(latex_options = c("striped","scale_down", "hold_position", "repeat_header"))%>%
+  column_spec(column = 2, width = "4cm")
+
+# Print the table
+CFAsolar %>%
+  landscape()
+
+```
+
+
 
 
 
 ```{r, echo=FALSE}
 
-library(flextable)
+# Solar - linear regression with 2 Factor solution 
 
-set_flextable_defaults(docx.landscape = TRUE)
+# Linear Model with 2 factor solution for  Risk perception from Solar Energy 
 
-flex <- function(data, title=NULL) {
-  # this grabs the data and converts it to a flextbale
-  flextable(data) %>%
-  # this makes the table fill the page width
-  set_table_properties(layout = "autofit", width = 1) %>%
-  # font size
-  fontsize(size=10, part="all") %>%
-    #this adds a ttitlecreates an automatic table number
-      set_caption(title, 
-                  autonum = officer::run_autonum(seq_id = "tab", 
-                                                 pre_label = "Table ", 
-                                                 post_label = "\n", 
-                                                 bkm = "anytable")) #%>%
-  # font type
-  #font(fontname="Times New Roman", part="all")
-}
+# scores from EFA
+#secopolall_scores2 <- psych::factor.scores(secopolall, secopolall2.fa)
 
-srename_map <- c(
-  "Limits on Wealth" = "A limit should be put to how much wealth a person can amass",
-  "Anti Mechanisation of work" = "Rapid mechanization of work is taking away jobs from workers in this country",
-  "Pro Decentralisation" = "Local politicians shouldn't have to ask permission from the central government to implement policies",
-  "Pro Centralisation" = "Laws and policies would be implemented more smoothly if more power lay with the central government",
-  "Pro Large Industries" = "Large scale industries are required for the development of the country that will benefit everyone",
-  "Anti Large Industries" = "Large corporations are destroying the local industries in India and benefiting only a handful of people",
-  "Pro Globaleconomy" = "Foreign companies have led to a range of benefits for the Indian people and society",
-  "Pro Localeconomy" = "India would be better off if foreign companies didn't come to here",
-  "Environment over Development" = "Polluting industries that spoil the environment should be shut down even if it costs people their jobs",
-  "Development over Environment" = "Economic growth and creating jobs should be prioritized over environmental protection",
-  "Pro Private ownership" = "All businesses and industries should be owned privately",
-  "Anti Regulations" = "There is too much red-tape and the government should not interfere with businesses and industries",
-  "Pro Public ownership" = "The government should own most large businesses and industries",
-  "Pro Regulations" = "Regardless of ownership, the government should pass strong regulations and implement them",
-  "Displacement risk(solar)" = "Solar energy is leading to displacement of people from their land",
-  "Spoils Natural Beauty(solar)" = "Solar energy spoils the natural beauty of the landscape",
-  "Pollution risk(solar)" = "Solar energy increases pollution of air/water/land",
-  "Health risk(solar)" = "Solar energy poses a great risk to the health of people living around it",
-  "Job opportunities(solar)" = "Solar energy will bring jobs to the local community",
-  "Community pride(solar)" = "I would be proud if my community used solar energy",
-  "National pride(solar)" = "Solar energy is a mark of pride for our nation",
-  "National development(solar)" = "Solar energy pushes forward the country's development",
-  "Local prosperity(solar)" = "Solar energy brings economic prosperity to the surrounding regions",
-  "Reliance on government(solar)" = "I don't like the idea that I have to rely on the government for electricity from solar energy"
-)
+# The factor scores will be stored in the scores element of the returned list
+#scores2 <- secopolall_scores2$scores
+
+#binding factor scores to the dataset
+
+#sfascale_scores2 <- cbind(sKahan_Kscores, scores2) %>%
+  #rename(Pdevelop = MR1)%>%
+  #rename(Ndevelop = MR2)
+#solar2fa2 <- lm(Risky_Solar ~ age + Uppercaste + Male + Hindu + Urban + State + KahanS + KahanH + Pdevelop + Ndevelop, data = sfascale_scores2)
+
+#summary(solar2fa2)
+# lesson: doesn't matter if I use CFA or EFA scores- the difference is small and is probably happening due to slightly different samples - this brings to mind the problem of large missing values - maybe it's worth talking to a stat consultant about this issue 
 
 
-fa_table <- function(x, cut) {
-  #get sorted loadings
-  loadings <- fa.sort(x)$loadings %>% round(3)
-  #suppress loadings
-  loadings[loadings > -cut & loadings < cut] <- ""
-  #get additional info  
-  add_info <- cbind(x$communalities, 
-                    x$uniquenesses,
-                    x$complexity) %>%
-    # make it a data frame
-    as.data.frame() %>%
-    # column names
-    rename("Communality" = V1,
-           "Uniqueness" = V2,
-           "Complexity" = V3) %>%
-    #get the item names from the vector
-    rownames_to_column("item")
-  
-  #build table
-  loadings %>%
-    unclass() %>%
-    as.data.frame() %>%
-    rownames_to_column("item") %>%
-    left_join(add_info) %>%
-    mutate(
-      item = if_else(item %in% names(srename_map), srename_map[item], item),
-      code = names(srename_map)[match(item, srename_map)], # extracting short form
-      across(where(is.numeric), round, 3)
-    ) %>%
-    select(code, everything()) # reorder columns to bring code to the front
-}
+#scores from CFA 
+#binding factor scores to the dataset
+secopolall_scores <- predict(secopol_cfa, newdata = sfascales)
 
-fa_table(secopolall2.fa, .4) %>%
-  #rename(Pdevelop = MR1, Ndevelop = MR2, Items= item) %>%
-  flex("2 factor solution") %>%
-  autofit()
+sfascale_scores <- cbind(sKahan_Kscores, secopolall_scores)
+
+solar2fa <- lm(Risky_Solar ~ age + Uppercaste + Male + Hindu + Urban + State + KahanS + KahanH + Pdevelop + Ndevelop, data = sfascale_scores)
+
+# Print model summary
+summary(solar2fa)
 
 
 ```
 
 
 
-```{r, echo = FALSE}
-secopolall2.fa[["Vaccounted"]] %>%
-  as.data.frame() %>%
-  rownames_to_column("Property") %>%
-  #rename(Pdevelop = MR1, Ndevelop = MR2) %>%
-    mutate(across(where(is.numeric), round, 3)) %>%
-    flex("Solar: Eigenvalues and Variance Explained for 2 Factor Solution")
+```{r,echo = FALSE}
+sacceptance2 <- sfascale_scores %>%
+  mutate(Solar = Ben_Solar - Risky_Solar)
+
+
+
+solaracceptlm <- lm(Solar ~ age + Uppercaste + Male + Hindu + Urban + State + KahanS + KahanH + Pdevelop + Ndevelop, data = sacceptance2)
+
+#m2_allscales <- lm(Risky_Nuclear ~ age + Uppercaste + Male + Hindu + Urban +State+ KahanS + KahanH + NPRIDENUCLEAR + PRIDENUCLEAR + DEVNUCLEAR + PROSPERNUCLEAR, data = fascale_scores)
+# Print model summary
+#summary(solaracceptlm)
+
 ```
 
-\newpage
-## Coal 
+
+
+
+
 
 ```{r, echo = FALSE}
 
@@ -441,106 +748,12 @@ cecopolall <- codedmodule2 %>%
       "National development(coal)" = "DEVCOAL",
       "Local prosperity(coal)" = "PROSPERCOAL",
       "Reliance on government(coal)" = "RELYCOAL"
-    )%>%
-  na.omit()
+    )
 
 
 cecopolall2.fa <- fa(cecopolall, nfactors = 2, rotate = "varimax")
 
-
-
-```
-
-
-
-```{r, echo=FALSE}
-
-library(flextable)
-
-set_flextable_defaults(docx.landscape = TRUE)
-
-flex <- function(data, title=NULL) {
-  # this grabs the data and converts it to a flextbale
-  flextable(data) %>%
-  # this makes the table fill the page width
-  set_table_properties(layout = "autofit", width = 1) %>%
-  # font size
-  fontsize(size=10, part="all") %>%
-    #this adds a ttitlecreates an automatic table number
-      set_caption(title, 
-                  autonum = officer::run_autonum(seq_id = "tab", 
-                                                 pre_label = "Table ", 
-                                                 post_label = "\n", 
-                                                 bkm = "anytable")) #%>%
-  # font type
-  #font(fontname="Times New Roman", part="all")
-}
-
-crename_map <- c(
-  "Limits on Wealth" = "A limit should be put to how much wealth a person can amass",
-  "Anti Mechanisation of work" = "Rapid mechanization of work is taking away jobs from workers in this country",
-  "Pro Decentralisation" = "Local politicians shouldn't have to ask permission from the central government to implement policies",
-  "Pro Centralisation" = "Laws and policies would be implemented more smoothly if more power lay with the central government",
-  "Pro Large Industries" = "Large scale industries are required for the development of the country that will benefit everyone",
-  "Anti Large Industries" = "Large corporations are destroying the local industries in India and benefiting only a handful of people",
-  "Pro Globaleconomy" = "Foreign companies have led to a range of benefits for the Indian people and society",
-  "Pro Localeconomy" = "India would be better off if foreign companies didn't come to here",
-  "Environment over Development" = "Polluting industries that spoil the environment should be shut down even if it costs people their jobs",
-  "Development over Environment" = "Economic growth and creating jobs should be prioritized over environmental protection",
-  "Pro Private ownership" = "All businesses and industries should be owned privately",
-  "Anti Regulations" = "There is too much red-tape and the government should not interfere with businesses and industries",
-  "Pro Public ownership" = "The government should own most large businesses and industries",
-  "Pro Regulations" = "Regardless of ownership, the government should pass strong regulations and implement them",
-  "Displacement risk(coal)" = "Coal powered plants are leading to displacement of people from their land",
-  "Spoils Natural Beauty(coal)" = "Coal powered plants spoil the natural beauty of the landscape",
-  "Pollution risk(coal)" = "Coal powered plants increase pollution of air/water/land",
-  "Health risk(coal)" = "Coal powered plants pose a great risk to the health of people living around it",
-  "Job opportunities(coal)" = "Coal powered plants will bring jobs to the local community",
-  "Community pride(coal)" = "I would be proud if my community used coal powered plants",
-  "National pride(coal)" = "Coal powered plants are a mark of pride for our nation",
-  "National development(coal)" = "Coal powered plants push forward the country's development",
-  "Local prosperity(coal)" = "Coal powered plants bring economic prosperity to the surrounding regions",
-  "Reliance on government(coal)" = "I don't like the idea that I have to rely on the government for electricity from coal powered plants"
-)
-
-
-fa_table <- function(x, cut) {
-  #get sorted loadings
-  loadings <- fa.sort(x)$loadings %>% round(3)
-  #suppress loadings
-  loadings[loadings > -cut & loadings < cut] <- ""
-  #get additional info  
-  add_info <- cbind(x$communalities, 
-                    x$uniquenesses,
-                    x$complexity) %>%
-    # make it a data frame
-    as.data.frame() %>%
-    # column names
-    rename("Communality" = V1,
-           "Uniqueness" = V2,
-           "Complexity" = V3) %>%
-    #get the item names from the vector
-    rownames_to_column("item")
-  
-  #build table
-  loadings %>%
-    unclass() %>%
-    as.data.frame() %>%
-    rownames_to_column("item") %>%
-    left_join(add_info) %>%
-    mutate(
-      item = if_else(item %in% names(crename_map), crename_map[item], item),
-      code = names(crename_map)[match(item, crename_map)], # extracting short form
-      across(where(is.numeric), round, 3)
-    ) %>%
-    select(code, everything()) # reorder columns to bring code to the front
-}
-
-fa_table(cecopolall2.fa, .4) %>%
-  #rename(Pdevelop = MR1, Ndevelop = MR2, Items= item) %>%
-  flex("2 factor solution") %>%
-  autofit()
-
+#print.psych(cecopolall2.fa, cut = 0.5, sort = TRUE)
 
 ```
 
@@ -548,26 +761,466 @@ fa_table(cecopolall2.fa, .4) %>%
 
 
 ```{r, echo = FALSE}
-cecopolall2.fa[["Vaccounted"]] %>%
-  as.data.frame() %>%
-  rownames_to_column("Property") %>%
-  #rename(Pdevelop = MR1, Ndevelop = MR2) %>%
-    mutate(across(where(is.numeric), round, 3)) %>%
-    flex("Coal: Eigenvalues and Variance Explained for 2 Factor Solution")
+
+
+## COAL: CFA on kahan scale and eco-pol scale 
+
+# kahan scores for coal and CFA on ecopol vars  
+cfascales <- codedmodule2 %>%
+      filter(
+    rowSums(is.na(dplyr::select(., starts_with("K_")))) == 0 &  # This line ensures that rows with any NA in columns starting with         "K_" are   filtered out.
+    !is.na(WEALTHLIM) & 
+    !is.na(MECHANISATION) & 
+    !is.na(DECISIONDECEN) & 
+    !is.na(DECISIONCEN) & 
+    !is.na(INDUSTRYLARGE) & 
+    !is.na(INDUSTRYSMALL) & 
+    !is.na(ECONOMYGLOBAL) & 
+    !is.na(ECONOMYLOCAL) & 
+    !is.na(ENVOVERDEV) & 
+    !is.na(DEVOVERENV) & 
+    !is.na(OWNERPVT) & 
+    !is.na(OWNERNOREG) & 
+    !is.na(OWNERPUB) & 
+    !is.na(OWNERREG) & 
+    !is.na(DISPLACECOAL) & 
+    !is.na(POLLUTECOAL) & 
+    !is.na(HEALTHCOAL) & 
+    !is.na(JOBSCOAL) & 
+    !is.na(BEAUTYCOAL) & 
+    !is.na(PRIDECOAL) & 
+    !is.na(NPRIDECOAL) & 
+    !is.na(DEVCOAL) & 
+    !is.na(PROSPERCOAL) & 
+    !is.na(RELYCOAL)
+  )
+  
+  
+  
+  #dplyr::select(starts_with(c("K_","Risky_Coal","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACECOAL",  "POLLUTECOAL", "HEALTHCOAL", "JOBSCOAL", "BEAUTYCOAL", "PRIDECOAL", "NPRIDECOAL", "DEVCOAL", "PROSPERCOAL", "RELYCOAL", "Uppercaste", "Male", "Hindu", "Urban", "State","age"))) %>%na.omit()
+
+cKahan_fas <- '
+  KahanS =~ K_SHARM + K_SLIMCHOI + K_SPROTECT 
+  KahanH =~ K_HEQUAL+ K_ERADEQ1 + K_EWEALTH + K_ERADEQ2
+'
+
+# Run CFA
+cKahan_cfa <- cfa(cKahan_fas, data = cfascales, std.lv = TRUE)
+
+
+cKahan_scores <- predict(cKahan_cfa, newdata = cfascales)
+
+cKahan_Kscores <- cbind(cfascales, cKahan_scores)
+
+
+
+cecopol_fas <- '
+  Pdevelop =~ HEALTHCOAL + BEAUTYCOAL + DISPLACECOAL + POLLUTECOAL + INDUSTRYSMALL + OWNERREG + MECHANISATION
+  Ndevelop =~ DEVCOAL + PROSPERCOAL + PRIDECOAL + NPRIDECOAL 
+'
+
+cecopol_cfa <- cfa(cecopol_fas, data = cfascales, std.lv = TRUE)
+#summary(cecopol_cfa, fit.measure= TRUE, standardized = TRUE)
+
+
+
+# 3) lm with kahan 
+cm1_kahan <- lm(Risky_Coal ~ Uppercaste + Male + Hindu + Urban + age + State + KahanS + KahanH , data = cKahan_Kscores)
+# Print model summary
+#summary(cm1_kahan)
+#plot(cm1_kahan)
+
+# Cronbach's alpha test on Pdevelop and Ndevelop for Solar energy 
+
+coalpdevelop <- cfascales %>%
+  dplyr::select(HEALTHCOAL, BEAUTYCOAL, DISPLACECOAL, POLLUTECOAL, INDUSTRYSMALL, OWNERREG, MECHANISATION)%>%
+  na.omit()
+
+coalpdevelop.alpha <- psych::alpha(coalpdevelop, check.keys = TRUE)
+
+# alpha is strong at 0.78!
+
+coalndevelop <- cfascales %>%
+  dplyr::select(DEVCOAL, PRIDECOAL, NPRIDECOAL, PROSPERCOAL)%>%
+  na.omit()
+
+coalndevelop.alpha <- psych::alpha(coalndevelop, check.keys = TRUE)
+
+#alpha n develop = 0.6
+
+
+```
+
+
+\newpage
+## Coal : CFA on Combined Scale 2 Factor Solution (Pdevelop and Ndevelop)
+
+Coal People Centered Development Alpha = 0.78
+
+Coal Nationalist Development Alpha = 0.6
+
+```{r, echo=FALSE}
+
+
+# Extract parameter estimates
+cparams <- parameterEstimates(cecopol_cfa, standardized = TRUE)%>%
+   slice(1:(n()-15))
+
+
+cparams1 <- cparams %>%
+  mutate(rhs = case_when(
+  rhs == "DISPLACECOAL" ~ "Coal powered plants is leading to displacement of people from their land",
+  rhs == "BEAUTYCOAL" ~ "Coal powered plants spoils the natural beauty of the landscape",
+  rhs == "POLLUTECOAL" ~ "Coal powered plants increases pollution of air/water/land",
+  rhs == "HEALTHCOAL" ~ "Coal powered plants poses a great risk to the health of people living around it",
+  rhs == "JOBSCOAL" ~ "Coal powered plants will bring jobs to the local community",
+  rhs == "PRIDECOAL" ~ "I would be proud if my community used Coal powered plants",
+  rhs == "NPRIDECOAL" ~ "Coal powered plants is a mark of pride for our nation",
+  rhs == "DEVCOAL" ~ "Coal powered plants pushes forward the country's development",
+  rhs == "PROSPERCOAL" ~ "Coal powered plants brings economic prosperity to the surrounding regions",
+  rhs == "RELYCOAL" ~ "I don't like the idea that I have to rely on the government for electricity from Coal powered plants",
+  rhs == "INDUSTRYSMALL" ~ "Large corporations are destroying the local industries in India and benefiting only a handful of people",
+  rhs == "OWNERREG" ~ "Regardless of ownership, the government should pass strong regulations and implement them",
+  rhs == "MECHANISATION" ~ "Rapid mechanization of work is taking away jobs from workers in this country",
+  
+    TRUE ~ as.character(rhs)
+  )) %>%
+  dplyr::select(!c(lhs,op, std.nox)) %>%
+    rename(
+    "Items" = rhs,
+    "Loadings" = est,
+    "Standard Error" = se,
+    "zvalue" = z) %>%
+  mutate(across(c("Loadings", "Standard Error", "zvalue"), round, 3))
+   
+
+cparams1$Scale <- NA
+cparams1$Scale[1:7] <- "People Centered Development"
+cparams1$Scale[8:10] <- "Nationalist Development"
+cparams1 <- cparams1[, c("Scale", setdiff(names(sparams1), "Scale"))]
+CFAcoal <- knitr::kable(cparams1, booktabs = TRUE, caption = "Confirmatory Factor Analysis(CFA) on Coal") %>%
+  kable_styling(latex_options = c("striped","scale_down", "hold_position", "repeat_header"))%>%
+  column_spec(column = 2, width = "4cm")
+
+# Print the table
+CFAcoal %>%
+  landscape()
+
+```
+
+```{r, echo=FALSE}
+
+## Coal linear regression - 2 FA solution
+
+# Linear Model with 2 factor solution for  Risk perception from coal Energy 
+
+#binding factor scores to the dataset
+cecopolall_scores <- predict(cecopol_cfa, newdata = cfascales)
+
+cfascale_scores <- cbind(cKahan_Kscores, cecopolall_scores)# %>%
+  #rename(Pdevelop = MR1)%>%
+  #rename(Ndevelop = MR2)
+
+coal2fa <- lm(Risky_Coal ~ age + Uppercaste + Male + Hindu + Urban + State + KahanS + KahanH + Pdevelop + Ndevelop, data = cfascale_scores)
+
+# Print model summary
+#summary(coal2fa)
+
+```
+
+
+```{r,echo = FALSE}
+cacceptance2 <- cfascale_scores %>%
+  mutate(Coal = Ben_Coal - Risky_Coal)
+
+
+
+coalacceptlm <- lm(Coal ~ age + Uppercaste + Male + Hindu + Urban + State + KahanS + KahanH + Pdevelop + Ndevelop, data = cacceptance2)
+
+#m2_allscales <- lm(Risky_Nuclear ~ age + Uppercaste + Male + Hindu + Urban +State+ KahanS + KahanH + NPRIDENUCLEAR + PRIDENUCLEAR + DEVNUCLEAR + PROSPERNUCLEAR, data = fascale_scores)
+# Print model summary
+#summary(coalacceptlm)
+
+```
+
+
+\newpage
+
+## Linear Models: Perceived risk X Pdevelop and Ndevelop
+
+
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
+
+
+cat("\\begingroup")
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(nuclear2fa, solar2fa, coal2fa, 
+         title = "Perceived Risk X Pdevelop and Ndevelope",
+        type = "latex"
+)
+cat("\\endgroup")
+
+
+
+```
+
+
+
+```{r, echo =FALSE}
+
+# same things with benefit from Nuclear Energy
+fascalesben <- codedmodule2 %>%
+  dplyr::select(starts_with(c("K_","Ben_Nuclear","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACENUCLEAR",  "POLLUTENUCLEAR", "HEALTHNUCLEAR", "JOBSNUCLEAR", "BEAUTYNUCLEAR", "PRIDENUCLEAR", "NPRIDENUCLEAR", "DEVNUCLEAR", "PROSPERNUCLEAR", "RELYNUCLEAR", "Uppercaste", "Male", "Hindu", "Urban", "State","age")))%>%
+  na.omit()
+
+Kahan_fas <- '
+  KahanS =~ K_SHARM + K_SLIMCHOI + K_SPROTECT 
+  KahanH =~ K_HEQUAL+ K_ERADEQ1 + K_EWEALTH + K_ERADEQ2
+'
+
+# Run CFA
+Kahan_cfaben <- cfa(Kahan_fas, data = fascalesben, std.lv = TRUE)
+
+Kahan_scoresben <- predict(Kahan_cfaben, newdata = fascalesben)
+
+Kahan_Kscoresben <- cbind(fascalesben, Kahan_scoresben)
+
+
+ecopolallben <- fascalesben %>%
+        dplyr::select("WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACENUCLEAR",  "POLLUTENUCLEAR", "HEALTHNUCLEAR", "JOBSNUCLEAR", "BEAUTYNUCLEAR", "PRIDENUCLEAR", "NPRIDENUCLEAR", "DEVNUCLEAR", "PROSPERNUCLEAR", "RELYNUCLEAR")
+
+ecopolallben_alpha <- psych::alpha(ecopolallben, check.keys = TRUE)
+
+#summary(ecopolall_alpha)
+
+# when we combine both the scales the alpha is high at 0.785 (almost 0.8)
+
+# FA on all ecopol variables except systems of governance 
+
+
+ecopolallben_cor <- cor(ecopolallben)
+PCA24 <- principal(ecopolallben, nfactors = 24, rotate = "none") # no rotation to start with. 
+
+ecopolallben2.fa <- fa(ecopolallben, nfactors = 2, rotate = "varimax")
+
+# I don't know still doesn't make a lot of sense to me- the two factors make more sense - 1) people centered development 2) nationalist development
+# So I am going to extract factor scores and bind them to the dataset
+
+ecopolallben_scores <- psych::factor.scores(ecopolallben, ecopolallben2.fa)
+
+# The factor scores will be stored in the scores element of the returned list
+scores2 <- ecopolallben_scores$scores
+
+#binding factor scores to the dataset
+
+fascale_scoresben <- cbind(Kahan_Kscoresben, scores2) %>%
+  rename(Pdevelop = MR1)%>%
+  rename(Ndevelop = MR2) #%>%
+  #dplyr::select(!starts_with(c("K_","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACENUCLEAR",  "POLLUTENUCLEAR", "HEALTHNUCLEAR", "JOBSNUCLEAR", "BEAUTYNUCLEAR", "PRIDENUCLEAR", "NPRIDENUCLEAR", "DEVNUCLEAR", "PROSPERNUCLEAR", "RELYNUCLEAR")))
+
+
+
+mbennuclear <- lm(Ben_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State+ KahanS + KahanH + Pdevelop + Ndevelop , data = fascale_scoresben)
+# Print model summary
+#summary(mbennuclear)
+
+
+
+
+```
+
+
+
+```{r, echo =FALSE}
+
+# same things with benefit from Solar Energy
+sfascalesben <- codedmodule2 %>%
+  dplyr::select(starts_with(c("K_","Ben_Solar","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACESOLAR",  "POLLUTESOLAR", "HEALTHSOLAR", "JOBSSOLAR", "BEAUTYSOLAR", "PRIDESOLAR", "NPRIDESOLAR", "DEVSOLAR", "PROSPERSOLAR", "RELYSOLAR", "Uppercaste", "Male", "Hindu", "Urban", "State","age")))%>%
+  na.omit()
+
+Kahan_fas <- '
+  KahanS =~ K_SHARM + K_SLIMCHOI + K_SPROTECT 
+  KahanH =~ K_HEQUAL+ K_ERADEQ1 + K_EWEALTH + K_ERADEQ2
+'
+
+# Run CFA
+sKahan_cfaben <- cfa(Kahan_fas, data = sfascalesben, std.lv = TRUE)
+
+sKahan_scoresben <- predict(sKahan_cfaben, newdata = sfascalesben)
+
+sKahan_Kscoresben <- cbind(sfascalesben, sKahan_scoresben)
+
+
+secopolallben <- sfascalesben %>%
+        dplyr::select("WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACESOLAR",  "POLLUTESOLAR", "HEALTHSOLAR", "JOBSSOLAR", "BEAUTYSOLAR", "PRIDESOLAR", "NPRIDESOLAR", "DEVSOLAR", "PROSPERSOLAR", "RELYSOLAR")
+
+secopolallben_alpha <- psych::alpha(secopolallben, check.keys = TRUE)
+
+#summary(ecopolall_alpha)
+
+# when we combine both the scales the alpha is high at 0.785 (almost 0.8)
+
+# FA on all ecopol variables except systems of governance 
+
+
+secopolallben_cor <- cor(secopolallben)
+PCA24 <- principal(secopolallben, nfactors = 24, rotate = "none") # no rotation to start with. 
+
+secopolallben2.fa <- fa(secopolallben, nfactors = 2, rotate = "varimax")
+
+# I don't know still doesn't make a lot of sense to me- the two factors make more sense - 1) people centered development 2) nationalist development
+# So I am going to extract factor scores and bind them to the dataset
+
+secopolallben_scores <- psych::factor.scores(secopolallben, secopolallben2.fa)
+
+# The factor scores will be stored in the scores element of the returned list
+sscores2 <- secopolallben_scores$scores
+
+#binding factor scores to the dataset
+
+sfascale_scoresben <- cbind(sKahan_Kscoresben, sscores2) %>%
+  rename(Pdevelop = MR1)%>%
+  rename(Ndevelop = MR2) #%>%
+  #dplyr::select(!starts_with(c("K_","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACENUCLEAR",  "POLLUTENUCLEAR", "HEALTHNUCLEAR", "JOBSNUCLEAR", "BEAUTYNUCLEAR", "PRIDENUCLEAR", "NPRIDENUCLEAR", "DEVNUCLEAR", "PROSPERNUCLEAR", "RELYNUCLEAR")))
+
+
+
+mbensolar <- lm(Ben_Solar ~ Uppercaste + Male + Hindu + Urban + age + State+ KahanS + KahanH + Pdevelop + Ndevelop , data = sfascale_scoresben)
+# Print model summary
+#summary(mbensolar)
+
+
+
+
 ```
 
 
 
 
-\newpage
-# Alternative Solution :  FA on Two Separate scales 
 
-## Scale 1: Factor analysis on Eco-political values of the perceiver scale
- 4 factor solution 
+```{r, echo =FALSE}
+
+# same things with benefit from COAL Energy
+cfascalesben <- codedmodule2 %>%
+  dplyr::select(starts_with(c("K_","Ben_Coal","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACECOAL",  "POLLUTECOAL", "HEALTHCOAL", "JOBSCOAL", "BEAUTYCOAL", "PRIDECOAL", "NPRIDECOAL", "DEVCOAL", "PROSPERCOAL", "RELYCOAL", "Uppercaste", "Male", "Hindu", "Urban", "State","age")))%>%
+  na.omit()
+
+Kahan_fas <- '
+  KahanS =~ K_SHARM + K_SLIMCHOI + K_SPROTECT 
+  KahanH =~ K_HEQUAL+ K_ERADEQ1 + K_EWEALTH + K_ERADEQ2
+'
+
+# Run CFA
+cKahan_cfaben <- cfa(Kahan_fas, data = cfascalesben, std.lv = TRUE)
+
+cKahan_scoresben <- predict(cKahan_cfaben, newdata = cfascalesben)
+
+cKahan_Kscoresben <- cbind(cfascalesben, cKahan_scoresben)
+
+
+cecopolallben <- cfascalesben %>%
+        dplyr::select("WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACECOAL",  "POLLUTECOAL", "HEALTHCOAL", "JOBSCOAL", "BEAUTYCOAL", "PRIDECOAL", "NPRIDECOAL", "DEVCOAL", "PROSPERCOAL", "RELYCOAL")
+
+cecopolallben_alpha <- psych::alpha(cecopolallben, check.keys = TRUE)
+
+#summary(ecopolall_alpha)
+
+# when we combine both the scales the alpha is high at 0.785 (almost 0.8)
+
+# FA on all ecopol variables except systems of governance 
+
+
+cecopolallben_cor <- cor(cecopolallben)
+PCA24 <- principal(cecopolallben, nfactors = 24, rotate = "none") # no rotation to start with. 
+
+cecopolallben2.fa <- fa(cecopolallben, nfactors = 2, rotate = "varimax")
+
+# I don't know still doesn't make a lot of sense to me- the two factors make more sense - 1) people centered development 2) nationalist development
+# So I am going to extract factor scores and bind them to the dataset
+
+cecopolallben_scores <- psych::factor.scores(cecopolallben, cecopolallben2.fa)
+
+# The factor scores will be stored in the scores element of the returned list
+sscores2 <- cecopolallben_scores$scores
+
+#binding factor scores to the dataset
+
+cfascale_scoresben <- cbind(cKahan_Kscoresben, sscores2) %>%
+  rename(Pdevelop = MR1)%>%
+  rename(Ndevelop = MR2) #%>%
+  #dplyr::select(!starts_with(c("K_","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACENUCLEAR",  "POLLUTENUCLEAR", "HEALTHNUCLEAR", "JOBSNUCLEAR", "BEAUTYNUCLEAR", "PRIDENUCLEAR", "NPRIDENUCLEAR", "DEVNUCLEAR", "PROSPERNUCLEAR", "RELYNUCLEAR")))
+
+
+
+mbencoal <- lm(Ben_Coal ~ Uppercaste + Male + Hindu + Urban + age + State+ KahanS + KahanH + Pdevelop + Ndevelop , data = cfascale_scoresben)
+# Print model summary
+#summary(mbencoal)
+
+
+
+
+
+```
+
+\newpage
+
+## Linear Models: Perceived Benefit X Pdevelop and Ndevelop 
+
+
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
+
+
+cat("\\begingroup")
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(mbennuclear,mbensolar , mbencoal, 
+         title = "Perceived Benefit X Pdevelop and Ndevelop",
+        type = "latex"
+)
+cat("\\endgroup")
+
+
+
+```
+
+
+\newpage
+
+## Linear Models: Acceptance (Risk - Benefit) X Pdevelop & Ndevelop
+
+
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
+
+
+cat("\\begingroup")
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(nuclearacceptlm, solaracceptlm , coalacceptlm, 
+         title = "Acceptance (Risk - Benefit) X Pdevelop and Ndevelop",
+        type = "latex"
+)
+cat("\\endgroup")
+
+
+
+```
+
+
+
 
 ```{r, echo = FALSE}
 
 # below are only eco-pol values of the perceiver scale. 
+
+
+ecopolonly <- codedmodule2 %>%
+            filter(!is.na(WEALTHLIM) & !is.na(MECHANISATION) & !is.na(INDUSTRYSMALL)  & !is.na(ECONOMYGLOBAL)  & !is.na(ENVOVERDEV)  & !is.na(OWNERNOREG) & !is.na(OWNERPUB) & !is.na(OWNERREG) & !is.na(DECISIONDECEN) & !is.na(DECISIONCEN) & !is.na(INDUSTRYLARGE) & !is.na(ECONOMYLOCAL) & !is.na(DEVOVERENV) & !is.na(OWNERPVT))
+        #dplyr::select("WEALTHLIM","MECHANISATION","INDUSTRYSMALL","ECONOMYGLOBAL", "ENVOVERDEV","OWNERNOREG","OWNERPUB", "OWNERREG", "DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","ECONOMYLOCAL", "DEVOVERENV","OWNERPVT") %>%
+  #na.omit()
 
 ecopolval <- codedmodule2 %>%
         dplyr::select("WEALTHLIM","MECHANISATION","INDUSTRYSMALL","ECONOMYGLOBAL", "ENVOVERDEV","OWNERNOREG","OWNERPUB", "OWNERREG", "DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","ECONOMYLOCAL", "DEVOVERENV","OWNERPVT")%>%
@@ -578,62 +1231,129 @@ ecopolval <- codedmodule2 %>%
       "Pro Decentralisation" = "DECISIONDECEN",
       "Pro Centralisation" = "DECISIONCEN",
       "Pro Large Industries" = "INDUSTRYLARGE",
-      "Anti Large Industries " = "INDUSTRYSMALL",
+      "Anti Large Industries" = "INDUSTRYSMALL",
       "Pro Globaleconomy" = "ECONOMYGLOBAL",
       "Pro Localeconomy" = "ECONOMYLOCAL",
       "Environment over Development" = "ENVOVERDEV",
       "Development over Environment" = "DEVOVERENV",
-      "Pro Private ownership " = "OWNERPVT",
+      "Pro Private ownership" = "OWNERPVT",
       "Anti Regulations" = "OWNERNOREG",
       "Pro Public ownership" = "OWNERPUB",
       "Pro Regulations" = "OWNERREG"
     )
 
-#alpha(ecopolval, check.keys = TRUE) # 0.71
 
-#ncol(ecopolval)  number of cols is 14 
+ecopolval2.fa <- fa(ecopolval, nfactors = 2, rotate = "varimax")
+#print.psych(ecopolval2.fa, cut = 0.4, sort = TRUE)
 
-#ecopolval_cor <- cor(ecopolval)
-#PCA14 <- principal(ecopolval, nfactors = 14, rotate = "none") # no rotation to start with. 
-
-#print(PCA14)
-
-#PCA14$loadings
-
-#fa.parallel(ecopolval_cor)
 
 ecopolval4.fa <- fa(ecopolval, nfactors = 4, rotate = "varimax")
+#print.psych(ecopolval4.fa, cut = 0.4, sort = TRUE)
+
+# 4 fA extraction
+
+ecopolval_scores <- psych::factor.scores(ecopolval, ecopolval4.fa)
+
+# The factor scores will be stored in the scores element of the returned list
+ecopolonlyscores <- ecopolval_scores$scores
+
+#binding factor scores to the dataset
+
+ecopolonlywscores <- cbind(ecopolonly, ecopolonlyscores) %>%
+  rename(regulateindustry = MR1)%>%
+  rename(localisation = MR3)%>%
+   rename(freemarket = MR4)%>%
+  rename(pvtdevelopment = MR2)
+
+# 2 factor 
+
+ecopolval2_scores <- psych::factor.scores(ecopolval, ecopolval2.fa)
+
+# The factor scores will be stored in the scores element of the returned list
+ecopolonlyscores2 <- ecopolval2_scores$scores
+
+#binding factor scores to the dataset
+
+ecopolonlywscores2 <- cbind(ecopolonly, ecopolonlyscores2)
+
+
+
+# checking alpha 
+
+
+
+regulated_industry <- ecopolonly  %>%
+  dplyr::select(OWNERREG, MECHANISATION, WEALTHLIM)%>%
+  na.omit()
+
+regulated_industry.alpha <- psych::alpha(regulated_industry, check.keys = TRUE)
+
+
+#alpha 0.59
+
+
+localisation <- ecopolonly %>%
+  dplyr::select(INDUSTRYSMALL, ECONOMYLOCAL)%>%
+  na.omit()
+
+localisation.alpha <- psych::alpha(localisation, check.keys = TRUE)
+
+# alpha 0.52
+
+freemarket <- ecopolonly %>%
+  dplyr::select(DECISIONCEN, ECONOMYGLOBAL,OWNERNOREG,INDUSTRYLARGE)%>%
+  na.omit()
+
+freemarket.alpha <- psych::alpha(freemarket, check.keys = TRUE)
+
+# alpha = 0.57
+
+pvtdevelopment <- ecopolonly %>%
+  dplyr::select(DEVOVERENV,OWNERPVT, ENVOVERDEV, OWNERPUB)%>%
+  na.omit()
+
+pvtdevelopment.alpha <- psych::alpha(pvtdevelopment, check.keys = TRUE)
+
+# alpha =0.58 
 
 #cor(ecopolval)
 
 # questions for Terre , 2) 4 factors/3 factors/2 factors - variation explained how should i deal with that. 
-# four factor analysis - MR1 - problems of industrialisation MR2 - local economy and decision making MR3 - centralised and large industry MR4- dev/ownership
+# four factor analysis - MR1 -regulated industrialization MR3 - localisation MR4 - free market MR2- private development  
+
+
 ```
 
+\newpage
+\blandscape
+# FA on Separate scales: Scale 1:Eco-political values of the perceiver 
 
+## 4 factor solution (Characteristics of the perceiver)
 
+Cronbach's alpha values: Regulated Industrialisation = 0.59, localisation = 0.52 , Free market = 0.57, Private Development = 0.58
 
 ```{r, echo=FALSE}
 
 library(flextable)
 
-set_flextable_defaults(docx.landscape = TRUE)
+flex <- function(data, title=NULL, col_widths=NULL) {
+  tbl <- flextable(data) %>%
+         #set_table_properties(layout = "autofit", width = 1) %>%
+         fontsize(size=10, part="all") %>%
+         set_caption(title, 
+                     autonum = officer::run_autonum(seq_id = "tab", 
+                                                    pre_label = "Table ", 
+                                                    post_label = "\n", 
+                                                    bkm = "anytable"))
+  
+  # If col_widths is provided, set column widths
+  if(!is.null(col_widths)) {
+    for(col in names(col_widths)){
+      tbl <- width(tbl, j = col, width = col_widths[[col]])
+    }
+  }
 
-flex <- function(data, title=NULL) {
-  # this grabs the data and converts it to a flextbale
-  flextable(data) %>%
-  # this makes the table fill the page width
-  set_table_properties(layout = "autofit", width = 1) %>%
-  # font size
-  fontsize(size=10, part="all") %>%
-    #this adds a ttitlecreates an automatic table number
-      set_caption(title, 
-                  autonum = officer::run_autonum(seq_id = "tab", 
-                                                 pre_label = "Table ", 
-                                                 post_label = "\n", 
-                                                 bkm = "anytable")) #%>%
-  # font type
-  #font(fontname="Times New Roman", part="all")
+  return(tbl)
 }
 
 rename_map <- c(
@@ -650,7 +1370,7 @@ rename_map <- c(
   "Pro Private ownership" = "All businesses and industries should be owned privately",
   "Anti Regulations" = "There is too much red-tape and the government should not interfere with businesses and industries",
   "Pro Public ownership" = "The government should own most large businesses and industries",
-  "Pro Regulations" = " Regardless of ownership, the government should pass strong regulations and implement them"
+  "Pro Regulations" = "Regardless of ownership, the government should pass strong regulations and implement them"
 )
 
 fa_table <- function(x, cut) {
@@ -685,15 +1405,14 @@ fa_table <- function(x, cut) {
     select(code, everything()) # reorder columns to bring code to the front
 }
 
-fa_table(ecopolval4.fa, .4) %>%
-  #rename(Pdevelop = MR1, Ndevelop = MR2, Items= item) %>%
-  flex("4 factor solution same for all technologies") %>%
-  autofit()
 
+fa_table(ecopolval4.fa, .4) %>%
+  rename("regulated industrialization" = MR1, "private development" = MR2, "localisation" = MR3, "free market" = MR4, Items= item) %>%
+  flex("4 factor solution same for all technologies", col_widths = list(Items = 3.5, code = 1.5, "regulated industrialization" = 0.5, "private development" = 0.5, "localisation" = 0.5, "free market" = 0.5))
 
 ```
 
-
+\elandscape
 
 ```{r, echo=FALSE}
 
@@ -731,6 +1450,313 @@ ecopolval4.fa[["Vaccounted"]] %>%
 ```
 
 ```{r, echo = FALSE}
+# linear regression with 4 factor solution 
+
+#Risky_Nuclear
+
+nuclear4fa <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State + regulateindustry +  localisation + freemarket + pvtdevelopment , data = ecopolonlywscores)
+# Print model summary
+#summary(nuclear4fa)
+
+
+#Ben_Nuclear
+bennuclear4fa <- lm(Ben_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State + regulateindustry +  localisation + freemarket + pvtdevelopment , data = ecopolonlywscores)
+# Print model summary
+#summary(bennuclear4fa)
+
+#Risky_Solar
+solar4fa <- lm(Risky_Solar ~ Uppercaste + Male + Hindu + Urban + age + State + regulateindustry +  localisation + freemarket + pvtdevelopment , data = ecopolonlywscores)
+# Print model summary
+#summary(solar4fa)
+
+
+#Ben_Solar
+
+bensolar4fa <- lm(Ben_Solar ~ Uppercaste + Male + Hindu + Urban + age + State + regulateindustry +  localisation + freemarket + pvtdevelopment , data = ecopolonlywscores)
+# Print model summary
+#summary(bensolar4fa)
+
+#Risky_Coal
+
+coal4fa <- lm(Risky_Coal ~ Uppercaste + Male + Hindu + Urban + age + State + regulateindustry +  localisation + freemarket + pvtdevelopment , data = ecopolonlywscores)
+# Print model summary
+#summary(coal4fa)
+
+#Ben_Coal 
+
+bencoal4fa <- lm(Ben_Coal ~ Uppercaste + Male + Hindu + Urban + age + State + regulateindustry +  localisation + freemarket + pvtdevelopment , data = ecopolonlywscores)
+# Print model summary
+#summary(bencoal4fa)
+
+```
+
+
+
+```{r,echo = FALSE}
+acceptance3 <- ecopolonlywscores %>%
+   mutate(Nuclear = Ben_Nuclear - Risky_Nuclear,
+         Hyrdo = Ben_Hydro - Risky_Hydro,
+         Wind = Ben_Wind - Risky_Wind,
+         Solar = Ben_Solar - Risky_Solar,
+         Coal = Ben_Coal - Risky_Coal,
+         Gas = Ben_Gas - Risky_Gas,
+         Oil = Ben_Oil - Risky_Oil)
+
+
+naccept2 <- lm(Nuclear ~ age + Uppercaste + Male + Hindu + Urban + State  + regulateindustry +  localisation + freemarket + pvtdevelopment, data = acceptance3)
+
+
+#summary(naccept2)
+
+
+saccept2 <- lm(Solar ~ age + Uppercaste + Male + Hindu + Urban + State  + regulateindustry +  localisation + freemarket + pvtdevelopment, data = acceptance3)
+
+
+#summary(saccept2)
+
+
+
+caccept2 <- lm(Coal ~ age + Uppercaste + Male + Hindu + Urban + State  + regulateindustry +  localisation + freemarket + pvtdevelopment, data = acceptance3)
+
+
+#summary(caccept2)
+```
+
+
+\newpage
+## Linear Models: Perceived Risk X 4 Factor Solution(separate scale)
+
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
+
+
+cat("\\begingroup")
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(nuclear4fa, solar4fa, coal4fa, 
+          title = "Perceived Risk X 4 Factor Solution(separate scale)",
+          type = "latex"
+)
+cat("\\endgroup")
+
+
+```
+
+\newpage
+
+##  Linear Models: : Perceived Risk X 4 Factor Solution (separate scale)
+
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
+
+
+cat("\\begingroup")
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(bennuclear4fa, bensolar4fa, bencoal4fa, 
+          title = "Perceived Risk X 4 Factor Solution (separate scale)",
+          type = "latex"
+)
+cat("\\endgroup")
+
+
+```
+
+
+\newpage
+
+##  Linear Models: Acceptance(Risk-Benefit) X 4 Factor Solution (separate scale)
+
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
+
+
+cat("\\begingroup")
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(naccept2, saccept2, caccept2, 
+          title = "Acceptance(Risk-Benefit) X 4 Factor Solution (separate scale)",
+          type = "latex"
+)
+cat("\\endgroup")
+
+
+```
+
+
+```{r, echo = FALSE}
+# linear regression with 2 factor solution 
+
+#Risky_Nuclear
+
+nuclear2fa2 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State + MR1 +MR2 , data = ecopolonlywscores2)
+# Print model summary
+#summary(nuclear2fa2)
+
+
+#Ben_Nuclear
+bennuclear2fa2 <- lm(Ben_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State + MR1 +MR2 , data = ecopolonlywscores2)
+# Print model summary
+#summary(bennuclear2fa2)
+
+#Risky_Solar
+solar2fa2 <- lm(Risky_Solar ~ Uppercaste + Male + Hindu + Urban + age + State + MR1 +MR2 , data = ecopolonlywscores2)
+# Print model summary
+#summary(solar2fa2)
+
+
+#Ben_Solar
+
+bensolar2fa2 <- lm(Ben_Solar ~ Uppercaste + Male + Hindu + Urban + age + State + MR1 +MR2 , data = ecopolonlywscores2)
+# Print model summary
+#summary(bensolar2fa2)
+
+#Risky_Coal
+
+coal2fa2 <- lm(Risky_Coal ~ Uppercaste + Male + Hindu + Urban + age + State + MR1 +MR2 , data = ecopolonlywscores2)
+# Print model summary
+#summary(coal2fa2)
+
+#Ben_Coal 
+
+bencoal2fa2 <- lm(Ben_Coal ~ Uppercaste + Male + Hindu + Urban + age + State + MR1 +MR2 , data = ecopolonlywscores2)
+# Print model summary
+#summary(bencoal2fa2)
+
+```
+
+\newpage
+\blandscape
+
+## 2 factor solution (Characteristics of the perceiver)
+
+
+```{r, echo=FALSE}
+
+library(flextable)
+
+flex <- function(data, title=NULL, col_widths=NULL) {
+  tbl <- flextable(data) %>%
+         #set_table_properties(layout = "autofit", width = 1) %>%
+         fontsize(size=10, part="all") %>%
+         set_caption(title, 
+                     autonum = officer::run_autonum(seq_id = "tab", 
+                                                    pre_label = "Table ", 
+                                                    post_label = "\n", 
+                                                    bkm = "anytable"))
+  
+  # If col_widths is provided, set column widths
+  if(!is.null(col_widths)) {
+    for(col in names(col_widths)){
+      tbl <- width(tbl, j = col, width = col_widths[[col]])
+    }
+  }
+
+  return(tbl)
+}
+
+rename_map <- c(
+  "Limits on Wealth" = "A limit should be put to how much wealth a person can amass",
+  "Anti Mechanisation of work" = "Rapid mechanization of work is taking away jobs from workers in this country",
+  "Pro Decentralisation" = "Local politicians shouldn't have to ask permission from the central government to implement policies",
+  "Pro Centralisation" = "Laws and policies would be implemented more smoothly if more power lay with the central government",
+  "Pro Large Industries" = "Large scale industries are required for the development of the country that will benefit everyone",
+  "Anti Large Industries" = "Large corporations are destroying the local industries in India and benefiting only a handful of people",
+  "Pro Globaleconomy" = "Foreign companies have led to a range of benefits for the Indian people and society",
+  "Pro Localeconomy" = "India would be better off if foreign companies didn't come to here",
+  "Environment over Development" = "Polluting industries that spoil the environment should be shut down even if it costs people their jobs",
+  "Development over Environment" = "Economic growth and creating jobs should be prioritized over environmental protection",
+  "Pro Private ownership" = "All businesses and industries should be owned privately",
+  "Anti Regulations" = "There is too much red-tape and the government should not interfere with businesses and industries",
+  "Pro Public ownership" = "The government should own most large businesses and industries",
+  "Pro Regulations" = "Regardless of ownership, the government should pass strong regulations and implement them"
+)
+
+fa_table <- function(x, cut) {
+  #get sorted loadings
+  loadings <- fa.sort(x)$loadings %>% round(3)
+  #suppress loadings
+  loadings[loadings > -cut & loadings < cut] <- ""
+  #get additional info  
+  add_info <- cbind(x$communalities, 
+                    x$uniquenesses,
+                    x$complexity) %>%
+    # make it a data frame
+    as.data.frame() %>%
+    # column names
+    rename("Communality" = V1,
+           "Uniqueness" = V2,
+           "Complexity" = V3) %>%
+    #get the item names from the vector
+    rownames_to_column("item")
+  
+  #build table
+  loadings %>%
+    unclass() %>%
+    as.data.frame() %>%
+    rownames_to_column("item") %>%
+    left_join(add_info) %>%
+    mutate(
+      item = if_else(item %in% names(rename_map), rename_map[item], item),
+      code = names(rename_map)[match(item, rename_map)], # extracting short form
+      across(where(is.numeric), round, 3)
+    ) %>%
+    select(code, everything()) # reorder columns to bring code to the front
+}
+
+
+fa_table(ecopolval2.fa, .4) %>%
+  rename( Items= item) %>%
+  flex("4 factor solution same for all technologies", col_widths = list(Items = 3.5, code = 1.5))
+
+```
+\elandscape
+
+\newpage
+
+## Linear Models: Perceived Risk X 2 factor solution (separate scale)
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
+
+
+cat("\\begingroup")
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(nuclear2fa2, solar2fa2, coal2fa2, 
+          title = "Perceived Risk X 2 factor solution (separate scale)",
+          type = "latex"
+)
+cat("\\endgroup")
+
+
+```
+
+
+
+\newpage
+
+## Linear Models: Perceived Benefit X 2 FA solution (separate scales)
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
+
+
+cat("\\begingroup")
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(bennuclear2fa2, bensolar2fa2, bencoal2fa2, 
+          title = "Perceived Benefit X 2 FA solution (separate scales)",
+          type = "latex"
+)
+cat("\\endgroup")
+
+
+```
+
+
+
+
+
+```{r, echo = FALSE}
  # Adjust as per the number of factors
 
 #fa.diagram(ecopolval4.fa, marg=c(.5,5,1,.5),size =1, adj = 0.25, e.size=.05,rsize=.35, main = "Four Factor Solution")
@@ -739,9 +1765,6 @@ ecopolval4.fa[["Vaccounted"]] %>%
 
 
 
-\newpage
-## Option 1: Factor analysis on Scale 2 - Characteristics of the Technology
- 2 factor solution 
 
 
 ```{r, echo=FALSE}
@@ -749,32 +1772,81 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 #alpha test on Eco-pol characteristics of the technology
 
+
+
 Nuclear <- codedmodule2 %>%
-dplyr::select("DISPLACENUCLEAR":"RELYNUCLEAR") %>%
-  na.omit()%>%
+  filter(rowSums(is.na(dplyr::select(., starts_with("K_")))) == 0)%>%
+  filter(complete.cases(dplyr::select(., DISPLACENUCLEAR:RELYNUCLEAR))) 
+
+
+Nuclear2 <- Nuclear  %>%
+  dplyr::select("DISPLACENUCLEAR","POLLUTENUCLEAR", "HEALTHNUCLEAR", "BEAUTYNUCLEAR", "PRIDENUCLEAR", "NPRIDENUCLEAR", "DEVNUCLEAR","PROSPERNUCLEAR")%>%    # alternate select("DISPLACENUCLEAR":"RELYNUCLEAR")
     rename(
    "Displacement risk(nuclear)" = "DISPLACENUCLEAR",
   "Pollution risk(nuclear)" = "POLLUTENUCLEAR",
   "Health risk(nuclear)" = "HEALTHNUCLEAR",
-  "Job opportunities(nuclear)" = "JOBSNUCLEAR",
+  #"Job opportunities(nuclear)" = "JOBSNUCLEAR",
   "Spoils Natural Beauty(nuclear)" = "BEAUTYNUCLEAR",
   "Community pride(nuclear)" = "PRIDENUCLEAR",
   "National pride(nuclear)" = "NPRIDENUCLEAR",
   "National development(nuclear)" = "DEVNUCLEAR",
   "Local prosperity(nuclear)" = "PROSPERNUCLEAR",
-  "Reliance on government(nuclear)" = "RELYNUCLEAR"
+  #"Reliance on government(nuclear)" = "RELYNUCLEAR"
     )
 
 
-Nuclear.fa <- fa(Nuclear, nfactors = 2, rotate = "varimax")
+Nuclear.fa <- fa(Nuclear2, nfactors = 2, rotate = "varimax")
 
-#print.psych(Nuclear.fa, cut = 0.40, sort = TRUE)
+print.psych(Nuclear.fa, cut = 0.5, sort = TRUE)
 
 #fa.diagram(Nuclear.fa)
 
 
+
+# CFA Kahan 
+
+Kahan_fas <- '
+  KahanS =~ K_SHARM + K_SLIMCHOI + K_SPROTECT 
+  KahanH =~ K_HEQUAL+ K_ERADEQ1 + K_EWEALTH + K_ERADEQ2
+'
+
+# Run CFA
+n2Kahan_cfa <- cfa(Kahan_fas, data = Nuclear, std.lv = TRUE)
+
+# creating table of factor scores 
+
+n2Kahan_scores <- predict(n2Kahan_cfa, newdata = Nuclear)
+
+n2Kahan_Kscores <- cbind(Nuclear, n2Kahan_scores)
+
+
+
+
+# checking cronbach's alpha 
+nnegative <- Nuclear %>%
+  dplyr::select(HEALTHNUCLEAR,POLLUTENUCLEAR,BEAUTYNUCLEAR, DISPLACENUCLEAR)%>%
+  na.omit()
+
+nnegative.alpha <- psych::alpha(nnegative, check.keys = TRUE)
+
+# alpha = 0.79
+
+npositive <- Nuclear %>%
+  dplyr::select(DEVNUCLEAR,PROSPERNUCLEAR,NPRIDENUCLEAR,PRIDENUCLEAR)%>% #excluded JOBSnuclear 
+  na.omit()
+
+npositive.alpha <- psych::alpha(npositive, check.keys = TRUE)
+
+# alpha = 0.72
+
+
 ```
 
+
+\newpage
+\blandscape
+# FA on Separate scale: Scale 2: Characteristics of the Technology(2 factor solution)
+## Nuclear Energy : positive (alpha = 0.73) and negative (alpha = 0.79) characteristics (2 factor solution)
 
 ```{r, echo=FALSE}
 
@@ -782,21 +1854,25 @@ library(flextable)
 
 set_flextable_defaults(docx.landscape = TRUE)
 
-flex <- function(data, title=NULL) {
-  # this grabs the data and converts it to a flextbale
-  flextable(data) %>%
-  # this makes the table fill the page width
-  set_table_properties(layout = "autofit", width = 1) %>%
-  # font size
-  fontsize(size=10, part="all") %>%
-    #this adds a ttitlecreates an automatic table number
-      set_caption(title, 
-                  autonum = officer::run_autonum(seq_id = "tab", 
-                                                 pre_label = "Table ", 
-                                                 post_label = "\n", 
-                                                 bkm = "anytable")) #%>%
-  # font type
-  #font(fontname="Times New Roman", part="all")
+flex <- function(data, title=NULL, col_widths=NULL) {
+  tbl <- flextable(data) %>%
+           #padding(padding = 1, part = "all") %>%
+           #set_table_properties(layout = "autofit") %>%
+           fontsize(size=10, part="all") %>%
+           set_caption(title, 
+                       autonum = officer::run_autonum(seq_id = "tab", 
+                                                      pre_label = "Table ", 
+                                                      post_label = "\n", 
+                                                      bkm = "anytable"))
+  
+  # If col_widths is provided, set column widths
+  if(!is.null(col_widths)) {
+    for(col in names(col_widths)){
+      tbl <- width(tbl, j = col, width = col_widths[[col]])
+    }
+  }
+
+  return(tbl)
 }
 
 rename_map <- c(
@@ -804,14 +1880,11 @@ rename_map <- c(
   "Spoils Natural Beauty(nuclear)" = "Nuclear energy spoils the natural beauty of the landscape",
   "Pollution risk(nuclear)" = "Nuclear energy increases pollution of air/water/land",
   "Health risk(nuclear)" = "Nuclear energy poses a great risk to the health of people living around it",
-  "Job opportunities(nuclear)" = "Nuclear energy will bring jobs to the local community",
   "Community pride(nuclear)" = "I would be proud if my community used nuclear energy",
   "National pride(nuclear)" = "Nuclear energy is a mark of pride for our nation",
   "National development(nuclear)" = "Nuclear energy pushes forward the country's development",
-  "Local prosperity(nuclear)" = "Nuclear energy brings economic prosperity to the surrounding regions",
-  "Reliance on government(nuclear)" = "I don't like the idea that I have to rely on the government for electricity from nuclear energy"
+  "Local prosperity(nuclear)" = "Nuclear energy brings economic prosperity to the surrounding regions"
 )
-
 
 fa_table <- function(x, cut) {
   #get sorted loadings
@@ -846,12 +1919,12 @@ fa_table <- function(x, cut) {
 }
 
 fa_table(Nuclear.fa, .4) %>%
-  rename("Negative Characteristics" = MR1, "Positive Characteristics" = MR2, Items= item, Code = code) %>%
-  flex("Nuclear Energy: 2 factor solution") %>%
-  autofit()
+  rename("Social Costs" = MR1, "Pride" = MR2, Items= item) %>%
+  flex("Separate scale 2 factor solution: Nuclear energy ", col_widths = list(Items = 4.5, code = 1.5))
 
 
 ```
+\elandscape
 
 ```{r, echo=FALSE}
 
@@ -880,23 +1953,608 @@ flex <- function(data, title=NULL) {
 Nuclear.fa[["Vaccounted"]] %>%
   as.data.frame() %>%
   rownames_to_column("Property") %>%
-  rename("Negative Characteristics" = MR1, "Positive Characteristics" = MR2) %>%
+  rename(Social_Costs = MR1, Pride = MR2) %>%
     mutate(across(where(is.numeric), round, 3)) %>%
-    flex("Eigenvalues and Variance Explained for 2 Factor Solution")
+    flex("Eigenvalues and Variance Explained for Rotated Factor Solution")
 
 
 
 ```
 
 
-```{r, echo = FALSE}
- # Adjust as per the number of factors
 
 
-#fa.diagram(Nuclear.fa, marg=c(.5,5,1,.5),size =1, adj = 0.25, e.size=.05,rsize=.35, main = "Two Factor Solution")
+
+```{r, echo=FALSE}
+
+# 2 factor 
+
+Nuclear_scores <- psych::factor.scores(Nuclear2, Nuclear.fa)
+
+# The factor scores will be stored in the scores element of the returned list
+Nuclear_scores2 <- Nuclear_scores$scores
+
+#binding factor scores to the dataset
+
+Nuclearwscores2 <- cbind(Nuclear, Nuclear_scores2)%>%
+    dplyr::rename(pride = MR2)%>%
+    dplyr::rename(socialcosts = MR1)
+    
+
+
+nuclearfa <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State +  socialcosts + pride , data = Nuclearwscores2)
+# Print model summary
+summary(nuclearfa)
+
+bennuclearfa <- lm(Ben_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State +  socialcosts + pride , data = Nuclearwscores2)
+# Print model summary
+summary(bennuclearfa)
+
+
+#n2Kahan_Kscores
+
+
+Nuclearwscores3<- cbind(n2Kahan_Kscores, Nuclear_scores2)%>%
+    rename(socialcosts = MR1)%>%
+  rename(pride = MR2) %>%
+  select(Risky_Nuclear, Uppercaste, Male, Hindu, Urban, age, State, socialcosts, pride) %>%
+  na.omit()
+
+nuclearfa2 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State + socialcosts + pride , data = Nuclearwscores3)
+# Print model summary
+summary(nuclearfa2)
+
+#bennuclearfa2 <- lm(Ben_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State + KahanH + KahanS+ socialcosts + pride , data = Nuclearwscores3)
+# Print model summary
+#summary(bennuclearfa2)
+
+
+
+# Selecting the specific variables from the dataset
+#selected_data <- Nuclearwscores3[, c("KahanH", "KahanS", "socialcosts", "pride")]
+
+# Calculating the correlation matrix
+#corkahannew <- cor(selected_data, use = "complete.obs")  # 'use = "complete.obs"' handles missing values by excluding them
+
+# Printing the correlation matrix
+#print(corkahannew)
 
 ```
 
+
+
+```{r,echo = FALSE}
+acceptance4 <- Nuclearwscores2 %>%
+   mutate(Nuclear = Ben_Nuclear - Risky_Nuclear,
+         Hyrdo = Ben_Hydro - Risky_Hydro,
+         Wind = Ben_Wind - Risky_Wind,
+         Solar = Ben_Solar - Risky_Solar,
+         Coal = Ben_Coal - Risky_Coal,
+         Gas = Ben_Gas - Risky_Gas,
+         Oil = Ben_Oil - Risky_Oil)
+
+
+naccept3 <- lm(Nuclear ~ age + Uppercaste + Male + Hindu + Urban + State  +  socialcosts + pride, data = acceptance4)
+
+
+#summary(naccept3)
+
+```
+
+
+
+
+\blandscape
+\newpage
+## Solar Energy : positive (alpha =0.85) and negative (alpha = 0.81)characteristics (2 factor solution)
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+
+Solar <- codedmodule2 %>%
+  filter(rowSums(is.na(dplyr::select(., starts_with("K_")))) == 0)%>%
+  filter(complete.cases(dplyr::select(., DISPLACESOLAR:RELYSOLAR)))
+
+Solar2 <- Solar  %>%
+  dplyr::select("DISPLACESOLAR","POLLUTESOLAR","HEALTHSOLAR","BEAUTYSOLAR","PRIDESOLAR","NPRIDESOLAR", "DEVSOLAR", "PROSPERSOLAR")%>%
+    rename(
+   "Displacement risk(Solar)" = "DISPLACESOLAR",
+  "Pollution risk(Solar)" = "POLLUTESOLAR",
+  "Health risk(Solar)" = "HEALTHSOLAR",
+  #"Job opportunities(Solar)" = "JOBSSOLAR",
+  "Spoils Natural Beauty(Solar)" = "BEAUTYSOLAR",
+  "Community pride(Solar)" = "PRIDESOLAR",
+  "National pride(Solar)" = "NPRIDESOLAR",
+  "National development(Solar)" = "DEVSOLAR",
+  "Local prosperity(Solar)" = "PROSPERSOLAR",
+  #"Reliance on government(Solar)" = "RELYSOLAR"
+    )
+
+Solar.fa <- fa(Solar2, nfactors = 2, rotate = "varimax")
+
+print.psych(Solar.fa, cut = 0.40, sort = TRUE)
+
+#fa.diagram(Solar.fa)
+
+# CFA Kahan 
+
+
+snegative <- Solar %>%
+  dplyr::select(HEALTHSOLAR, POLLUTESOLAR,BEAUTYSOLAR, DISPLACESOLAR)%>%
+  na.omit()
+
+snegative.alpha <- psych::alpha(snegative, check.keys = TRUE)
+
+# alpha = 0.81
+
+spositive <- Solar %>%
+  dplyr::select(DEVSOLAR, PROSPERSOLAR,NPRIDESOLAR,PRIDESOLAR)%>%
+  na.omit()
+
+spositive.alpha <- psych::alpha(spositive, check.keys = TRUE)
+
+# alpha = 0.89
+
+
+Kahan_fas <- '
+  KahanS =~ K_SHARM + K_SLIMCHOI + K_SPROTECT 
+  KahanH =~ K_HEQUAL+ K_ERADEQ1 + K_EWEALTH + K_ERADEQ2
+'
+
+# Run CFA
+s2Kahan_cfa <- cfa(Kahan_fas, data = Solar, std.lv = TRUE)
+
+# creating table of factor scores 
+
+s2Kahan_scores <- predict(s2Kahan_cfa, newdata = Solar)
+
+s2Kahan_Kscores <- cbind(Solar, s2Kahan_scores)
+
+```
+
+
+```{r, echo=FALSE}
+
+library(flextable)
+
+set_flextable_defaults(docx.landscape = TRUE)
+
+flex <- function(data, title=NULL, col_widths=NULL) {
+  tbl <- flextable(data) %>%
+           #padding(padding = 1, part = "all") %>%
+           #set_table_properties(layout = "autofit") %>%
+           fontsize(size=10, part="all") %>%
+           set_caption(title, 
+                       autonum = officer::run_autonum(seq_id = "tab", 
+                                                      pre_label = "Table ", 
+                                                      post_label = "\n", 
+                                                      bkm = "anytable"))
+  
+  # If col_widths is provided, set column widths
+  if(!is.null(col_widths)) {
+    for(col in names(col_widths)){
+      tbl <- width(tbl, j = col, width = col_widths[[col]])
+    }
+  }
+
+  return(tbl)
+}
+
+
+rename_map <- c(
+  "Displacement risk(Solar)" = "Solar energy is leading to displacement of people from their land",
+  "Spoils Natural Beauty(Solar)" = "Solar energy spoils the natural beauty of the landscape",
+  "Pollution risk(Solar)" = "Solar energy increases pollution of air/water/land",
+  "Health risk(Solar)" = "Solar energy poses a great risk to the health of people living around it",
+  "Community pride(Solar)" = "I would be proud if my community used solar energy",
+  "National pride(Solar)" = "Solar energy is a mark of pride for our nation",
+  "National development(Solar)" = "Solar energy pushes forward the country's development",
+  "Local prosperity(Solar)" = "Solar energy brings economic prosperity to the surrounding regions"
+)
+
+fa_table <- function(x, cut) {
+  #get sorted loadings
+  loadings <- fa.sort(x)$loadings %>% round(3)
+  #suppress loadings
+  loadings[loadings > -cut & loadings < cut] <- ""
+  #get additional info  
+  add_info <- cbind(x$communalities, 
+                    x$uniquenesses,
+                    x$complexity) %>%
+    # make it a data frame
+    as.data.frame() %>%
+    # column names
+    rename("Communality" = V1,
+           "Uniqueness" = V2,
+           "Complexity" = V3) %>%
+    #get the item names from the vector
+    rownames_to_column("item")
+  
+  #build table
+  loadings %>%
+    unclass() %>%
+    as.data.frame() %>%
+    rownames_to_column("item") %>%
+    left_join(add_info) %>%
+    mutate(
+      item = if_else(item %in% names(rename_map), rename_map[item], item),
+      code = names(rename_map)[match(item, rename_map)], # extracting short form
+      across(where(is.numeric), round, 3)
+    ) %>%
+    select(code, everything()) # reorder columns to bring code to the front
+}
+
+fa_table(Solar.fa, .4) %>%
+  rename("Pride" = MR1, "Social Costs" = MR2, Items= item) %>%
+  flex("Separate scale 2 factor solution: Solar energy ", col_widths = list(Items = 4.5, code = 1.5))
+
+
+```
+\elandscape
+
+```{r, echo=FALSE}
+
+library(flextable)
+
+
+flex <- function(data, title=NULL) {
+  # this grabs the data and converts it to a flextbale
+  flextable(data) %>%
+  # this makes the table fill the page width
+  set_table_properties(layout = "autofit", width = 1) %>%
+  # font size
+  fontsize(size=10, part="all") %>%
+    #this adds a ttitlecreates an automatic table number
+      set_caption(title, 
+                  autonum = officer::run_autonum(seq_id = "tab", 
+                                                 pre_label = "Table ", 
+                                                 post_label = "\n", 
+                                                 bkm = "anytable")) #%>%
+  # font type
+  #font(fontname="Times New Roman", part="all")
+}
+
+
+
+Solar.fa[["Vaccounted"]] %>%
+  as.data.frame() %>%
+  rownames_to_column("Property") %>%
+  rename(Pride = MR1, Social_Costs = MR2) %>%
+    mutate(across(where(is.numeric), round, 3)) %>%
+    flex("Eigenvalues and Variance Explained for Rotated Factor Solution")
+
+
+
+```
+
+
+```{r, echo=FALSE}
+
+
+# 2 factor 
+
+Solar_scores <- psych::factor.scores(Solar2, Solar.fa)
+
+# The factor scores will be stored in the scores element of the returned list
+Solar_scores2 <- Solar_scores$scores
+
+#binding factor scores to the dataset
+
+Solarwscores2 <- cbind(s2Kahan_Kscores, Solar_scores2)%>%
+    rename(pride = MR1)%>%
+  rename(socialcosts = MR2)
+
+
+
+Solarfa <- lm(Risky_Solar ~  Uppercaste + Male + Hindu + Urban + age + State + pride + socialcosts, data = Solarwscores2)
+# Print model summary
+summary(Solarfa)
+
+
+benSolarfa <- lm(Ben_Solar ~  Uppercaste + Male + Hindu + Urban + age + State +  KahanH + KahanS + pride + socialcosts, data = Solarwscores2)
+# Print model summary
+summary(benSolarfa)
+
+
+```
+
+```{r,echo = FALSE}
+sacceptance4 <- Solarwscores2 %>%
+   mutate(Nuclear = Ben_Nuclear - Risky_Nuclear,
+         Hyrdo = Ben_Hydro - Risky_Hydro,
+         Wind = Ben_Wind - Risky_Wind,
+         Solar = Ben_Solar - Risky_Solar,
+         Coal = Ben_Coal - Risky_Coal,
+         Gas = Ben_Gas - Risky_Gas,
+         Oil = Ben_Oil - Risky_Oil)
+
+
+saccept3 <- lm(Solar ~ age + Uppercaste + Male + Hindu + Urban + State  +  socialcosts + pride, data = sacceptance4)
+
+
+#summary(saccept3)
+
+```
+\newpage
+\blandscape
+
+## Coal : positive (alpha = 0.67) and negative (alphs = 0.72) characteristics (2 factor solution)
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+#alpha test on Eco-pol characteristics of the technology
+
+
+
+Coal <- codedmodule2 %>%
+  filter(complete.cases(dplyr::select(., DISPLACECOAL:RELYCOAL)))
+
+Coal2 <- Coal %>%
+  dplyr::select("DISPLACECOAL","POLLUTECOAL","HEALTHCOAL","BEAUTYCOAL","PRIDECOAL","NPRIDECOAL","DEVCOAL","PROSPERCOAL")%>%
+    rename(
+   "Displacement risk(Coal)" = "DISPLACECOAL",
+  "Pollution risk(Coal)" = "POLLUTECOAL",
+  "Health risk(Coal)" = "HEALTHCOAL",
+  #"Job opportunities(Coal)" = "JOBSCOAL",
+  "Spoils Natural Beauty(Coal)" = "BEAUTYCOAL",
+  "Community pride(Coal)" = "PRIDECOAL",
+  "National pride(Coal)" = "NPRIDECOAL",
+  "National development(Coal)" = "DEVCOAL",
+  "Local prosperity(Coal)" = "PROSPERCOAL"
+  #"Reliance on government(Coal)" = "RELYCOAL"
+    )
+
+
+Coal.fa <- fa(Coal2, nfactors = 2, rotate = "varimax")
+
+print.psych(Coal.fa, cut = 0.40, sort = TRUE)
+
+#fa.diagram(Coal.fa)
+
+
+cnegative <- Coal %>%
+  dplyr::select(HEALTHCOAL, POLLUTECOAL,BEAUTYCOAL, DISPLACECOAL)%>%
+  na.omit()
+
+cnegative.alpha <- psych::alpha(cnegative, check.keys = TRUE)
+
+# alpha = 0.72
+
+cpositive <- Coal %>%
+  dplyr::select(DEVCOAL, PROSPERCOAL,NPRIDECOAL,PRIDECOAL)%>%
+  na.omit()
+
+cpositive.alpha <- psych::alpha(cpositive, check.keys = TRUE)
+
+# alpha = 0.68
+
+
+```
+
+
+```{r, echo=FALSE}
+
+library(flextable)
+
+set_flextable_defaults(docx.landscape = TRUE)
+
+flex <- function(data, title=NULL, col_widths=NULL) {
+  tbl <- flextable(data) %>%
+           #padding(padding = 1, part = "all") %>%
+           #set_table_properties(layout = "autofit") %>%
+           fontsize(size=10, part="all") %>%
+           set_caption(title, 
+                       autonum = officer::run_autonum(seq_id = "tab", 
+                                                      pre_label = "Table ", 
+                                                      post_label = "\n", 
+                                                      bkm = "anytable"))
+  
+  # If col_widths is provided, set column widths
+  if(!is.null(col_widths)) {
+    for(col in names(col_widths)){
+      tbl <- width(tbl, j = col, width = col_widths[[col]])
+    }
+  }
+
+  return(tbl)
+}
+
+
+rename_map <- c(
+  "Displacement risk(Coal)" = "Coal powered plants is leading to displacement of people from their land",
+  "Spoils Natural Beauty(Coal)" = "Coal powered plants spoils the natural beauty of the landscape",
+  "Pollution risk(Coal)" = "Coal powered plants increases pollution of air/water/land",
+  "Health risk(Coal)" = "Coal powered plants poses a great risk to the health of people living around it",
+  "Community pride(Coal)" = "I would be proud if my community used Coal powered plants",
+  "National pride(Coal)" = "Coal powered plants is a mark of pride for our nation",
+  "National development(Coal)" = "Coal powered plants pushes forward the country's development",
+  "Local prosperity(Coal)" = "Coal powered plants brings economic prosperity to the surrounding regions"
+)
+
+fa_table <- function(x, cut) {
+  #get sorted loadings
+  loadings <- fa.sort(x)$loadings %>% round(3)
+  #suppress loadings
+  loadings[loadings > -cut & loadings < cut] <- ""
+  #get additional info  
+  add_info <- cbind(x$communalities, 
+                    x$uniquenesses,
+                    x$complexity) %>%
+    # make it a data frame
+    as.data.frame() %>%
+    # column names
+    rename("Communality" = V1,
+           "Uniqueness" = V2,
+           "Complexity" = V3) %>%
+    #get the item names from the vector
+    rownames_to_column("item")
+  
+  #build table
+  loadings %>%
+    unclass() %>%
+    as.data.frame() %>%
+    rownames_to_column("item") %>%
+    left_join(add_info) %>%
+    mutate(
+      item = if_else(item %in% names(rename_map), rename_map[item], item),
+      code = names(rename_map)[match(item, rename_map)], # extracting short form
+      across(where(is.numeric), round, 3)
+    ) %>%
+    select(code, everything()) # reorder columns to bring code to the front
+}
+
+fa_table(Coal.fa, .4) %>%
+  rename("Social Costs" = MR1, "Pride" = MR2, Items= item) %>%
+  flex("Separate scale 2 factor solution: Coal ", col_widths = list(Items = 4.5, code = 1.5))
+
+```
+\elandscape
+
+```{r, echo=FALSE}
+
+library(flextable)
+
+
+flex <- function(data, title=NULL) {
+  # this grabs the data and converts it to a flextbale
+  flextable(data) %>%
+  # this makes the table fill the page width
+  set_table_properties(layout = "autofit", width = 1) %>%
+  # font size
+  fontsize(size=10, part="all") %>%
+    #this adds a ttitlecreates an automatic table number
+      set_caption(title, 
+                  autonum = officer::run_autonum(seq_id = "tab", 
+                                                 pre_label = "Table ", 
+                                                 post_label = "\n", 
+                                                 bkm = "anytable")) #%>%
+  # font type
+  #font(fontname="Times New Roman", part="all")
+}
+
+
+
+Coal.fa[["Vaccounted"]] %>%
+  as.data.frame() %>%
+  rownames_to_column("Property") %>%
+  rename(Social_Costs = MR1, Pride = MR2) %>%
+    mutate(across(where(is.numeric), round, 3)) %>%
+    flex("Eigenvalues and Variance Explained for Rotated Factor Solution")
+
+
+
+```
+
+
+
+
+```{r, echo=FALSE}
+
+
+# 2 factor 
+
+Coal_scores <- psych::factor.scores(Coal2, Coal.fa)
+
+# The factor scores will be stored in the scores element of the returned list
+Coal_scores2 <- Coal_scores$scores
+
+#binding factor scores to the dataset
+
+Coalwscores2 <- cbind(Coal, Coal_scores2) %>%
+  rename(socialcosts = MR1)%>%
+  rename(pride = MR2)
+
+
+Coalfa <- lm(Risky_Coal ~  Uppercaste + Male + Hindu + Urban + age + State + socialcosts + pride , data = Coalwscores2)
+# Print model summary
+#summary(Coalfa)
+
+benCoalfa <- lm(Ben_Coal ~  Uppercaste + Male + Hindu + Urban + age + State + pride + socialcosts, data = Coalwscores2)
+# Print model summary
+#summary(benCoalfa)
+```
+
+
+
+
+```{r,echo = FALSE}
+cacceptance4 <- Coalwscores2 %>%
+   mutate(Nuclear = Ben_Nuclear - Risky_Nuclear,
+         Hyrdo = Ben_Hydro - Risky_Hydro,
+         Wind = Ben_Wind - Risky_Wind,
+         Solar = Ben_Solar - Risky_Solar,
+         Coal = Ben_Coal - Risky_Coal,
+         Gas = Ben_Gas - Risky_Gas,
+         Oil = Ben_Oil - Risky_Oil)
+
+
+caccept3 <- lm(Coal ~ age + Uppercaste + Male + Hindu + Urban + State  + socialcosts + pride, data = cacceptance4)
+
+
+#summary(caccept3)
+
+```
+
+\newpage 
+
+
+## Linear Models: Perceived Risk X positive and negative characteristics of the technology
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
+
+
+cat("\\begingroup")
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(nuclearfa, Solarfa, Coalfa, 
+          title = "LMs with separate scale 2 FA solution: Perceived Risk",
+          type = "latex"
+)
+cat("\\endgroup")
+
+
+```
 
 
 \newpage
+
+## Linear Models: Perceived Benefit X positive and negative characteristics of the technology
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
+
+
+cat("\\begingroup")
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(bennuclearfa, benSolarfa, benCoalfa, 
+          title = "LMs with separate scale 2 FA solution: Perceived Benefit",
+          type = "latex"
+)
+cat("\\endgroup")
+
+
+```
+
+
+\newpage
+## Linear Models: Acceptance(Benefit - Risk) X positive and negative characteristics of the technology
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
+
+
+cat("\\begingroup")
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(naccept3,saccept3, caccept3, 
+          title = "LMs with separate scale 2 FA solution: Perceived Benefit",
+          type = "latex"
+)
+cat("\\endgroup")
+
+
+```
+
+
+

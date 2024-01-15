@@ -11,6 +11,17 @@ output:
   - "\\usepackage{placeins}"
   keep_md: yes
 ---
+
+
+
+\newpage 
+
+# Abstract
+
+Indian state regards nuclear energy as an important solution to rising energy needs and climate change issues. However, throughout India, nuclear power initiatives have faced opposition from people. Using survey data this study reveals that, similar to global trends, nuclear energy is perceived as highly risk in India as well. It is also perceived as the riskiest technology among all large-scale energy sources (like coal, solar, wind, oil gas, and hydro). Using risk perception theories and frameworks, this paper delves into the underlying factors influencing India's public perception of nuclear energy. While consistent demographic patterns, termed the "white male effect," influence risk perceptions in the US, demographic factors such as gender and caste have minimal influence on India's nuclear energy risk perceptions. Cultural paradigms like hierarchy versus egalitarianism and individualism versus communitarianism also show negligible impact. However, regional differences among states and economic and political values have significant impact on risk perceptions related to nuclear energy in the Indian context.
+
+
+
 ```{r load packages, warning = FALSE, message = FALSE, echo=FALSE}
   knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
@@ -24,6 +35,11 @@ suppressPackageStartupMessages(library(tsibble))
 suppressPackageStartupMessages(library(DT))
 suppressPackageStartupMessages(library(knitr))
 suppressPackageStartupMessages(library(psych)) 
+suppressPackageStartupMessages(library(foreign))
+suppressPackageStartupMessages(library(MASS))
+suppressPackageStartupMessages(library(Hmisc))
+suppressPackageStartupMessages(library(reshape2))
+
 ```
 
 ```{r setup, echo=FALSE}
@@ -69,28 +85,28 @@ codedmodule2 <- module2 %>%
   
   
 # code likert scale for variables for Kahan scale into numbers
-  mutate_at(vars(starts_with (c("K_I","K_H","DISPLACE", "POLLUTE", "HEALTH", "JOBS", "BEAUTY", "PRIDE", "NPRIDE", "DEV", "PROSPER", "RELY"))), funs(case_when(. == "Strongly disagree" ~ 1, 
+  mutate_at(vars(starts_with (c("K_S","K_E","DISPLACE", "POLLUTE", "HEALTH", "JOBS", "BEAUTY", "PRIDE", "NPRIDE","DEVNUCLEAR","PROSPER", "RELY"))), funs(case_when(. == "Strongly disagree" ~ 1, 
                . == "Somewhat disagree" ~ 2,
                . == "Neither agree nor disagree" ~3,
                . == "Somewhat agree" ~ 4,
                . == "Strongly agree" ~ 5))) %>%
   
 # reverse code for likert scale for variables for Kahan scale into numbers
-  mutate_at(vars(starts_with (c("K_S","K_E"))), funs(case_when(. == "Strongly disagree" ~ 5, 
+  mutate_at(vars(starts_with (c("K_H","K_I"))), funs(case_when(. == "Strongly disagree" ~ 5, 
                                                                . == "Somewhat disagree" ~ 4,
                                                                . == "Neither agree nor disagree" ~3,
                                                                . == "Somewhat agree" ~ 2,
                                                                . == "Strongly agree" ~ 1))) %>%
 
 # code eco-pol scale variables into numbers
-mutate_at(vars(SYSTEMDEMO,SYSTEMRELIGION,SYSTEMTECHNO,SYSTEMTOTAL,WEALTHLIM,MECHANISATION,DECISIONDECEN,INDUSTRYLARGE,ECONOMYGLOBAL,OWNERPVT,OWNERNOREG), funs(case_when(. == "Strongly disagree" ~ 1, 
+mutate_at(vars(SYSTEMDEMO,SYSTEMRELIGION,SYSTEMTECHNO,SYSTEMTOTAL,WEALTHLIM,MECHANISATION,DECISIONDECEN,INDUSTRYSMALL,ECONOMYLOCAL,ENVOVERDEV,OWNERPUB, OWNERREG), funs(case_when(. == "Strongly disagree" ~ 1, 
                         . == "Somewhat disagree" ~ 2,
                         . == "Neither agree nor disagree" ~3,
                         . == "Somewhat agree" ~ 4,
                         . == "Strongly agree" ~ 5))) %>%
 
 # reverse code eco-pol scale variables into numbers 
- mutate_at(vars(DECISIONCEN, INDUSTRYSMALL, ECONOMYLOCAL, ENVOVERDEV,OWNERPUB, OWNERREG), funs(case_when(. == "Strongly disagree" ~ 5, 
+ mutate_at(vars(DECISIONCEN,INDUSTRYLARGE,ECONOMYGLOBAL,OWNERPVT,OWNERNOREG, DEVOVERENV), funs(case_when(. == "Strongly disagree" ~ 5, 
                                                                                                          . == "Somewhat disagree" ~ 4,
                                                                                                          . == "Neither agree nor disagree" ~3,
                                                                                                          . == "Somewhat agree" ~ 2,
@@ -194,76 +210,7 @@ uncodedjoineddf <- full_join(numcolb, numcola, by = c("Respondent", "Language", 
 
 \newpage    
 
-# H1: Nuclear Energy will be seen as riskier than other energy technologies in India.
-
-
-## Likert Responses (n= 2160)
-The percentages are rounded off to whole numbers. 
-
-```{r, echo=FALSE}
-knitr::opts_chunk$set(warning = FALSE, message = FALSE)
-# Q1: how much is the awareness of energy technologies in India ? How does it relate to state specific data ? 
-# summary of NA results from the combined sample of 2000 responses (simple percentage bar graphs)
-# part 1- how much is the awareness of energy technologies in India - 
-
-
-#plotting perceived risk from different technologies including rather not say don't know
-colorsequence<- c("#8C4646","#D9695F","#F2A679","#F2D091","#5D8C7B","#808080")
-
-#following is the data frame for making the barplot 
-df_barplot <- uncodedjoineddf %>%
-  dplyr::select(starts_with("RISKY"))%>%
-  gather(Technology, Perceived_Risk, Risky_Hydro:Risky_INDLPG, factor_key = TRUE)%>%
-  separate(Technology, c("Risky", "Technology"), extra = "merge", fill = "left")%>%
-  dplyr::select(-Risky) %>% 
-  group_by(Technology, Perceived_Risk) %>%
-  dplyr::summarise(n=n())
-
-#following data frame gives us percentage for each response 
-df_barplot_percent<- df_barplot%>%
-  group_by(Technology) %>%
-  mutate(Percentage = round(n/sum(n)*100, 0)) %>%
-  ungroup()
-
-#plotting perceived benefit from different technologies including rather not say don't know
-
-df_barplotben <- uncodedjoineddf %>%
-  dplyr::select(starts_with("Ben"))%>%
-  gather(Technology, Perceived_Benefit, Ben_Hydro:Ben_INDKerosene, factor_key = TRUE)%>%
-  separate(Technology, c("Ben", "Technology"), extra = "merge", fill = "left")%>%
-  dplyr::select(-Ben) %>% 
-  group_by(Technology, Perceived_Benefit) %>%
-  dplyr::summarise(n=n())
-
-df_barplotben_percent<- df_barplotben%>%
-  group_by(Technology) %>%
-  mutate(Percentage = round(n/sum(n)*100, 0)) %>%
-  ungroup()
-
-#bar plot for likert responses perceived risk - centrally owned technologies 
-df_barplot %>% ggplot(aes(fill= fct_rev(factor(Perceived_Risk, levels=c("Extremely risky", "Very risky","Moderately risky","Slightly risky","Not at all risky","Rather not say/Don't know"))), y=n , x=Technology)) + 
-  geom_bar(position="fill",stat="identity")+
-  geom_text(data = df_barplot_percent, aes(label=paste0(Percentage, "%"), y=n), position = position_fill(vjust=0.5), size=3) +
-  scale_x_discrete(limits = c("Solar", "Wind" ,"Hydro", "Oil", "Coal","Gas", "Nuclear"))+
-  scale_fill_manual("legend", values = c("Extremely risky" = "#8C4646", "Very risky" = "#D9695F", "Moderately risky" = "#F2A679", "Slightly risky" = "#F2D091","Not at all risky" = "#5D8C7B", "Rather not say/Don't know" = "grey94"))+
-  labs( y = "Perceived Risk", x ="Centrally Managed Energy Technologies")+
-  theme_classic()
-
-
-#perceived benefit centrally owned technologies 
-
-df_barplotben %>% ggplot(aes(fill= factor(Perceived_Benefit, levels=c("Rather not say/Don't know","Not at all beneficial","Slightly beneficial","Moderately beneficial","Very beneficial", "Extremely beneficial")), y=n , x=Technology)) + 
-  geom_bar(position="fill",stat="identity")+
-   geom_text(data = df_barplotben_percent, aes(label=paste0(Percentage, "%"), y=n), position = position_fill(vjust=0.5), size=3) +
-  scale_fill_manual("legend", values = c("Rather not say/Don't know" = "grey94" ,"Not at all beneficial" = "orange","Slightly beneficial"="yellow" ,"Moderately beneficial" = "palegreen","Very beneficial"= "green3", "Extremely beneficial"= "green4"))+
-  scale_x_discrete(limits = c("Solar", "Wind", "Hydro", "Oil", "Coal","Gas","Nuclear"))+
-  labs( y = "Perceived Benefit", x ="Centrally Managed Energy Technologies")+
-  theme_classic()
-
-```
-
-
-\newpage
+# Nuclear is seen as riskier than others -this paper explore this risk perception
 
 ## Mean Perceived Risk and Mean Perceived Benefit for all energy technologies. 
 
@@ -275,6 +222,17 @@ joineddf_subset <- joineddf %>%
   dplyr::select(!starts_with(c("Ben_IND", "Risky_IND")))%>%
   dplyr::select(starts_with("Risky"), 
          starts_with("Ben"))
+
+joineddf_subset_cor <- joineddf %>%
+  dplyr::select(!starts_with(c("Ben_IND", "Risky_IND")))%>%
+  dplyr::select(starts_with("Risky"), 
+         starts_with("Ben"))%>%
+  na.omit()
+
+
+cor(joineddf_subset_cor)
+
+
 
 # Assuming your data is named joineddf_subset
 long_df <- joineddf_subset %>%
@@ -291,7 +249,7 @@ ben_df$Tech <- str_replace(ben_df$Type, "Ben_", "")
 # Calculate the mean for each technology for Risky
 risky_mean <- risky_df %>%
   group_by(Tech) %>%
-  summarize(Mean_Value = mean(Value, na.rm = TRUE),
+  dplyr::summarize(Mean_Value = mean(Value, na.rm = TRUE),
           sd = sd(Value, na.rm = TRUE),
           se = sd(Value, na.rm = TRUE) / sqrt(n()),
           .groups = "drop")
@@ -299,7 +257,7 @@ risky_mean <- risky_df %>%
 # Do the same for Ben technologies
 ben_mean <- ben_df %>%
   group_by(Tech) %>%
-  summarize(Mean_Value = mean(Value, na.rm = TRUE),
+  dplyr::summarize(Mean_Value = mean(Value, na.rm = TRUE),
           sd = sd(Value, na.rm = TRUE),
           se = sd(Value, na.rm = TRUE) / sqrt(n()),
           .groups = "drop")
@@ -314,7 +272,38 @@ risky_mean$Tech <- factor(risky_mean$Tech, levels = risky_mean$Tech[order(risky_
 
 
 
+# Split the data into Risky and Ben subsets
+risky_data <- joineddf_subset_cor %>% dplyr::select(starts_with("Risky"))
+ben_data <- joineddf_subset_cor %>% dplyr::select(starts_with("Ben"))
+
+# Rename the columns
+names(risky_data) <- gsub("^Risky_", "Perceived Risk (", names(risky_data))
+names(risky_data) <- paste0(names(risky_data), ")")
+names(ben_data) <- gsub("^Ben_", "Perceived Benefit (", names(ben_data))
+names(ben_data) <- paste0(names(ben_data), ")")
+
+# Compute the correlation between Risky and Ben variables
+correlation_matrix <- cor(risky_data, ben_data)
+
+correlation_df <- as.data.frame(correlation_matrix)
+
+#kable_table <- kable(correlation_df, caption = "Correlation Table between Perceived Risk and Perceived Benefit Variables", format = "html", #digits = 2) %>%
+  #kable_styling(full_width = F) %>%
+  #column_spec(1, background = "white") %>%
+  #add_header_above(c(" " = 1, "Perceived Benefits" = ncol(correlation_df)))#%>%
+  #pack_rows("Perceived Risks", 1, nrow(correlation_df))
+
+# Apply alternating background colors for columns
+#for (i in seq(2, ncol(correlation_df), by = 2)) {
+  #kable_table <- kable_table %>% 
+    
+#row_spec(i, background = "#F0F0F0")
+#}
+
+# Print the kable table
+#print(kable_table)
 ```
+
 
 
 ```{r, echo=FALSE}
@@ -334,19 +323,19 @@ ben_mean$Tech <- factor(ben_mean$Tech, levels = technology_order)
 ben_plot <- ggplot(ben_mean, aes(y = Tech, x = Mean_Value)) +
   geom_bar(stat = "identity", fill = "palegreen3") +
   geom_errorbar(aes(xmin = Mean_Value - se, xmax = Mean_Value + se), width = 0.2) +
-  coord_cartesian(xlim = c(4, 1)) + 
+  coord_cartesian(xlim = c(5, 1)) + 
   labs(title = "Perceived Benefit", x = "Mean Values") +
   #scale_x_reverse() +
   theme(  # remove y-axis labels
         axis.title.y = element_blank()) + # remove the "Tech" axis title
   geom_vline(data = subset(combined_mean, Category == "Beneficial"), 
-             aes(xintercept = mean_risk), linetype="dotted", color = "black", size = 0.5)
+             aes(xintercept = mean_benefit), linetype="dotted", color = "black", size = 0.5)
 
 # Generate the Risky plot
 risky_plot <- ggplot(risky_mean, aes(y = Tech, x = Mean_Value)) +
   geom_bar(stat = "identity", fill = "firebrick2") +
   geom_errorbar(aes(xmin = Mean_Value - se, xmax = Mean_Value + se), width = 0.2) +
-  coord_cartesian(xlim = c(1, 4)) + 
+  coord_cartesian(xlim = c(1, 5)) + 
   labs(title = "Perceived Risk", x = "Mean Values") +
   theme(axis.text.y = element_blank(),
         axis.title.y = element_blank())+
@@ -358,151 +347,6 @@ risky_plot <- ggplot(risky_mean, aes(y = Tech, x = Mean_Value)) +
 grid.arrange(ben_plot, risky_plot, ncol=2)
 
 ```
-
-
-## Boxplot for perceived benefit and perceived risk by technology
-
-```{r, echo = FALSE, fig.width=16, fig.height=6}
-
-#Box plot to see the distribution 
-
-# Loading the required libraries
-library(tidyverse)
-library(stringr)
-library(gridExtra)
-
-# Reshape the data to a long format
-joineddf_subset_long <- joineddf_subset %>%
-  pivot_longer(cols = everything(), 
-               names_to = "variable",
-               values_to = "value")
-
-# Separate the data into two: one for "Risky_" variables and one for "Ben_" variables
-risky_df <- joineddf_subset_long %>% 
-  filter(str_detect(variable, "^Risky_")) %>%
-  mutate(variable = str_remove(variable, "Risky_"))  # Remove the "Risky_" prefix
-
-ben_df <- joineddf_subset_long %>% 
-  filter(str_detect(variable, "^Ben_")) %>%
-  mutate(variable = str_remove(variable, "Ben_"))  # Remove the "Ben_" prefix
-
-# Remove NA values
-risky_df <- risky_df %>% drop_na()
-ben_df <- ben_df %>% drop_na()
-
-# Create box plots
-risky_plot <- ggplot(risky_df, aes(x = variable, y = value, fill = variable)) +
-  geom_boxplot() +
-  scale_fill_manual(values = rep("firebrick2", length(unique(risky_df$variable)))) +
-  labs(x = "Energy Technologies", y = "Likert", fill = "Technologies") +
-  ggtitle("Perceived risk") +
-  theme_minimal()+
-  theme(axis.text.y = element_text(size=20), 
-        axis.text.x = element_text(size=20),
-        axis.title.y = element_text(size=20),
-        axis.title.x = element_text(size=20),
-        title = element_text(size=20))+
-  guides(fill = FALSE)
-
-ben_plot <- ggplot(ben_df, aes(x = variable, y = value, fill = variable)) +
-  geom_boxplot() +
-  scale_fill_manual(values = rep("palegreen3", length(unique(ben_df$variable)))) +
-  labs(x = "Energy Technologies", y = "Likert Responses", fill = "Technologies") +
-  ggtitle("Perceived Benefit") +
-  theme_minimal()+
-  theme(axis.text.y = element_text(size=20), 
-        axis.text.x = element_text(size=20),
-        axis.title.y = element_text(size=20),
-        axis.title.x = element_text(size=20),
-        title = element_text(size=20))+
-  guides(fill = FALSE)
-
-# Put the two plots next to each other
-grid.arrange(risky_plot, ben_plot, ncol = 2)
-
-```
-
-
-
-\newpage
-
-## Pairwise T-test: Mean perceived risk and mean perceived benefit (all energy technologies)
-
-The red and green pairs indicate that there is a statistically significant difference between the means of the two groups. 
-White and grey indicate - no differences between the means of the two groups.
-
-```{r, echo = FALSE, fig.width=14, fig.height=6}
-#Q2 :How are the perceptions of the risk of producing energy from nuclear fission different from that of other conventional sources of energy like coal or hydro power in India?
-#H : Nuclear energy will be perceived as riskier than other sources of energy (coal or hydro) in India like in the west.
-perceivedriskc <-joineddf %>% 
-  dplyr::select("Risky_Solar", "Risky_Hydro", "Risky_Wind", "Risky_Nuclear", "Risky_Coal", "Risky_Gas", "Risky_Oil") %>%
-  gather(key = "technology", value = "perceived_risk") %>% 
-  mutate(technology = gsub("Risky_", "", technology)) %>%
-  na.omit()
-
-
-result_ttest <- pairwise.t.test(perceivedriskc$perceived_risk, perceivedriskc$technology, p.adjust.method = "BH")
-
-# visualising the pairwaise t test results. the non significant pairs are grey 
-
-tidy_result_ttest <- broom::tidy(result_ttest)
-
-heatmap1 <- ggplot(tidy_result_ttest, aes(x = group1, y = group2, fill = p.value)) + 
-  geom_tile(color = "white") + 
-  scale_fill_gradient2(low = "firebrick2", high = "white", midpoint = 0.025, 
-                       limits = c(0, 0.05), space = "Lab", 
-                       name = "P-value") + 
-  theme_classic() + 
-  labs(x = "", y = "") + 
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
-   theme(axis.text.y = element_text(size=20), 
-        axis.text.x = element_text(size=20),
-        axis.title.y = element_text(size=20),
-        axis.title.x = element_text(size=20),
-        title = element_text(size=20),
-        legend.text = element_text(size=12))
-
-#Question- Why there is significant difference statistically - if the medians are the same in the boxplot.
-#Q3: How do perceptions of benefit from nuclear energy compare with other source of energy? 
-
-# H : benefits from all energy technologies will be similar 
-# include regression, heat maps, bar graphs? - decide which ones are good to include
-
-perceivedbenefitc <-joineddf %>% 
-  dplyr::select("Ben_Solar", "Ben_Hydro", "Ben_Wind", "Ben_Nuclear", "Ben_Coal", "Ben_Gas", "Ben_Oil") %>%
-  gather(key = "technology", value = "perceived_benefit") %>% 
-  mutate(technology = gsub("Ben_", "", technology)) %>%
-  na.omit()
-
-
-result_ttestben <- pairwise.t.test(perceivedbenefitc$perceived_benefit, perceivedbenefitc$technology, p.adjust.method = "BH")
-
-# visualising the pairwaise t test results. the non significant pairs are grey 
-
-tidy_resultbc <- broom::tidy(result_ttestben)
-
-library(ggplot2)
-heatmap2 <- ggplot(tidy_resultbc, aes(x = group1, y = group2, fill = p.value)) + 
-  geom_tile(color = "white") + 
-  scale_fill_gradient2(low = "palegreen3", high = "white", midpoint = 0.025, 
-                       limits = c(0, 0.05), space = "Lab", 
-                       name = "P-value") + 
-  theme_classic() + 
-  labs(x = "", y = "") + 
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
-   theme(axis.text.y = element_text(size=20), 
-        axis.text.x = element_text(size=20),
-        axis.title.y = element_text(size=20),
-        axis.title.x = element_text(size=20),
-        title = element_text(size=20),
-        legend.text = element_text(size=12))
-
-
-grid.arrange(heatmap1, heatmap2, ncol=2)
-
-```
-
-
 
 
 
@@ -570,7 +414,7 @@ alldemos <- joineddf %>%
 
 alldemoslm1 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age , data = alldemos)
 # Print model summary
-#summary(alldemoslm1)
+summary(alldemoslm1)
 #plot(alldemoslm1)
 
 # lm suggests there is no significant white male effect or upper caste male effect for risk perception from nuclear energy in India. 
@@ -579,7 +423,7 @@ alldemoslm1 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age , data
 # 2) lm with all demographic variables
 alldemoslm2<- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State, data = alldemos)
 # Print model summary
-#summary(alldemoslm2)
+summary(alldemoslm2)
 #plot(alldemoslm1)
 
 
@@ -642,14 +486,14 @@ alldemoslm2_centered <- lm(Risky_Nuclear ~ Uppercaste_centered + Male_centered +
 library(stargazer)
 
 
-cat("\\begingroup")
-cat("\\setlength{\\tabcolsep}{1pt}")
-cat("\\renewcommand{\\arraystretch}{0.7}")
-stargazer(alldemoslm1_centered, alldemoslm2_centered, 
-          title = "Results from 2 linear regression models",
-          type = "latex"
-)
-cat("\\endgroup")
+#cat("\\begingroup")
+#cat("\\setlength{\\tabcolsep}{1pt}")
+#cat("\\renewcommand{\\arraystretch}{0.7}")
+#stargazer(alldemoslm1_centered, alldemoslm2_centered, 
+          #title = "Results from 2 linear regression models",
+          #type = "latex"
+#)
+#cat("\\endgroup")
 
 
 ```
@@ -725,31 +569,11 @@ grid.arrange(mean_nuclear_state, spacer, zscore_nuclear_state, ncol=3, widths=c(
 
 
 
-
-```{r, echo=FALSE}
-library(MASS)
-
-alldemos_factor <-alldemos  %>%
-  mutate_at(vars(Risky_Nuclear, Uppercaste, Male, Hindu, Urban, State), as.factor)
-
-model= polr(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban +State , data = alldemos_factor, Hess = TRUE)
-#summary(model)
-
-model3 <- glm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban +State , data = alldemos_factor, family = binomial)
-#summary(model3)
-
-
-ci <- confint(model3)
-#print(ci)
-
-
-```
-
-
 \newpage
 
 
 
+##  kahan scale CFA, EFA and Alpha 
 
 ```{r, echo=FALSE}
 # Q6: Does the Kahan scale explain perception of risk from nuclear energy and other DVs ? 
@@ -780,6 +604,37 @@ Kahan_fas <- '
 # Run CFA
 Kahan_cfa <- cfa(Kahan_fas, data = fascales, std.lv = TRUE)
 
+
+Kahan_scale <- codedmodule2 %>%
+  dplyr::select(starts_with("K_"))
+
+kahan.fa <- fa(Kahan_scale, nfactors = 2, rotate = "varimax")
+
+print.psych(kahan.fa, sort = TRUE)
+
+KahanHE<-Kahan_scale %>%
+  dplyr::select(starts_with(c("K_H", "K_E")))
+
+KahanHE_alpha<- psych::alpha(KahanHE, check.keys = TRUE) # alpha = 0.7
+
+KahanSI<-Kahan_scale %>%
+  dplyr::select(starts_with(c("K_S", "K_I")))
+
+KahanSI_alpha<- psych::alpha(KahanSI, check.keys = TRUE) # alpha =0.52
+
+KahanS<-Kahan_scale %>%
+  dplyr::select(starts_with(c("K_S")))
+
+KahanS_alpha<- psych::alpha(KahanS, check.keys = TRUE) # alpha = 0.72
+
+
+KahanI<-Kahan_scale %>%
+  dplyr::select(starts_with(c("K_I")))
+
+KahanI_alpha<- psych::alpha(KahanI, check.keys = TRUE) # alpha = 0.31 
+
+
+
 # Print the summary of the CFA results, including fit measures
 #summary(Kahan_cfa, fit.measure= TRUE, standardized = TRUE)
 
@@ -801,6 +656,59 @@ Kahan_Kscores <- cbind(fascales, Kahan_scores)
 
 
 ```
+
+
+## Kahan scater plot from the CFA scores 
+```{r, echo = FALSE}
+
+Kahan_Kscores %>%
+  ggplot(aes(KahanS, KahanH))+
+  geom_count(aes(color = ..n.., size = ..n..))+
+  guides(color = 'legend')+
+  geom_hline(yintercept=0, colour="black", lwd=0.5)+
+  geom_vline(xintercept=0, colour="black", lwd=0.5)+
+  labs(x = "Individualism to Communitarianism", y = "Hierarchy to Egalitarianism")+
+  ylim(-2,3)+
+  xlim(-2,3)+
+  theme_minimal() 
+```
+
+
+
+## alternative Kahan scores
+```{r, echo=FALSE}
+
+Kscalescores <- fascales %>%
+  dplyr::select(!starts_with(("K_I")))%>%
+  rowwise()%>%
+  dplyr::mutate(Communitarianism_score = mean(c_across(K_SHARM:K_SPROTECT)))%>%
+  dplyr::mutate(Egalitarianism_score = mean(c_across(K_HEQUAL:K_ERADEQ2)))%>%
+  dplyr::select(!starts_with(c("K_I","K_S", "K_H", "K_E")))
+
+```
+
+
+# EDIT : Scatter plot of Kahan scale scores around the median scores on Individualism and Hierarchy scales
+
+```{r dev = "jpg", echo=FALSE}
+
+#scatter plot of Kahan scale scores around the median scores on Individualism and Hierarchy scales. 
+
+Kscalescores %>%
+  ggplot(aes(Communitarianism_score,Egalitarianism_score))+
+  geom_count(aes(color = ..n.., size = ..n..))+
+  guides(color = 'legend')+
+  geom_hline(yintercept=3, colour="black", lwd=1)+
+  geom_vline(xintercept=3.5, colour="black", lwd=1)+
+  labs(x = "Individualism to Communitarianism", y = "Hierarchy to Egalitarianism")+
+  ylim(2,6)+
+  xlim(2,6)+
+  theme_minimal() 
+
+
+```
+
+
 
 
 
@@ -873,7 +781,7 @@ params1 <- params %>%
    
 
 params1$Scale <- NA
-params1$Scale[1:3] <- "Individualism"
+params1$Scale[1:3] <- "Communitarian"
 params1$Scale[4:7] <- "Hierarchy-Egalitarianism"
 params1 <- params1[, c("Scale", setdiff(names(params1), "Scale"))]
 CFAkahan <- knitr::kable(params1, booktabs = TRUE, caption = "Confirmatory Factor Analysis(CFA) on Kahan et al(2007) scale adapted to India") %>%
@@ -914,12 +822,12 @@ PCA24 <- principal(ecopolall, nfactors = 24, rotate = "none") # no rotation to s
 #PCA24$loadings
 
 #fa.parallel(ecopolall_cor)
-
 # this suggests 2 factors if we go by FA or 8 by PCA. let's try both and see how they look conceptually 
-
 # running EFA using psych package 
 
 ecopolall2.fa <- fa(ecopolall, nfactors = 2, rotate = "varimax")
+
+print.psych(ecopolall2.fa, sort = TRUE)
 
 # I don't know still doesn't make a lot of sense to me- the two factors make more sense - 1) people centered development 2) nationalist development
 # So I am going to extract factor scores and bind them to the dataset
@@ -931,10 +839,14 @@ scores1 <- ecopolall_scores$scores
 
 #binding factor scores to the dataset
 
+
+
 fascale_scores <- cbind(Kahan_Kscores, scores1) %>%
   rename(Pdevelop = MR1)%>%
-  rename(Ndevelop = MR2) %>%
-  dplyr::select(!starts_with(c("K_","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACENUCLEAR",  "POLLUTENUCLEAR", "HEALTHNUCLEAR", "JOBSNUCLEAR", "BEAUTYNUCLEAR", "PRIDENUCLEAR", "NPRIDENUCLEAR", "DEVNUCLEAR", "PROSPERNUCLEAR", "RELYNUCLEAR")))
+  rename(Ndevelop = MR2) #%>%
+  #dplyr::select(!starts_with(c("K_","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACENUCLEAR",  "POLLUTENUCLEAR", "HEALTHNUCLEAR", "JOBSNUCLEAR", "BEAUTYNUCLEAR", "PRIDENUCLEAR", "NPRIDENUCLEAR", "DEVNUCLEAR", "PROSPERNUCLEAR", "RELYNUCLEAR")))
+
+
 
 
 ```
@@ -1028,14 +940,14 @@ create_beautiful_radarchart <- function(data, color = "#00AFBB",
     pcol = color, pfcol = scales::alpha(color, 0.5), plwd = 2, plty = 1,
     centerzero=FALSE,
     # Customize the grid
-    cglcol = "grey", cglty = 1.5, cglwd = 1.5,
+    cglcol = "black", cglty = 1.5, cglwd = 1.5,
     # Customize the axis
     axislabcol = "black", 
      # Increase the axis label size
     cexc = 3,
     # Variable labels
-    vlcex = vlcex, vlabels = vlabels, vlpos = 0.95,
-    seg = 7, caxislabels = caxislabels, title = title, 
+    vlcex = vlcex, vlabels = vlabels, vlpos = 0.98,
+    seg = 6, caxislabels = caxislabels, title = title, 
     # Increase title size
     cex.main = 2,
     ...
@@ -1047,7 +959,7 @@ create_beautiful_radarchart <- function(data, color = "#00AFBB",
 op <- par(mar = c(7, 3, 3, 3))
 # Create the radar charts
 create_beautiful_radarchart(
-  data = radar2, caxislabels = c(-0.6,-0.4,-0.2, 0, 0.2, 0.4, 0.6, 0.8, 1),
+  data = radar2, caxislabels = c(-0.6,-0.4,-0.2, 0, 0.2, 0.4, 0.6, 0.8,1),
   color = c("#00AFBB", "#F97D09"),
   vlcex = 1.1
 )
@@ -1118,11 +1030,11 @@ rename_map <- c(
 
 
 
-fa_table <- function(x, cut) {
+fa_table <- function(x) {
   #get sorted loadings
   loadings <- fa.sort(x)$loadings %>% round(3)
   #supress loadings
-  loadings[loadings > -cut & loadings < cut] <- ""
+  #loadings[loadings < cut] <- ""  # alternative loadings > -cut & loadings < cut
   #get additional info  
   add_info <- cbind(x$communalities, 
                     x$uniquenesses,
@@ -1150,7 +1062,7 @@ fa_table <- function(x, cut) {
 
 
 
-fa_table(ecopolall2.fa, .4) %>%
+fa_table(ecopolall2.fa) %>%
   rename(Pdevelop = MR1, Ndevelop = MR2, Items= item) %>%
   flex("Eco-Pol Values Factor Analysis Table")
 
@@ -1188,7 +1100,7 @@ pdevelop <- ecopolall %>%
   dplyr::select("POLLUTENUCLEAR", "HEALTHNUCLEAR", "BEAUTYNUCLEAR","DISPLACENUCLEAR","MECHANISATION","INDUSTRYSMALL","OWNERPUB")
 
 ndevelop <- ecopolall %>%
-  dplyr::select("JOBSNUCLEAR",  "PRIDENUCLEAR", "NPRIDENUCLEAR", "DEVNUCLEAR", "PROSPERNUCLEAR")            
+  dplyr::select( "PRIDENUCLEAR", "NPRIDENUCLEAR", "DEVNUCLEAR", "PROSPERNUCLEAR")            
   
 
 
@@ -1205,30 +1117,29 @@ ndevelop_alpha <- psych::alpha(ndevelop, check.keys = TRUE)
 data <- tibble(
   Scale = c(
     "People Centered Development (Pdevelop)", "", "", "", "", "", "",
-    "Nationalist Development (Ndevelop)", "", "", "", ""
+    "Nationalist Development (Ndevelop)", "", "", ""
   ),
   Code = c(
     "Health risk(nuclear)", "Spoils Natural Beauty(nuclear)", "Anti Mechanisation of work",
     "Anti Large Industries", "Displacement risk(nuclear)", "Pollution risk(nuclear)",
     "Pro Regulations", "National development(nuclear)", "Community pride(nuclear)",
-    "National pride(nuclear)", "Local prosperity(nuclear)", "Job opportunities(nuclear)"
+    "National pride(nuclear)", "Local prosperity(nuclear)"
   ),
   "Items and Loadings" = c(
     "Nuclear energy poses a great risk to the health of people living around it.(0.657)",
     "Nuclear energy spoils the natural beauty of the landscape.(0.638)",
     "Rapid mechanization of work is taking away jobs from workers in this country.(0.552)",
-    "Large corporations are destroying the local industries in India and benefiting only a handful of people.(-0.532)",
+    "Large corporations are destroying the local industries in India and benefiting only a handful of people.(0.532)",
     "Nuclear energy is leading to displacement of people from their land.(0.59)",
     "Nuclear energy increases pollution of air/water/land.(0.565)",
-    "Regardless of ownership, the government should pass strong regulations and implement them.(-0.53)",
+    "Regardless of ownership, the government should pass strong regulations and implement them.(0.53)",
     "Nuclear energy pushes forward the country's development.(0.662)",
     "I would be proud if my community used nuclear energy.(0.623)",
     "Nuclear energy is a mark of pride for our nation.(0.605)",
-    "Nuclear energy brings economic prosperity to the surrounding regions.(0.586)",
-    "Nuclear energy will bring jobs to the local community.(0.427)"
+    "Nuclear energy brings economic prosperity to the surrounding regions.(0.586)"
   ),
-  Alpha = c(0.757, "", "", "", "", "", "", 0.725, "", "", "", ""),
-  Variance = c("", "", "", "", "", "", "", "", "", "", "", "")
+  Alpha = c(0.757, "", "", "", "", "", "", 0.725, "", "", ""),
+  Variance = c(0.13, "", "", "", "", "", "", 0.10, "", "", "")
 )
 
 
@@ -1252,6 +1163,8 @@ longvars %>%
 
 ```
 
+
+# all lms after FA
 ```{r, echo=FALSE}
 # 3 linear models - 1) lm with demographic variables except age and State
 m1_demo <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban, data = fascale_scores)
@@ -1273,16 +1186,136 @@ m2_demo<- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State, da
 # 3) lm with kahan 
 m1_kahan <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State + KahanS + KahanH , data = fascale_scores)
 # Print model summary
-#summary(m1_kahan)
+summary(m1_kahan)
 #plot(m1_kahan)
 
 # 4) lm with ecopolvars 
-m1_allscales <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State+ KahanS + KahanH + Pdevelop + Ndevelop, data = fascale_scores)
+m1_allscales <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State+ Pdevelop + Ndevelop + KahanS + KahanH , data = fascale_scores)
 # Print model summary
-#summary(m1_allscales)
+summary(m1_allscales)
 #plot(m1_allscales)
 
+
+m1_ecopol <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State + Pdevelop + Ndevelop,  data = fascale_scores)
+
+summary(m1_ecopol)
+
+m1_allscales2 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + KahanS*State + KahanH*State + Pdevelop*State + Ndevelop*State , data = fascale_scores)
+
+summary(m1_allscales2)
+
+
+
+
+
+
 ```
+
+# Lms with alt Kahan scores 
+```{r, echo = FALSE}
+
+# binding ecopol with alternative Kahan scale score 
+fascale_scores2 <-cbind(Kscalescores, scores1)  %>%
+  rename(Pdevelop = MR1)%>%
+  rename(Ndevelop = MR2)
+
+fascale_scores2
+
+fascale_scores2cor <- fascale_scores2 %>%
+  dplyr::select(Communitarianism_score, Egalitarianism_score, Pdevelop, Ndevelop)
+
+cor_kecopol <- cor(fascale_scores2cor)
+
+
+
+# 3) lm with kahan 
+m1_kahan2 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State + Communitarianism_score + Egalitarianism_score , data = fascale_scores2)
+# Print model summary
+summary(m1_kahan2)
+#plot(m1_kahan)
+
+# 4) lm with ecopolvars 
+m1_allscales2 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State+ Pdevelop + Ndevelop + Communitarianism_score + Egalitarianism_score , data = fascale_scores2)
+# Print model summary
+summary(m1_allscales2)
+#plot(m1_allscales)
+
+
+m1_ecopol2 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State + Pdevelop + Ndevelop,  data = fascale_scores2)
+
+summary(m1_ecopol2)
+
+
+
+
+
+```
+
+
+
+# graphs for lm attempts 
+
+
+```{r, echo=FALSE}
+
+
+
+library(interactions)
+sim_slopes(m1_allscales2, pred = Ndevelop, modx = State)
+
+ggplot(fascale_scores, aes(x = Ndevelop, y = Risky_Nuclear, color = State)) +
+  geom_point(alpha = 0.5) +  # Add points with some transparency
+  geom_smooth(method = 'lm', se = FALSE) +  # Add linear regression lines
+  theme_minimal() +
+  labs(title = "Interaction Plot",
+       x = "National Development (Ndevelop)",
+       y = "Perceived Risk (Risky_Nuclear)")
+library(car)
+vif(m1_allscales)
+
+
+
+str(fascale_scores) 
+  
+ggplot(fascale_scores, aes(x = Pdevelop, y = Risky_Nuclear)) +
+  geom_point() +  # or geom_line() depending on how you want to visualize it
+  facet_wrap(~ State) +  # This will create separate plots for each State
+  labs(title = "Risky Nuclear vs Pdevelop by State",
+       x = "Pdevelop",
+       y = "Risky Nuclear") +
+  theme_minimal()
+
+
+ggplot(fascale_scores, aes(x = Ndevelop, y = Risky_Nuclear)) +
+  geom_jitter(alpha = 0.5, width = 0.2) +
+  #facet_wrap(~ State) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Relationship between Ndevelop and Risky Nuclear",
+       x = "Ndevelop",
+       y = "Risky Nuclear") +
+  theme_minimal()
+
+
+
+ggplot(fascale_scores, aes(x = Pdevelop, y = Risky_Nuclear)) +
+  geom_jitter(alpha = 0.5, width = 0.2) +
+  facet_wrap(~ State) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Relationship between Ndevelop and Risky Nuclear",
+       x = "Ndevelop",
+       y = "Risky Nuclear") +
+  theme_minimal()
+
+
+ggplot(fascale_scores, aes(x = State, y = Risky_Nuclear)) +
+  geom_boxplot() +
+  #facet_wrap(~ State) +
+  theme_minimal()
+```
+
+
+
+
 
 
 \newpage
@@ -1306,10 +1339,75 @@ cat("\\endgroup")
 
 ```
 
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
 
+
+cat("\\begingroup")
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(m1_ecopol, m1_allscales, 
+          title = "Results from 2 linear regression models",
+          type = "latex"
+)
+cat("\\endgroup")
+
+
+```
 \newpage
 
+# Logistic Regression
 
+```{r, echo=FALSE}
+library(MASS)
+
+fascale_scores1 <- fascale_scores %>%
+  mutate_at(vars(Risky_Nuclear), as.factor)
+
+## one at a time, table 
+#lapply(fascale_scores1[, c("Risky_Nuclear", "Uppercaste", "Male", "Hindu","Urban", "State") ], table)
+## three way cross tabs (xtabs) and flatten the table
+#ftable(xtabs(~ Uppercaste + Risky_Nuclear + Male, data = fascale_scores1))
+## three way cross tabs (xtabs) and flatten the table
+#ftable(xtabs(~ State + Risky_Nuclear + Urban, data = fascale_scores1))
+
+logm1= polr(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban +age + KahanS + KahanH + Pdevelop + Ndevelop + State  , data = fascale_scores1, Hess = TRUE)
+#summary(logm1)
+
+ctable1 <- coef(summary(logm1))
+
+## calculate and store p values
+p1 <- pnorm(abs(ctable1[, "t value"]), lower.tail = FALSE) * 2
+
+## combined table
+ctable1 <- cbind(ctable1, "p value" = round(p1,3))
+
+pvalue <- as_tibble(ctable1) %>%
+  dplyr::select("p value")%>%
+  slice(1:(n() - 4))
+
+ci <- confint(logm1)# default method gives profiled CIs
+
+#confint.default(logm1) # CIs assuming normality
+
+## odds ratios
+#exp(coef(logm1))
+
+## OR and CI
+ORtable <- cbind("Odds Ratio" = coef(logm1), ci, pvalue) %>%
+  mutate(
+    `Odds Ratio` = round(`Odds Ratio`, 3),
+    `2.5 %` = round(`2.5 %`, 3),
+    `97.5 %` = round(`97.5 %`, 3)
+  )
+
+
+ORtableout <- knitr::kable(ORtable, booktabs = TRUE, caption = "Odds Ratio for Perceived Risk from Nuclear Energy") %>%
+  kable_styling(latex_options = c("striped", "hold_position"))
+
+ORtableout
+
+```
 
 ```{r, echo=FALSE}
 # Q7 : political values scale - factor analysis - reduce dimensions and then run regression -logistic regression 
@@ -1335,6 +1433,81 @@ cat("\\endgroup")
 
 
 ```
+
+
+
+```{r, echo =FALSE}
+
+# same things with benefit from Nuclear Energy
+fascalesben <- codedmodule2 %>%
+  dplyr::select(starts_with(c("K_","Ben_Nuclear","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACENUCLEAR",  "POLLUTENUCLEAR", "HEALTHNUCLEAR", "JOBSNUCLEAR", "BEAUTYNUCLEAR", "PRIDENUCLEAR", "NPRIDENUCLEAR", "DEVNUCLEAR", "PROSPERNUCLEAR", "RELYNUCLEAR", "Uppercaste", "Male", "Hindu", "Urban", "State","age")))%>%
+  mutate_at(vars(age), funs(case_when(. == "18-24 years old" ~ 1, 
+                                      . == "25-34 years old" ~ 2,
+                                      . ==  "35-44 years old" ~3,
+                                      . == "45-54 years old" ~ 4,
+                                      . == "55-64 years old" ~ 5,
+                                      . == "65-74 years old" ~ 6,
+                                      . == "75 years or older" ~ 7))) %>%
+  na.omit()
+
+Kahan_fas <- '
+  KahanS =~ K_SHARM + K_SLIMCHOI + K_SPROTECT 
+  KahanH =~ K_HEQUAL+ K_ERADEQ1 + K_EWEALTH + K_ERADEQ2
+'
+
+# Run CFA
+Kahan_cfaben <- cfa(Kahan_fas, data = fascalesben, std.lv = TRUE)
+
+Kahan_scoresben <- predict(Kahan_cfaben, newdata = fascalesben)
+
+Kahan_Kscoresben <- cbind(fascalesben, Kahan_scoresben)
+
+
+ecopolallben <- fascalesben %>%
+        dplyr::select("WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACENUCLEAR",  "POLLUTENUCLEAR", "HEALTHNUCLEAR", "JOBSNUCLEAR", "BEAUTYNUCLEAR", "PRIDENUCLEAR", "NPRIDENUCLEAR", "DEVNUCLEAR", "PROSPERNUCLEAR", "RELYNUCLEAR")
+
+ecopolallben_alpha <- psych::alpha(ecopolallben, check.keys = TRUE)
+
+#summary(ecopolall_alpha)
+
+# when we combine both the scales the alpha is high at 0.785 (almost 0.8)
+
+# FA on all ecopol variables except systems of governance 
+
+
+ecopolallben_cor <- cor(ecopolallben)
+PCA24 <- principal(ecopolallben, nfactors = 24, rotate = "none") # no rotation to start with. 
+
+ecopolallben2.fa <- fa(ecopolallben, nfactors = 2, rotate = "varimax")
+
+# I don't know still doesn't make a lot of sense to me- the two factors make more sense - 1) people centered development 2) nationalist development
+# So I am going to extract factor scores and bind them to the dataset
+
+ecopolallben_scores <- psych::factor.scores(ecopolallben, ecopolallben2.fa)
+
+# The factor scores will be stored in the scores element of the returned list
+scores2 <- ecopolallben_scores$scores
+
+#binding factor scores to the dataset
+
+fascale_scoresben <- cbind(Kahan_Kscoresben, scores2) %>%
+  rename(Pdevelop = MR1)%>%
+  rename(Ndevelop = MR2) #%>%
+  #dplyr::select(!starts_with(c("K_","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACENUCLEAR",  "POLLUTENUCLEAR", "HEALTHNUCLEAR", "JOBSNUCLEAR", "BEAUTYNUCLEAR", "PRIDENUCLEAR", "NPRIDENUCLEAR", "DEVNUCLEAR", "PROSPERNUCLEAR", "RELYNUCLEAR")))
+
+
+
+mbennuclear <- lm(Ben_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State+ KahanS + KahanH + Pdevelop + Ndevelop , data = fascale_scoresben)
+# Print model summary
+#summary(mbennuclear)
+
+
+
+
+```
+
+
+
 
 \newpage 
 
@@ -1393,7 +1566,7 @@ create_bar_plot <- function(data, variable_name, palette_name) {
     ggplot(aes(y = "", x = Percentage, fill = Category)) +
     geom_bar(position = "fill", stat = "identity", width = 1) +
     geom_text(aes(label = paste0(round(Percentage, 0), "%")), 
-              position = position_fill(vjust = 0.5)) +
+              position =  position_fill(vjust = 0.5)) +
     scale_x_continuous(labels = percent) +
     labs(y = NULL, x = "Percentage", fill = variable_name) +
     theme_classic() +
@@ -1425,10 +1598,7 @@ combined_plot <- gridExtra::arrangeGrob(plot_state, plot_language, plot_age, plo
 grid::grid.newpage()
 grid::grid.draw(combined_plot)
 
-
 ```
-
-
 
 
 
