@@ -148,8 +148,8 @@ models}\label{demographic-ivs---two-linear-regression-models}}
 \begingroup\setlength{\tabcolsep}{1pt}\renewcommand{\arraystretch}{0.7}
 
 \% Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy
-Institute. E-mail: marek.hlavac at gmail.com \% Date and time: Sun, Jan
-14, 2024 - 17:48:03
+Institute. E-mail: marek.hlavac at gmail.com \% Date and time: Mon, Jan
+15, 2024 - 14:45:00
 
 \begin{table}[!htbp] \centering 
   \caption{Results from 2 linear regression models} 
@@ -218,8 +218,8 @@ Same model with mean value as intercept.
 \renewcommand{\arraystretch}{0.7}
 
 \% Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy
-Institute. E-mail: marek.hlavac at gmail.com \% Date and time: Sun, Jan
-14, 2024 - 17:48:03
+Institute. E-mail: marek.hlavac at gmail.com \% Date and time: Mon, Jan
+15, 2024 - 14:45:00
 
 \begin{table}[!htbp] \centering 
   \caption{Results from 2 linear regression models} 
@@ -3904,8 +3904,8 @@ across)}\label{correlation-eco-pol-and-alt-kahanmean-across}}
 \renewcommand{\arraystretch}{0.7}
 
 \% Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy
-Institute. E-mail: marek.hlavac at gmail.com \% Date and time: Sun, Jan
-14, 2024 - 17:48:13
+Institute. E-mail: marek.hlavac at gmail.com \% Date and time: Mon, Jan
+15, 2024 - 14:45:09
 
 \begin{table}[!htbp] \centering 
   \caption{Results from 3 linear regression models} 
@@ -3984,8 +3984,8 @@ scale}\label{lms-eco-pol-and-kahan-scale}}
 \renewcommand{\arraystretch}{0.7}
 
 \% Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy
-Institute. E-mail: marek.hlavac at gmail.com \% Date and time: Sun, Jan
-14, 2024 - 17:48:13
+Institute. E-mail: marek.hlavac at gmail.com \% Date and time: Mon, Jan
+15, 2024 - 14:45:09
 
 \begin{table}[!htbp] \centering 
   \caption{Results from 2 linear regression models} 
@@ -4060,8 +4060,8 @@ F Statistic & 12.573$^{***}$ (df = 11; 393) & 12.298$^{***}$ (df = 13; 391) \\
 \renewcommand{\arraystretch}{0.7}
 
 \% Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy
-Institute. E-mail: marek.hlavac at gmail.com \% Date and time: Sun, Jan
-14, 2024 - 17:48:13
+Institute. E-mail: marek.hlavac at gmail.com \% Date and time: Mon, Jan
+15, 2024 - 14:45:09
 
 \begin{table}[!htbp] \centering 
   \caption{Results from 2 linear regression models} 
@@ -10233,7 +10233,117 @@ F Statistic & 14.356$^{***}$ (df = 11; 393) & 12.298$^{***}$ (df = 13; 391) \\
 ## 
 ## Call:
 ## lm(formula = Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + 
+##     age, data = TMalldemos)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -2.78789 -0.86641 -0.03328  0.97482  2.32058 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)  3.41615    0.36862   9.267  < 2e-16 ***
+## Uppercaste  -0.33640    0.21743  -1.547  0.12310    
+## Male         0.41820    0.15984   2.616  0.00943 ** 
+## Hindu       -0.26214    0.34753  -0.754  0.45139    
+## UrbanUrban   0.69026    0.17070   4.044 7.03e-05 ***
+## age         -0.23729    0.05612  -4.229 3.31e-05 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 1.209 on 248 degrees of freedom
+##   (66 observations deleted due to missingness)
+## Multiple R-squared:  0.1277, Adjusted R-squared:  0.1101 
+## F-statistic: 7.263 on 5 and 248 DF,  p-value: 2.28e-06
+\end{verbatim}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + 
 ##     age + Pdevelop + Ndevelop, data = TM)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -2.13844 -0.28066  0.02031  0.34233  1.32433 
+## 
+## Coefficients: (1 not defined because of singularities)
+##              Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)  3.678720   0.594483   6.188 2.15e-06 ***
+## Uppercaste         NA         NA      NA       NA    
+## Male         0.323646   0.363927   0.889    0.383    
+## Hindu       -0.345969   0.517927  -0.668    0.511    
+## UrbanUrban   0.425760   0.413592   1.029    0.314    
+## age          0.176394   0.170892   1.032    0.312    
+## Pdevelop    -0.008788   0.239114  -0.037    0.971    
+## Ndevelop    -0.060240   0.149826  -0.402    0.691    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.7827 on 24 degrees of freedom
+## Multiple R-squared:  0.2169, Adjusted R-squared:  0.02112 
+## F-statistic: 1.108 on 6 and 24 DF,  p-value: 0.3868
+\end{verbatim}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + 
+##     age + Communitarianism_score + Egalitarianism_score, data = TM2)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1.91001 -0.32228 -0.01697  0.35214  1.84227 
+## 
+## Coefficients: (1 not defined because of singularities)
+##                         Estimate Std. Error t value Pr(>|t|)
+## (Intercept)             1.855191   1.478770   1.255    0.222
+## Uppercaste                    NA         NA      NA       NA
+## Male                    0.052205   0.367368   0.142    0.888
+## Hindu                   0.062841   0.503109   0.125    0.902
+## UrbanUrban              0.262060   0.391647   0.669    0.510
+## age                     0.191816   0.135162   1.419    0.169
+## Communitarianism_score -0.006901   0.143947  -0.048    0.962
+## Egalitarianism_score    0.457965   0.307233   1.491    0.149
+## 
+## Residual standard error: 0.7513 on 24 degrees of freedom
+## Multiple R-squared:  0.2784, Adjusted R-squared:  0.09797 
+## F-statistic: 1.543 on 6 and 24 DF,  p-value: 0.2071
+\end{verbatim}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + 
+##     age + Pdevelop + Ndevelop + Communitarianism_score + Egalitarianism_score, 
+##     data = TM2)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1.85533 -0.33195 -0.05349  0.37387  1.79906 
+## 
+## Coefficients: (1 not defined because of singularities)
+##                         Estimate Std. Error t value Pr(>|t|)
+## (Intercept)             1.747286   1.576022   1.109    0.280
+## Uppercaste                    NA         NA      NA       NA
+## Male                    0.049003   0.445244   0.110    0.913
+## Hindu                  -0.014715   0.572953  -0.026    0.980
+## UrbanUrban              0.254676   0.434366   0.586    0.564
+## age                     0.210246   0.179175   1.173    0.253
+## Pdevelop               -0.008247   0.336528  -0.025    0.981
+## Ndevelop               -0.055627   0.171261  -0.325    0.748
+## Communitarianism_score  0.017908   0.228256   0.078    0.938
+## Egalitarianism_score    0.450373   0.322687   1.396    0.177
+## 
+## Residual standard error: 0.7827 on 22 degrees of freedom
+## Multiple R-squared:  0.282,  Adjusted R-squared:  0.02097 
+## F-statistic:  1.08 on 8 and 22 DF,  p-value: 0.412
+\end{verbatim}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + 
+##     age + Pdevelop + Ndevelop, data = TM2)
 ## 
 ## Residuals:
 ##      Min       1Q   Median       3Q      Max 
@@ -10262,8 +10372,8 @@ F Statistic & 14.356$^{***}$ (df = 11; 393) & 12.298$^{***}$ (df = 13; 391) \\
 \renewcommand{\arraystretch}{0.7}
 
 \% Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy
-Institute. E-mail: marek.hlavac at gmail.com \% Date and time: Sun, Jan
-14, 2024 - 17:48:14
+Institute. E-mail: marek.hlavac at gmail.com \% Date and time: Mon, Jan
+15, 2024 - 14:45:10
 
 \begin{table}[!htbp] \centering 
   \caption{Results from 2 linear regression models} 
@@ -10276,20 +10386,20 @@ Institute. E-mail: marek.hlavac at gmail.com \% Date and time: Sun, Jan
 \\[-1.8ex] & \multicolumn{4}{c}{Risky\_Nuclear} \\ 
 \\[-1.8ex] & (1) & (2) & (3) & (4)\\ 
 \hline \\[-1.8ex] 
- Uppercaste &  &  &  &  \\ 
-  &  &  &  &  \\ 
+ Uppercaste & $-$0.336 &  &  &  \\ 
+  & (0.217) &  &  &  \\ 
   & & & & \\ 
- Male & 0.492$^{*}$ & 0.316 & 0.311 & 0.324 \\ 
-  & (0.288) & (0.350) & (0.475) & (0.364) \\ 
+ Male & 0.418$^{***}$ & 0.316 & 0.311 & 0.324 \\ 
+  & (0.160) & (0.350) & (0.475) & (0.364) \\ 
   & & & & \\ 
- Hindu & $-$0.235 & $-$0.246 & $-$0.332 & $-$0.346 \\ 
-  & (0.403) & (0.489) & (0.556) & (0.518) \\ 
+ Hindu & $-$0.262 & $-$0.246 & $-$0.332 & $-$0.346 \\ 
+  & (0.348) & (0.489) & (0.556) & (0.518) \\ 
   & & & & \\ 
- UrbanUrban & 0.473 & 0.412 & 0.402 & 0.426 \\ 
-  & (0.302) & (0.403) & (0.459) & (0.414) \\ 
+ UrbanUrban & 0.690$^{***}$ & 0.412 & 0.402 & 0.426 \\ 
+  & (0.171) & (0.403) & (0.459) & (0.414) \\ 
   & & & & \\ 
- age &  & 0.162 & 0.184 & 0.176 \\ 
-  &  & (0.147) & (0.210) & (0.171) \\ 
+ age & $-$0.237$^{***}$ & 0.162 & 0.184 & 0.176 \\ 
+  & (0.056) & (0.147) & (0.210) & (0.171) \\ 
   & & & & \\ 
  Pdevelop &  &  & $-$0.013 & $-$0.009 \\ 
   &  &  & (0.373) & (0.239) \\ 
@@ -10303,64 +10413,20 @@ Institute. E-mail: marek.hlavac at gmail.com \% Date and time: Sun, Jan
  KahanH &  & $-$0.048 & $-$0.030 &  \\ 
   &  & (0.313) & (0.416) &  \\ 
   & & & & \\ 
- Constant & 3.912$^{***}$ & 3.713$^{***}$ & 3.649$^{***}$ & 3.679$^{***}$ \\ 
-  & (0.414) & (0.505) & (0.683) & (0.594) \\ 
+ Constant & 3.416$^{***}$ & 3.713$^{***}$ & 3.649$^{***}$ & 3.679$^{***}$ \\ 
+  & (0.369) & (0.505) & (0.683) & (0.594) \\ 
   & & & & \\ 
 \hline \\[-1.8ex] 
-Observations & 31 & 31 & 31 & 31 \\ 
-R$^{2}$ & 0.170 & 0.212 & 0.218 & 0.217 \\ 
-Adjusted R$^{2}$ & 0.078 & 0.016 & $-$0.067 & 0.021 \\ 
-Residual Std. Error & 0.760 (df = 27) & 0.785 (df = 24) & 0.817 (df = 22) & 0.783 (df = 24) \\ 
-F Statistic & 1.845 (df = 3; 27) & 1.079 (df = 6; 24) & 0.765 (df = 8; 22) & 1.108 (df = 6; 24) \\ 
+Observations & 254 & 31 & 31 & 31 \\ 
+R$^{2}$ & 0.128 & 0.212 & 0.218 & 0.217 \\ 
+Adjusted R$^{2}$ & 0.110 & 0.016 & $-$0.067 & 0.021 \\ 
+Residual Std. Error & 1.209 (df = 248) & 0.785 (df = 24) & 0.817 (df = 22) & 0.783 (df = 24) \\ 
+F Statistic & 7.263$^{***}$ (df = 5; 248) & 1.079 (df = 6; 24) & 0.765 (df = 8; 22) & 1.108 (df = 6; 24) \\ 
 \hline 
 \hline \\[-1.8ex] 
 \textit{Note:}  & \multicolumn{4}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\ 
 \end{tabular} 
 \end{table} 
 \endgroup
-
-```
-
-\hypertarget{logistic-regression}{%
-\section{Logistic Regression}\label{logistic-regression}}
-
-\begin{table}[!h]
-
-\caption{\label{tab:unnamed-chunk-35}Odds Ratio for Perceived Risk from Nuclear Energy}
-\centering
-\begin{tabular}[t]{lrrrr}
-\toprule
-  & Odds Ratio & 2.5 \% & 97.5 \% & p value\\
-\midrule
-\cellcolor{gray!6}{Uppercaste} & \cellcolor{gray!6}{-0.151} & \cellcolor{gray!6}{-0.561} & \cellcolor{gray!6}{0.258} & \cellcolor{gray!6}{0.469}\\
-Male & -0.179 & -0.627 & 0.267 & 0.432\\
-\cellcolor{gray!6}{Hindu} & \cellcolor{gray!6}{0.008} & \cellcolor{gray!6}{-0.449} & \cellcolor{gray!6}{0.466} & \cellcolor{gray!6}{0.971}\\
-UrbanUrban & 0.036 & -0.397 & 0.469 & 0.870\\
-\cellcolor{gray!6}{age} & \cellcolor{gray!6}{0.082} & \cellcolor{gray!6}{-0.121} & \cellcolor{gray!6}{0.287} & \cellcolor{gray!6}{0.429}\\
-\addlinespace
-KahanS & 0.276 & -0.188 & 0.738 & 0.243\\
-\cellcolor{gray!6}{KahanH} & \cellcolor{gray!6}{0.063} & \cellcolor{gray!6}{-0.351} & \cellcolor{gray!6}{0.477} & \cellcolor{gray!6}{0.765}\\
-Pdevelop & 0.445 & 0.123 & 0.770 & 0.007\\
-\cellcolor{gray!6}{Ndevelop} & \cellcolor{gray!6}{0.447} & \cellcolor{gray!6}{0.186} & \cellcolor{gray!6}{0.712} & \cellcolor{gray!6}{0.001}\\
-StateRajasthan & 0.164 & -0.554 & 0.883 & 0.655\\
-\addlinespace
-\cellcolor{gray!6}{StateTamil Nadu} & \cellcolor{gray!6}{2.538} & \cellcolor{gray!6}{1.508} & \cellcolor{gray!6}{3.605} & \cellcolor{gray!6}{0.000}\\
-StateUttar Pradesh & -0.003 & -0.834 & 0.822 & 0.994\\
-\cellcolor{gray!6}{StateWest Bengal} & \cellcolor{gray!6}{1.947} & \cellcolor{gray!6}{0.999} & \cellcolor{gray!6}{2.924} & \cellcolor{gray!6}{0.000}\\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\newpage
-
-\hypertarget{appendix-characteristics-of-the-sample}{%
-\section{Appendix: Characteristics of the
-Sample}\label{appendix-characteristics-of-the-sample}}
-
-The following graph shows that distribution of different demographic
-variables in our sample of 2,160 from the combined dataset from both
-surveys. The percentages are rounded off to whole numbers.
-
-\includegraphics[width=0.8\linewidth,height=0.8\textheight]{corstuff_files/figure-latex/unnamed-chunk-39-1}
 
 \end{document}

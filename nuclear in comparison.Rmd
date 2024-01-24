@@ -878,6 +878,8 @@ combined_mean2$Tech <- factor(combined_mean2$Tech, levels = new_tech_order)
 # Split the data by state
 data_by_state <- split(combined_mean2, combined_mean2$State)
 
+str(data_by_state)
+str(joineddf)
 
 ```
 
@@ -918,6 +920,387 @@ for (state in names(data_by_state)) {
 
 ```
 
+
+
+# Maharshtra t tests 
+
+
+```{r, echo = FALSE, fig.width=14, fig.height=6}
+
+Mperceivedrisk <- joineddf %>% 
+  filter(State == "Maharashtra")%>%
+  dplyr::select("Risky_Solar", "Risky_Hydro", "Risky_Wind", "Risky_Nuclear", "Risky_Coal", "Risky_Gas", "Risky_Oil") %>%
+  gather(key = "technology", value = "perceived_risk") %>% 
+  mutate(technology = gsub("Risky_", "", technology)) %>%
+  na.omit()
+
+
+result_ttestM <- pairwise.t.test(Mperceivedrisk$perceived_risk, Mperceivedrisk$technology, p.adjust.method = "BH")
+
+# visualising the pairwaise t test results. the non significant pairs are grey 
+
+tidy_result_ttestM <- broom::tidy(result_ttestM)
+
+Mheatmap1 <- ggplot(tidy_result_ttestM, aes(x = group1, y = group2, fill = p.value)) + 
+  geom_tile(color = "white") + 
+  scale_fill_gradient2(low = "firebrick2", high = "white", midpoint = 0.025, 
+                       limits = c(0, 0.05), space = "Lab", 
+                       name = "P-value") + 
+  theme_classic() + 
+  labs(x = "", y = "") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+   theme(axis.text.y = element_text(size=20), 
+        axis.text.x = element_text(size=20),
+        axis.title.y = element_text(size=20),
+        axis.title.x = element_text(size=20),
+        title = element_text(size=20),
+        legend.text = element_text(size=12))
+
+#Question- Why there is significant difference statistically - if the medians are the same in the boxplot.
+#Q3: How do perceptions of benefit from nuclear energy compare with other source of energy? 
+
+# H : benefits from all energy technologies will be similar 
+# include regression, heat maps, bar graphs? - decide which ones are good to include
+
+Mperceivedbenefit <-joineddf %>% 
+  filter(State=="Maharashtra")%>%
+  dplyr::select("Ben_Solar", "Ben_Hydro", "Ben_Wind", "Ben_Nuclear", "Ben_Coal", "Ben_Gas", "Ben_Oil") %>%
+  gather(key = "technology", value = "perceived_benefit") %>% 
+  mutate(technology = gsub("Ben_", "", technology)) %>%
+  na.omit()
+
+
+result_ttestbenM <- pairwise.t.test(Mperceivedbenefit$perceived_benefit, Mperceivedbenefit$technology, p.adjust.method = "BH")
+
+# visualising the pairwaise t test results. the non significant pairs are grey 
+
+tidy_resultbcM <- broom::tidy(result_ttestbenM)
+
+library(ggplot2)
+Mheatmap2 <- ggplot(tidy_resultbcM, aes(x = group1, y = group2, fill = p.value)) + 
+  geom_tile(color = "white") + 
+  scale_fill_gradient2(low = "palegreen3", high = "white", midpoint = 0.025, 
+                       limits = c(0, 0.05), space = "Lab", 
+                       name = "P-value") + 
+  theme_classic() + 
+  labs(x = "", y = "") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+   theme(axis.text.y = element_text(size=20), 
+        axis.text.x = element_text(size=20),
+        axis.title.y = element_text(size=20),
+        axis.title.x = element_text(size=20),
+        title = element_text(size=20),
+        legend.text = element_text(size=12))
+
+
+grid.arrange(Mheatmap1, Mheatmap2, ncol=2)
+
+```
+
+
+
+# Tamil Nadu  t tests 
+
+
+```{r, echo = FALSE, fig.width=14, fig.height=6}
+
+TMperceivedrisk <- joineddf %>% 
+  filter(State == "Tamil Nadu")%>%
+  dplyr::select("Risky_Solar", "Risky_Hydro", "Risky_Wind", "Risky_Nuclear", "Risky_Coal", "Risky_Gas", "Risky_Oil") %>%
+  gather(key = "technology", value = "perceived_risk") %>% 
+  mutate(technology = gsub("Risky_", "", technology)) %>%
+  na.omit()
+
+
+result_ttestTM <- pairwise.t.test(TMperceivedrisk$perceived_risk, TMperceivedrisk$technology, p.adjust.method = "BH")
+
+# visualising the pairwaise t test results. the non significant pairs are grey 
+
+tidy_result_ttestTM <- broom::tidy(result_ttestTM)
+
+TMheatmap1 <- ggplot(tidy_result_ttestTM, aes(x = group1, y = group2, fill = p.value)) + 
+  geom_tile(color = "white") + 
+  scale_fill_gradient2(low = "firebrick2", high = "white", midpoint = 0.025, 
+                       limits = c(0, 0.05), space = "Lab", 
+                       name = "P-value") + 
+  theme_classic() + 
+  labs(x = "", y = "") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+   theme(axis.text.y = element_text(size=20), 
+        axis.text.x = element_text(size=20),
+        axis.title.y = element_text(size=20),
+        axis.title.x = element_text(size=20),
+        title = element_text(size=20),
+        legend.text = element_text(size=12))
+
+#Question- Why there is significant difference statistically - if the medians are the same in the boxplot.
+#Q3: How do perceptions of benefit from nuclear energy compare with other source of energy? 
+
+# H : benefits from all energy technologies will be similar 
+# include regression, heat maps, bar graphs? - decide which ones are good to include
+
+TMperceivedbenefit <-joineddf %>% 
+  filter(State=="Tamil Nadu")%>%
+  dplyr::select("Ben_Solar", "Ben_Hydro", "Ben_Wind", "Ben_Nuclear", "Ben_Coal", "Ben_Gas", "Ben_Oil") %>%
+  gather(key = "technology", value = "perceived_benefit") %>% 
+  mutate(technology = gsub("Ben_", "", technology)) %>%
+  na.omit()
+
+
+result_ttestbenTM <- pairwise.t.test(TMperceivedbenefit$perceived_benefit, TMperceivedbenefit$technology, p.adjust.method = "BH")
+
+# visualising the pairwaise t test results. the non significant pairs are grey 
+
+tidy_resultbcTM <- broom::tidy(result_ttestbenTM)
+
+library(ggplot2)
+TMheatmap2 <- ggplot(tidy_resultbcTM, aes(x = group1, y = group2, fill = p.value)) + 
+  geom_tile(color = "white") + 
+  scale_fill_gradient2(low = "palegreen3", high = "white", midpoint = 0.025, 
+                       limits = c(0, 0.05), space = "Lab", 
+                       name = "P-value") + 
+  theme_classic() + 
+  labs(x = "", y = "") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+   theme(axis.text.y = element_text(size=20), 
+        axis.text.x = element_text(size=20),
+        axis.title.y = element_text(size=20),
+        axis.title.x = element_text(size=20),
+        title = element_text(size=20),
+        legend.text = element_text(size=12))
+
+
+grid.arrange(TMheatmap1, TMheatmap2, ncol=2)
+
+```
+
+
+# Uttar Pradesh  t tests 
+
+
+```{r, echo = FALSE, fig.width=14, fig.height=6}
+
+UPperceivedrisk <- joineddf %>% 
+  filter(State == "Uttar Pradesh")%>%
+  dplyr::select("Risky_Solar", "Risky_Hydro", "Risky_Wind", "Risky_Nuclear", "Risky_Coal", "Risky_Gas", "Risky_Oil") %>%
+  gather(key = "technology", value = "perceived_risk") %>% 
+  mutate(technology = gsub("Risky_", "", technology)) %>%
+  na.omit()
+
+
+result_ttestUP <- pairwise.t.test(UPperceivedrisk$perceived_risk, UPperceivedrisk$technology, p.adjust.method = "BH")
+
+# visualising the pairwaise t test results. the non significant pairs are grey 
+
+tidy_result_ttestUP <- broom::tidy(result_ttestTM)
+
+UPheatmap1 <- ggplot(tidy_result_ttestUP, aes(x = group1, y = group2, fill = p.value)) + 
+  geom_tile(color = "white") + 
+  scale_fill_gradient2(low = "firebrick2", high = "white", midpoint = 0.025, 
+                       limits = c(0, 0.05), space = "Lab", 
+                       name = "P-value") + 
+  theme_classic() + 
+  labs(x = "", y = "") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+   theme(axis.text.y = element_text(size=20), 
+        axis.text.x = element_text(size=20),
+        axis.title.y = element_text(size=20),
+        axis.title.x = element_text(size=20),
+        title = element_text(size=20),
+        legend.text = element_text(size=12))
+
+#Question- Why there is significant difference statistically - if the medians are the same in the boxplot.
+#Q3: How do perceptions of benefit from nuclear energy compare with other source of energy? 
+
+# H : benefits from all energy technologies will be similar 
+# include regression, heat maps, bar graphs? - decide which ones are good to include
+
+UPperceivedbenefit <-joineddf %>% 
+  filter(State=="Uttar Pradesh")%>%
+  dplyr::select("Ben_Solar", "Ben_Hydro", "Ben_Wind", "Ben_Nuclear", "Ben_Coal", "Ben_Gas", "Ben_Oil") %>%
+  gather(key = "technology", value = "perceived_benefit") %>% 
+  mutate(technology = gsub("Ben_", "", technology)) %>%
+  na.omit()
+
+
+result_ttestbenUP <- pairwise.t.test(UPperceivedbenefit$perceived_benefit, UPperceivedbenefit$technology, p.adjust.method = "BH")
+
+# visualising the pairwaise t test results. the non significant pairs are grey 
+
+tidy_resultbcUP <- broom::tidy(result_ttestbenUP)
+
+library(ggplot2)
+UPheatmap2 <- ggplot(tidy_resultbcUP, aes(x = group1, y = group2, fill = p.value)) + 
+  geom_tile(color = "white") + 
+  scale_fill_gradient2(low = "palegreen3", high = "white", midpoint = 0.025, 
+                       limits = c(0, 0.05), space = "Lab", 
+                       name = "P-value") + 
+  theme_classic() + 
+  labs(x = "", y = "") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+   theme(axis.text.y = element_text(size=20), 
+        axis.text.x = element_text(size=20),
+        axis.title.y = element_text(size=20),
+        axis.title.x = element_text(size=20),
+        title = element_text(size=20),
+        legend.text = element_text(size=12))
+
+
+grid.arrange(UPheatmap1, UPheatmap2, ncol=2)
+
+```
+
+
+# Rajasthan  t tests 
+
+
+```{r, echo = FALSE, fig.width=14, fig.height=6}
+
+Rperceivedrisk <- joineddf %>% 
+  filter(State == "Rajasthan")%>%
+  dplyr::select("Risky_Solar", "Risky_Hydro", "Risky_Wind", "Risky_Nuclear", "Risky_Coal", "Risky_Gas", "Risky_Oil") %>%
+  gather(key = "technology", value = "perceived_risk") %>% 
+  mutate(technology = gsub("Risky_", "", technology)) %>%
+  na.omit()
+
+
+result_ttestR <- pairwise.t.test(Rperceivedrisk$perceived_risk, Rperceivedrisk$technology, p.adjust.method = "BH")
+
+# visualising the pairwaise t test results. the non significant pairs are grey 
+
+tidy_result_ttestR <- broom::tidy(result_ttestR)
+
+Rheatmap1 <- ggplot(tidy_result_ttestR, aes(x = group1, y = group2, fill = p.value)) + 
+  geom_tile(color = "white") + 
+  scale_fill_gradient2(low = "firebrick2", high = "white", midpoint = 0.025, 
+                       limits = c(0, 0.05), space = "Lab", 
+                       name = "P-value") + 
+  theme_classic() + 
+  labs(x = "", y = "") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+   theme(axis.text.y = element_text(size=20), 
+        axis.text.x = element_text(size=20),
+        axis.title.y = element_text(size=20),
+        axis.title.x = element_text(size=20),
+        title = element_text(size=20),
+        legend.text = element_text(size=12))
+
+#Question- Why there is significant difference statistically - if the medians are the same in the boxplot.
+#Q3: How do perceptions of benefit from nuclear energy compare with other source of energy? 
+
+# H : benefits from all energy technologies will be similar 
+# include regression, heat maps, bar graphs? - decide which ones are good to include
+
+Rperceivedbenefit <-joineddf %>% 
+  filter(State=="Rajasthan")%>%
+  dplyr::select("Ben_Solar", "Ben_Hydro", "Ben_Wind", "Ben_Nuclear", "Ben_Coal", "Ben_Gas", "Ben_Oil") %>%
+  gather(key = "technology", value = "perceived_benefit") %>% 
+  mutate(technology = gsub("Ben_", "", technology)) %>%
+  na.omit()
+
+
+result_ttestbenR <- pairwise.t.test(Rperceivedbenefit$perceived_benefit, Rperceivedbenefit$technology, p.adjust.method = "BH")
+
+# visualising the pairwaise t test results. the non significant pairs are grey 
+
+tidy_resultbcR <- broom::tidy(result_ttestbenR)
+
+library(ggplot2)
+Rheatmap2 <- ggplot(tidy_resultbcR, aes(x = group1, y = group2, fill = p.value)) + 
+  geom_tile(color = "white") + 
+  scale_fill_gradient2(low = "palegreen3", high = "white", midpoint = 0.025, 
+                       limits = c(0, 0.05), space = "Lab", 
+                       name = "P-value") + 
+  theme_classic() + 
+  labs(x = "", y = "") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+   theme(axis.text.y = element_text(size=20), 
+        axis.text.x = element_text(size=20),
+        axis.title.y = element_text(size=20),
+        axis.title.x = element_text(size=20),
+        title = element_text(size=20),
+        legend.text = element_text(size=12))
+
+
+grid.arrange(Rheatmap1, Rheatmap2, ncol=2)
+
+```
+
+
+# West Bengal  t tests 
+
+
+```{r, echo = FALSE, fig.width=14, fig.height=6}
+
+WBperceivedrisk <- joineddf %>% 
+  filter(State == "West Bengal")%>%
+  dplyr::select("Risky_Solar", "Risky_Hydro", "Risky_Wind", "Risky_Nuclear", "Risky_Coal", "Risky_Gas", "Risky_Oil") %>%
+  gather(key = "technology", value = "perceived_risk") %>% 
+  mutate(technology = gsub("Risky_", "", technology)) %>%
+  na.omit()
+
+
+result_ttestWB <- pairwise.t.test(WBperceivedrisk$perceived_risk, WBperceivedrisk$technology, p.adjust.method = "BH")
+
+# visualising the pairwaise t test results. the non significant pairs are grey 
+
+tidy_result_ttestWB <- broom::tidy(result_ttestWB)
+
+WBheatmap1 <- ggplot(tidy_result_ttestWB, aes(x = group1, y = group2, fill = p.value)) + 
+  geom_tile(color = "white") + 
+  scale_fill_gradient2(low = "firebrick2", high = "white", midpoint = 0.025, 
+                       limits = c(0, 0.05), space = "Lab", 
+                       name = "P-value") + 
+  theme_classic() + 
+  labs(x = "", y = "") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+   theme(axis.text.y = element_text(size=20), 
+        axis.text.x = element_text(size=20),
+        axis.title.y = element_text(size=20),
+        axis.title.x = element_text(size=20),
+        title = element_text(size=20),
+        legend.text = element_text(size=12))
+
+#Question- Why there is significant difference statistically - if the medians are the same in the boxplot.
+#Q3: How do perceptions of benefit from nuclear energy compare with other source of energy? 
+
+# H : benefits from all energy technologies will be similar 
+# include regression, heat maps, bar graphs? - decide which ones are good to include
+
+WBperceivedbenefit <-joineddf %>% 
+  filter(State=="West Bengal")%>%
+  dplyr::select("Ben_Solar", "Ben_Hydro", "Ben_Wind", "Ben_Nuclear", "Ben_Coal", "Ben_Gas", "Ben_Oil") %>%
+  gather(key = "technology", value = "perceived_benefit") %>% 
+  mutate(technology = gsub("Ben_", "", technology)) %>%
+  na.omit()
+
+
+result_ttestbenWB <- pairwise.t.test(WBperceivedbenefit$perceived_benefit, WBperceivedbenefit$technology, p.adjust.method = "BH")
+
+# visualising the pairwaise t test results. the non significant pairs are grey 
+
+tidy_resultbcWB <- broom::tidy(result_ttestbenWB)
+
+library(ggplot2)
+WBheatmap2 <- ggplot(tidy_resultbcWB, aes(x = group1, y = group2, fill = p.value)) + 
+  geom_tile(color = "white") + 
+  scale_fill_gradient2(low = "palegreen3", high = "white", midpoint = 0.025, 
+                       limits = c(0, 0.05), space = "Lab", 
+                       name = "P-value") + 
+  theme_classic() + 
+  labs(x = "", y = "") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+   theme(axis.text.y = element_text(size=20), 
+        axis.text.x = element_text(size=20),
+        axis.title.y = element_text(size=20),
+        axis.title.x = element_text(size=20),
+        title = element_text(size=20),
+        legend.text = element_text(size=12))
+
+
+grid.arrange(WBheatmap1, WBheatmap2, ncol=2)
+
+```
 ## Net benefit by state 
 
 

@@ -786,8 +786,6 @@ scores1 <- ecopolall_scores$scores
 
 #binding factor scores to the dataset
 
-
-
 fascale_scores <- cbind(Kahan_Kscores, scores1) %>%
   rename(Pdevelop = MR1)%>%
   rename(Ndevelop = MR2) #%>%
@@ -1243,6 +1241,26 @@ cat("\\endgroup")
 
 ```{r, echo=FALSE}
 
+fascales_mice <- codedmodule2 %>%
+  dplyr::select(starts_with(c("K_","Risky_Nuclear","WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACENUCLEAR",  "POLLUTENUCLEAR", "HEALTHNUCLEAR", "JOBSNUCLEAR", "BEAUTYNUCLEAR", "PRIDENUCLEAR", "NPRIDENUCLEAR", "DEVNUCLEAR", "PROSPERNUCLEAR", "RELYNUCLEAR", "Uppercaste", "Male", "Hindu", "Urban", "State","age")))%>%
+  mutate_at(vars(age), funs(case_when(. == "18-24 years old" ~ 1, 
+                                      . == "25-34 years old" ~ 2,
+                                      . ==  "35-44 years old" ~3,
+                                      . == "45-54 years old" ~ 4,
+                                      . == "55-64 years old" ~ 5,
+                                      . == "65-74 years old" ~ 6,
+                                      . == "75 years or older" ~ 7)))%>%
+  na.omit()
+
+
+
+
+```
+
+
+
+```{r, echo=FALSE}
+
 fascale_scores
 
 fascale_scores2
@@ -1267,8 +1285,16 @@ Bengal <- fascale_scores %>%
   filter(State == "Bengal")
 
 
+TMalldemos <- joineddf %>%
+            filter(State =="Tamil Nadu")%>%
+            dplyr::select(Risky_Nuclear, Uppercaste, Male, Hindu, Urban, age, State) 
+
+
+
 # 3 linear models - 1) lm with demographic variables except age and State
-TM_demo <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban, data = TM)
+TM_demo <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban +age, data = TMalldemos)
+
+summary(TM_demo)
 
 # 3) lm with kahan 
 TM1_kahan <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age  + KahanS + KahanH , data = TM)
@@ -1280,6 +1306,23 @@ TM1_ecopol <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age +  Pdev
 
 summary(TM1_ecopol)
 
+
+TM2<- fascale_scores2 %>%
+  filter(State == "Tamil Nadu")
+
+# 3) lm with kahan 
+TM2_kahan <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age  + Communitarianism_score + Egalitarianism_score, data = TM2)
+
+summary(TM2_kahan)
+
+# 4) lm with ecopolvars 
+TM2_allscales <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + Pdevelop + Ndevelop + Communitarianism_score + Egalitarianism_score , data = TM2)
+
+summary(TM2_allscales)
+
+TM2_ecopol <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age +  Pdevelop + Ndevelop,  data = TM2)
+
+summary(TM2_ecopol)
 
 
 
