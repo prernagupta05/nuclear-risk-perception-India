@@ -119,6 +119,7 @@ mutate_at(vars(SYSTEMDEMO,SYSTEMRELIGION,SYSTEMTECHNO,SYSTEMTOTAL,WEALTHLIM,MECH
   mutate_all(~ifelse(. == "UP", "Uttar Pradesh", .))
   
 
+
 ```
 
 
@@ -163,6 +164,9 @@ codedmodule1 <- module1 %>%
   mutate_all(~ifelse(. == "Up", "Uttar Pradesh", .))%>%
   mutate_all(~ifelse(. == "Tamilnadu", "Tamil Nadu", .))%>%
   mutate_all(~ifelse(. == "UP", "Uttar Pradesh", .))
+
+
+
 
 ```
 
@@ -405,7 +409,7 @@ codedmodule2$Uppercaste <- ifelse(codedmodule2$caste %in% c('Brahmin', 'General'
 codedmodule2$Male <- ifelse(codedmodule2$gender == 'Male', 1, 0)
 # Convert `religion` into binary variable 'Hinduism' (1) vs 'Non-Hinduism' (0)
 codedmodule2$Hindu <- ifelse(codedmodule2$religion == 'Hinduism', 1, 0)
-
+joineddf$State <- as.factor(joineddf$State)
 
 
 alldemos <- joineddf %>%
@@ -426,9 +430,14 @@ alldemoslm2<- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State
 summary(alldemoslm2)
 #plot(alldemoslm1)
 
+state_counts <- alldemos %>%
+  group_by(State) %>%
+  summarise(Count = n())
+
 
 # most of these results indicate that there is no significant white male effect or upper caste male effect for risk perception from nuclear energy in India. 
 # the coefficients are very small and so is the r squared - rsquared is minimal. 
+
 
 ```
 
@@ -655,9 +664,34 @@ Kahan_Kscores <- cbind(fascales, Kahan_scores)
 ## RMSEA is still pretty big. 
 
 
+
 ```
 
+\newpage
+# Na counting 
 
+```{r, echo = FALSE}
+
+
+relevant <- codedmodule2 %>%
+  dplyr::select(starts_with(c("Risky", "Ben","K_", "WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACENUCLEAR",  "POLLUTENUCLEAR", "HEALTHNUCLEAR", "JOBSNUCLEAR", "BEAUTYNUCLEAR", "PRIDENUCLEAR", "NPRIDENUCLEAR", "DEVNUCLEAR", "PROSPERNUCLEAR", "RELYNUCLEAR", "Uppercaste", "Male", "Hindu", "Urban", "State","age")))%>%
+  dplyr::select(!starts_with(c("Risky_IND","Ben_IND")))%>%
+  mutate_at(vars(age), funs(case_when(. == "18-24 years old" ~ 1, 
+                                      . == "25-34 years old" ~ 2,
+                                      . ==  "35-44 years old" ~3,
+                                      . == "45-54 years old" ~ 4,
+                                      . == "55-64 years old" ~ 5,
+                                      . == "65-74 years old" ~ 6,
+                                      . == "75 years or older" ~ 7)))
+  
+
+relevant_na <- relevant %>% summarise_all(~sum(is.na(.)))
+
+str(relevant)
+str(relevant_na)
+```
+
+\newpage
 ## Kahan scater plot from the CFA scores 
 ```{r, echo = FALSE}
 
@@ -690,7 +724,7 @@ Kscalescores <- fascales %>%
 
 # EDIT : Scatter plot of Kahan scale scores around the median scores on Individualism and Hierarchy scales
 
-```{r dev = "jpg", echo=FALSE}
+```{r, echo=FALSE}
 
 #scatter plot of Kahan scale scores around the median scores on Individualism and Hierarchy scales. 
 
@@ -1206,7 +1240,9 @@ summary(m1_allscales2)
 
 
 
-
+state_counts2 <- fascale_scores %>%
+  group_by(State) %>%
+  summarise(Count = n())
 
 
 ```
@@ -1219,7 +1255,7 @@ fascale_scores2 <-cbind(Kscalescores, scores1)  %>%
   rename(Pdevelop = MR1)%>%
   rename(Ndevelop = MR2)
 
-fascale_scores2
+
 
 fascale_scores2cor <- fascale_scores2 %>%
   dplyr::select(Communitarianism_score, Egalitarianism_score, Pdevelop, Ndevelop)
