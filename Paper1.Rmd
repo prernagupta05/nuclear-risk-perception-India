@@ -1201,7 +1201,12 @@ longvars %>%
 # all lms after FA
 ```{r, echo=FALSE}
 # 3 linear models - 1) lm with demographic variables except age and State
+
+
 m1_demo <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban, data = fascale_scores)
+
+
+
 # Print model summary
 #summary(m1_demo)
 #plot(m1_demo)

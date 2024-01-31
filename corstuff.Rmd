@@ -9,6 +9,9 @@ output:
   - \usepackage{dcolumn}
   - \usepackage{array}
   - "\\usepackage{placeins}"
+  - \usepackage{pdflscape}
+  - \newcommand{\blandscape}{\begin{landscape}}
+  - \newcommand{\elandscape}{\end{landscape}}
   keep_md: yes
 ---
 
@@ -536,7 +539,11 @@ Kahan_Kscores <- cbind(fascales, Kahan_scores)
 
 ```
 
-# EDIT :  Kahan scale EFA  
+
+\newpage
+
+\blandscape
+# Kahan scale EFA  
 ```{r, echo=FALSE}
 
 
@@ -545,7 +552,7 @@ Kahan_scale <- codedmodule2 %>%
 
 kahan.fa <- fa(Kahan_scale, nfactors = 2, rotate = "varimax")
 
-print.psych(kahan.fa, cut = 0.4, sort = TRUE)
+#print.psych(kahan.fa, cut = 0.4, sort = TRUE)
 
 
 
@@ -629,8 +636,9 @@ fa_table(kahan.fa) %>%
 
 ```
 
+\elandscape
 
-
+\newpage
 
 ```{r, echo=FALSE}
 
@@ -686,6 +694,10 @@ fit_df <- data.frame(Measure = names(fit_measures), Value = fit_measures) %>%
 
 
 ```
+
+\newpage
+
+
 # Confirmatory Factor Analysis(CFA): Kahan Scale 
 
 
@@ -1158,13 +1170,12 @@ summary(m1_allscales2)
 
 # Correlation Eco-pol and alt Kahan(mean across)
 
-```{r}
+```{r, echo=FALSE}
 # binding ecopol with alternative Kahan scale score 
 fascale_scores2 <-cbind(Kscalescores, scores1)  %>%
   rename(Pdevelop = MR1)%>%
   rename(Ndevelop = MR2)
 
-fascale_scores2
 
 fascale_scores2cor <- fascale_scores2 %>%
   dplyr::select(Communitarianism_score, Egalitarianism_score, Pdevelop, Ndevelop)
@@ -1174,7 +1185,7 @@ cor_kecopol <- cor(fascale_scores2cor)
 print(cor_kecopol)
 ```
 
-
+\newpage
 # Lms with alt Kahan scores 
 ```{r, echo = FALSE}
 
@@ -1198,7 +1209,7 @@ summary(m1_ecopol2)
 ```
 
 
-
+\newpage
 ```{r, echo=FALSE, results='asis'}
 library(stargazer)
 
@@ -1207,7 +1218,7 @@ cat("\\begingroup")
 cat("\\setlength{\\tabcolsep}{1pt}")
 cat("\\renewcommand{\\arraystretch}{0.7}")
 stargazer(m1_kahan2, m1_ecopol2, m1_allscales2, 
-          title = "Results from 3 linear regression models",
+          title = "Alternative Kahan Scores(mean acorss fixed factors)",
           type = "latex"
 )
 cat("\\endgroup")
@@ -1231,8 +1242,8 @@ library(stargazer)
 cat("\\begingroup")
 cat("\\setlength{\\tabcolsep}{1pt}")
 cat("\\renewcommand{\\arraystretch}{0.7}")
-stargazer(m1_kahan, m1_allscales, 
-          title = "Results from 2 linear regression models",
+stargazer(m1_kahan,m1_ecopol, m1_allscales, 
+          title = "Lms with CFA Kahan",
           type = "latex"
 )
 cat("\\endgroup")
@@ -1240,22 +1251,7 @@ cat("\\endgroup")
 
 ```
 
-\newpage
-```{r, echo=FALSE, results='asis'}
-library(stargazer)
 
-
-cat("\\begingroup")
-cat("\\setlength{\\tabcolsep}{1pt}")
-cat("\\renewcommand{\\arraystretch}{0.7}")
-stargazer(m1_ecopol, m1_allscales, 
-          title = "Results from 2 linear regression models",
-          type = "latex"
-)
-cat("\\endgroup")
-
-
-```
 \newpage
 
 # LMs by State
@@ -1283,9 +1279,9 @@ fascales_mice <- codedmodule2 %>%
 
 ```{r, echo=FALSE}
 
-fascale_scores
+#fascale_scores
 
-fascale_scores2
+#fascale_scores2
 
 # make state wise dts
 
