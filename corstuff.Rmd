@@ -397,7 +397,7 @@ alldemoslm2<- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State
 
 \newpage
 
-## Demographic IVs - two linear regression models
+# Demographic IVs - two linear regression models
 ```{r, echo=FALSE, results='asis'}
 library(stargazer)
 
@@ -416,7 +416,7 @@ cat("\\endgroup")
 
 \newpage 
 
-## Linear regression where Mean value is the intercept
+# Linear regression where Mean value is the intercept
 Same model with mean value as intercept. 
 
 ```{r, echo=FALSE}
@@ -465,7 +465,7 @@ cat("\\endgroup")
 \newpage
 
 
-##  Kahan scale Alpha values 
+#  Kahan scale Alpha values 
 Hierarchy - Egalitarianism scale alpha  =  0.70
 Individualism - Communitarianism scale alpha= 0.52
 Only Individualism scale alpha = 0.31 
@@ -533,14 +533,14 @@ Kahan_Kscores <- cbind(fascales, Kahan_scores)
 
 
 
-## Alternative Kahan Scores with Mean across
-```{r, echo=FALSE}
 
+```{r, echo=FALSE}
+## Alternative Kahan Scores with Mean across
 Kscalescores <- fascales %>%
   dplyr::select(!starts_with(("K_I")))%>%
   rowwise()%>%
-  dplyr::mutate(Communitarianism_score = mean(c_across(K_SHARM:K_SPROTECT)))%>%
-  dplyr::mutate(Egalitarianism_score = mean(c_across(K_HEQUAL:K_ERADEQ2)))%>%
+  dplyr::mutate(Individualism_score = mean(c_across(K_SHARM:K_SPROTECT)))%>%
+  dplyr::mutate(Hierarchy_score = mean(c_across(K_HEQUAL:K_ERADEQ2)))%>%
   dplyr::select(!starts_with(c("K_I","K_S", "K_H", "K_E")))
 
 ```
@@ -571,8 +571,6 @@ fit_df <- data.frame(Measure = names(fit_measures), Value = fit_measures) %>%
 
 
 ```
-
-\newpage
 
 
 # Confirmatory Factor Analysis(CFA): Kahan Scale 
@@ -635,20 +633,7 @@ CFAkahan %>%
 
 
 
-## Kahan scater plot from the CFA scores 
-```{r, echo = FALSE}
 
-Kahan_Kscores %>%
-  ggplot(aes(KahanS, KahanH))+
-  geom_count(aes(color = ..n.., size = ..n..))+
-  guides(color = 'legend')+
-  geom_hline(yintercept=0, colour="black", lwd=0.5)+
-  geom_vline(xintercept=0, colour="black", lwd=0.5)+
-  labs(x = "Individualism to Communitarianism", y = "Hierarchy to Egalitarianism")+
-  ylim(-2,3)+
-  xlim(-2,3)+
-  theme_minimal() 
-```
 
 
 \newpage
@@ -682,7 +667,7 @@ PCA24 <- principal(ecopolall, nfactors = 24, rotate = "none") # no rotation to s
 
 ecopolall2.fa <- fa(ecopolall, nfactors = 2, rotate = "varimax")
 
-print.psych(ecopolall2.fa, sort = TRUE)
+#print.psych(ecopolall2.fa, sort = TRUE)
 
 # I don't know still doesn't make a lot of sense to me- the two factors make more sense - 1) people centered development 2) nationalist development
 # So I am going to extract factor scores and bind them to the dataset
@@ -1017,8 +1002,11 @@ longvars %>%
 ```
 
 
-# all lms after FA
+
 ```{r, echo=FALSE}
+
+# all lms after FA 
+
 # 3 linear models - 1) lm with demographic variables except age and State
 m1_demo <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban, data = fascale_scores)
 
@@ -1028,24 +1016,43 @@ m2_demo<- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State, da
 # 3) lm with kahan 
 m1_kahan <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State + KahanS + KahanH , data = fascale_scores)
 
-summary(m1_kahan)
+#summary(m1_kahan)
 # 4) lm with ecopolvars 
 m1_allscales <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State+ Pdevelop + Ndevelop + KahanS + KahanH , data = fascale_scores)
 
-summary(m1_allscales)
+#summary(m1_allscales)
 
 m1_ecopol <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State + Pdevelop + Ndevelop,  data = fascale_scores)
 
-summary(m1_ecopol)
+#summary(m1_ecopol)
 
 m1_allscales2 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + KahanS*State + KahanH*State + Pdevelop*State + Ndevelop*State , data = fascale_scores)
 
-summary(m1_allscales2)
+#summary(m1_allscales2)
 
 
 ```
 
-# Correlation Eco-pol and alt Kahan(mean across)
+\newpage
+#Correlation table Eco-pol scale and Kahan CFA scores
+
+```{r, echo=FALSE}
+
+fascale_scorescor <- fascale_scores %>%
+  dplyr::select(KahanS, KahanH, Pdevelop, Ndevelop)
+
+cor_kecopol1 <- cor(fascale_scorescor)
+
+print(cor_kecopol1)
+
+```
+
+
+
+
+
+
+# Correlation Eco-pol and alt Kahan (mean across)
 
 ```{r, echo=FALSE}
 # binding ecopol with alternative Kahan scale score 
@@ -1055,7 +1062,7 @@ fascale_scores2 <-cbind(Kscalescores, scores1)  %>%
 
 
 fascale_scores2cor <- fascale_scores2 %>%
-  dplyr::select(Communitarianism_score, Egalitarianism_score, Pdevelop, Ndevelop)
+  dplyr::select(Individualism_score, Hierarchy_score, Pdevelop, Ndevelop)
 
 cor_kecopol <- cor(fascale_scores2cor)
 
@@ -1063,30 +1070,69 @@ print(cor_kecopol)
 ```
 
 \newpage
+# Scatter plot 1: mean across Kahan scale scores around medians
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+#scatter plot of Kahan scale scores around the median scores on Individualism and Hierarchy scales. 
+
+Kscalescores %>%
+  ggplot(aes(Individualism_score, Hierarchy_score))+
+  geom_count(aes(color = ..n.., size = ..n..))+
+  guides(color = 'legend')+
+  geom_hline(yintercept=2, colour="black", lwd=1)+
+  geom_vline(xintercept=3, colour="black", lwd=1)+
+  labs(x = " Communitarianism to Individualism", y = "Egalitarianism to Hierarchy")+
+  ylim(1,5)+
+  xlim(1,5)+
+  theme_minimal() 
+
+
+```
+
+
+# Scater plot 2:  Kahan CFA scores 
+```{r, echo = FALSE}
+
+Kahan_Kscores %>%
+  ggplot(aes(KahanS, KahanH))+
+  geom_count(aes(color = ..n.., size = ..n..))+
+  guides(color = 'legend')+
+  geom_hline(yintercept=0, colour="black", lwd=0.5)+
+  geom_vline(xintercept=0, colour="black", lwd=0.5)+
+  labs(x = "Individualism to Communitarianism", y = "Hierarchy to Egalitarianism")+
+  ylim(-2,3)+
+  xlim(-2,3)+
+  theme_minimal() 
+```
+
+
+
+\newpage
 # Lms with alt Kahan scores 
 ```{r, echo = FALSE}
 
 # 3) lm with kahan 
-m1_kahan2 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State + Communitarianism_score + Egalitarianism_score , data = fascale_scores2)
+m1_kahan2 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State + Individualism_score + Hierarchy_score , data = fascale_scores2)
 # Print model summary
-summary(m1_kahan2)
+#summary(m1_kahan2)
 #plot(m1_kahan)
 
 # 4) lm with ecopolvars 
-m1_allscales2 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State+ Pdevelop + Ndevelop + Communitarianism_score + Egalitarianism_score , data = fascale_scores2)
+m1_allscales2 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State+ Pdevelop + Ndevelop + Individualism_score + Hierarchy_score , data = fascale_scores2)
 # Print model summary
-summary(m1_allscales2)
+#summary(m1_allscales2)
 #plot(m1_allscales)
 
 
 m1_ecopol2 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State + Pdevelop + Ndevelop,  data = fascale_scores2)
 
-summary(m1_ecopol2)
+#summary(m1_ecopol2)
 
 ```
 
 
-\newpage
 ```{r, echo=FALSE, results='asis'}
 library(stargazer)
 
@@ -1152,7 +1198,7 @@ Kahan_scale<- Kahan_scale1 %>%
   
 kahan.fa <- fa(Kahan_scale, nfactors = 2, rotate = "varimax")
 
-print.psych(kahan.fa, cut = 0.4, sort = TRUE)
+#print.psych(kahan.fa, cut = 0.4, sort = TRUE)
 
 # I don't know still doesn't make a lot of sense to me- the two factors make more sense - 1) people centered development 2) nationalist development
 # So I am going to extract factor scores and bind them to the dataset
@@ -1261,27 +1307,48 @@ kahan.fa[["Vaccounted"]] %>%
 
 
 
-
+\newpage
 # LMs with EFA Kahan factors 
 
 ```{r, echo=FALSE}
 
 demoEFA <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban, data = fascale_scores4)
 
-summary(demoEFA)
+#summary(demoEFA)
 
 # 2) lm with all demographic variables
 demoEFA2<- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State, data = fascale_scores4)
-summary(demoEFA2)
+#summary(demoEFA2)
 
 # 3) lm with kahan 
 demoEFA3 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State + CE + HE , data = fascale_scores4)
 
-summary(demoEFA3)
+#summary(demoEFA3)
 
 ```
 
-#2.  Kahan scale EFA  
+
+
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
+
+
+cat("\\begingroup")
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(demoEFA,demoEFA2, demoEFA3, 
+          title = "Lms with CFA Kahan",
+          type = "latex"
+)
+cat("\\endgroup")
+
+
+```
+
+
+\newpage
+
+# 2. EXTRA:: Kahan scale EFA  
 ```{r, echo=FALSE}
 
 
@@ -1316,16 +1383,16 @@ fascale_scores5 <- cbind(fascales, kahanefascores2) %>%
 
 KEFA <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban, data = fascale_scores5)
 
-summary(KEFA)
+#summary(KEFA)
 
 # 2) lm with all demographic variables
 KEFA2<- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State, data = fascale_scores5)
-summary(KEFA2)
+#summary(KEFA2)
 
 # 3) lm with kahan 
 KEFA3 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State + CE + HE , data = fascale_scores5)
 
-summary(KEFA3)
+#summary(KEFA3)
 
 
 
@@ -1415,12 +1482,12 @@ TM2<- fascale_scores2 %>%
   filter(State == "Tamil Nadu")
 
 # 3) lm with kahan 
-TM2_kahan <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age  + Communitarianism_score + Egalitarianism_score, data = TM2)
+TM2_kahan <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age  + Individualism_score + Hierarchy_score, data = TM2)
 
 summary(TM2_kahan)
 
 # 4) lm with ecopolvars 
-TM2_allscales <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + Pdevelop + Ndevelop + Communitarianism_score + Egalitarianism_score , data = TM2)
+TM2_allscales <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + Pdevelop + Ndevelop + Individualism_score + Hierarchy_score , data = TM2)
 
 summary(TM2_allscales)
 
