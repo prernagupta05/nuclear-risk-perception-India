@@ -201,11 +201,6 @@ uncodedjoineddf <- full_join(numcolb, numcola, by = c("Respondent", "Language", 
 
 
 
-\newpage    
-
-
-## Mean Perceived Risk and Mean Perceived Benefit for all energy technologies. 
-
 ```{r, echo=FALSE}
 library(tidyverse)
 
@@ -355,7 +350,6 @@ p_values <- long_format %>%
 
 ```
 
-\newpage
 
 
 ```{r, echo=FALSE}
@@ -400,6 +394,8 @@ alldemoslm2<- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State
 
 ```
 
+
+\newpage
 
 ## Demographic IVs - two linear regression models
 ```{r, echo=FALSE, results='asis'}
@@ -470,7 +466,7 @@ cat("\\endgroup")
 
 
 ##  Kahan scale Alpha values 
-Hierarchy - Egalitarianism scale alpha  =  0.7
+Hierarchy - Egalitarianism scale alpha  =  0.70
 Individualism - Communitarianism scale alpha= 0.52
 Only Individualism scale alpha = 0.31 
 Only Communitarianism scale alpha = 0.72
@@ -527,132 +523,17 @@ KahanS_alpha<- psych::alpha(KahanS, check.keys = TRUE) # alpha = 0.72
 KahanI<-Kahan_scale %>%
   dplyr::select(starts_with(c("K_I")))
 
-
-
 KahanI_alpha<- psych::alpha(KahanI, check.keys = TRUE) # alpha = 0.31 
 
 Kahan_scores <- predict(Kahan_cfa, newdata = fascales)
 
 Kahan_Kscores <- cbind(fascales, Kahan_scores)
 
-
-
-```
-
-
-\newpage
-
-\blandscape
-# Kahan scale EFA  
-```{r, echo=FALSE}
-
-
-Kahan_scale <- codedmodule2 %>%
-  dplyr::select(starts_with("K_"))
-
-kahan.fa <- fa(Kahan_scale, nfactors = 2, rotate = "varimax")
-
-#print.psych(kahan.fa, cut = 0.4, sort = TRUE)
-
-
-
 ```
 
 
 
-
-```{r, echo=FALSE}
-
-library(flextable)
-
-flex <- function(data, title=NULL) {
-  # this grabs the data and converts it to a flextbale
-  flextable(data) %>%
-  # this makes the table fill the page width
-  set_table_properties(layout = "autofit", width = 1) %>%
-  # font size
-  fontsize(size=11, part="all") %>%
-    #this adds a ttitlecreates an automatic table number
-      set_caption(title, 
-                  autonum = officer::run_autonum(seq_id = "tab", 
-                                                 pre_label = "Table ", 
-                                                 post_label = "\n", 
-                                                 bkm = "anytable")) #%>%
-  # font type
-  #font(fontname="Times New Roman", part="all")
-}
-
-rename_map <- c(
-  "K_SHARM" = "(C)Sometimes the government needs to make laws that keep people from hurting themselves.",
-  "K_SLIMCHOI" = "(C)The government should put limits on the choices individuals can make so they don’t get in the way of what’s good for society.",
-  "K_SPROTECT" = "(C)The government should do more to advance society’s goals, even if that means limiting the freedom and choices of individuals.",
-  "K_HEQUAL" = "(H)We have gone too far in pushing equal rights in this country.",
-  "K_ERADEQ1" = "(E)We need to dramatically reduce inequalities between the rich and the poor.",
-  "K_EWEALTH" = "(E)Our society would be better off if the distribution of wealth was more equal.",
-  "K_ERADEQ2" = "(E)We need to dramatically reduce inequalities between men and women.",
-  
-  "K_IINTRFER" = "(I)The government interferes far too much in our everyday lives.",
-  "K_HREVDIS1" = "(H)Nowadays it seems like there is just as much discrimination against upper castes as there is against Dalits.",
-  "K_EDISCRIM" = "(E)Discrimination against minorities is still a very serious problem in our society.",
-  "K_IPRIVACY" = "(I)The government should stop telling people how to live their lives.",
-  "K_IPROTECT" = "(I)It’s not the government’s business to try to protect people from themselves."
-)
-
-
-
-fa_table <- function(x) {
-  #get sorted loadings
-  loadings <- fa.sort(x)$loadings %>% round(3)
-  #get additional info  
-  add_info <- cbind(x$communalities, 
-                    x$uniquenesses,
-                    x$complexity) %>%
-    # make it a data frame
-    as.data.frame() %>%
-    # column names
-   rename("Communality" = V1,
-           "Uniqueness" = V2,
-           "Complexity" = V3) %>%
-    #get the item names from the vector
-    rownames_to_column("item")
-  #build table
-  loadings %>%
-    unclass() %>%
-    as.data.frame() %>%
-    rownames_to_column("item") %>%
-    left_join(add_info) %>%
-    mutate(
-      item = if_else(item %in% names(rename_map), rename_map[item], item),
-      across(where(is.numeric), round, 3)
-    )
-}
-
-
-fa_table(kahan.fa) %>%
-  #rename(Pdevelop = MR1, Ndevelop = MR2, Items= item) %>%
-  flex("Kahan Exploratory Factor Analysis Table")
-
-
-
-```
-
-\elandscape
-
-\newpage
-
-```{r, echo=FALSE}
-
-kahan.fa[["Vaccounted"]] %>%
-  as.data.frame() %>%
-  rownames_to_column("Property") %>%
-    mutate(across(where(is.numeric), round, 3)) %>%
-    flex("Eigenvalues and Variance Explained for Rotated Factor Solution")
-
-```
-
-
-
-## alternative Kahan scores
+## Alternative Kahan Scores with Mean across
 ```{r, echo=FALSE}
 
 Kscalescores <- fascales %>%
@@ -663,10 +544,6 @@ Kscalescores <- fascales %>%
   dplyr::select(!starts_with(c("K_I","K_S", "K_H", "K_E")))
 
 ```
-
-
-
-
 
 
 
@@ -1250,6 +1127,215 @@ cat("\\endgroup")
 
 
 ```
+
+\newpage
+
+\blandscape
+
+# Kahan scale EFA  
+```{r, echo=FALSE}
+
+
+Kahan_scale1 <- codedmodule2 %>%
+  dplyr::select(starts_with(c("Risky_Nuclear","K_", "Uppercaste", "Male", "Hindu", "Urban", "State","age"))) %>%
+  mutate_at(vars(age), funs(case_when(. == "18-24 years old" ~ 1, 
+                                      . == "25-34 years old" ~ 2,
+                                      . ==  "35-44 years old" ~3,
+                                      . == "45-54 years old" ~ 4,
+                                      . == "55-64 years old" ~ 5,
+                                      . == "65-74 years old" ~ 6,
+                                      . == "75 years or older" ~ 7))) %>%
+  na.omit()
+
+Kahan_scale<- Kahan_scale1 %>%
+  dplyr::select(starts_with("K_"))
+  
+kahan.fa <- fa(Kahan_scale, nfactors = 2, rotate = "varimax")
+
+print.psych(kahan.fa, cut = 0.4, sort = TRUE)
+
+# I don't know still doesn't make a lot of sense to me- the two factors make more sense - 1) people centered development 2) nationalist development
+# So I am going to extract factor scores and bind them to the dataset
+
+Kahanefa <- psych::factor.scores(Kahan_scale, kahan.fa)
+
+# The factor scores will be stored in the scores element of the returned list
+kahanefascores <- Kahanefa$scores
+
+
+fascale_scores4 <- cbind(Kahan_scale1, kahanefascores) %>%
+  rename(CE = MR1)%>%
+  rename(HE = MR2) #%>%
+
+```
+
+```{r, echo=FALSE}
+
+library(flextable)
+
+flex <- function(data, title=NULL) {
+  # this grabs the data and converts it to a flextbale
+  flextable(data) %>%
+  # this makes the table fill the page width
+  set_table_properties(layout = "autofit", width = 1) %>%
+  # font size
+  fontsize(size=11, part="all") %>%
+    #this adds a ttitlecreates an automatic table number
+      set_caption(title, 
+                  autonum = officer::run_autonum(seq_id = "tab", 
+                                                 pre_label = "Table ", 
+                                                 post_label = "\n", 
+                                                 bkm = "anytable")) #%>%
+  # font type
+  #font(fontname="Times New Roman", part="all")
+}
+
+rename_map <- c(
+  "K_SHARM" = "(C)Sometimes the government needs to make laws that keep people from hurting themselves.",
+  "K_SLIMCHOI" = "(C)The government should put limits on the choices individuals can make so they don’t get in the way of what’s good for society.",
+  "K_SPROTECT" = "(C)The government should do more to advance society’s goals, even if that means limiting the freedom and choices of individuals.",
+  "K_HEQUAL" = "(H)We have gone too far in pushing equal rights in this country.",
+  "K_ERADEQ1" = "(E)We need to dramatically reduce inequalities between the rich and the poor.",
+  "K_EWEALTH" = "(E)Our society would be better off if the distribution of wealth was more equal.",
+  "K_ERADEQ2" = "(E)We need to dramatically reduce inequalities between men and women.",
+  
+  "K_IINTRFER" = "(I)The government interferes far too much in our everyday lives.",
+  "K_HREVDIS1" = "(H)Nowadays it seems like there is just as much discrimination against upper castes as there is against Dalits.",
+  "K_EDISCRIM" = "(E)Discrimination against minorities is still a very serious problem in our society.",
+  "K_IPRIVACY" = "(I)The government should stop telling people how to live their lives.",
+  "K_IPROTECT" = "(I)It’s not the government’s business to try to protect people from themselves."
+)
+
+
+
+fa_table <- function(x) {
+  #get sorted loadings
+  loadings <- fa.sort(x)$loadings %>% round(3)
+  #get additional info  
+  add_info <- cbind(x$communalities, 
+                    x$uniquenesses,
+                    x$complexity) %>%
+    # make it a data frame
+    as.data.frame() %>%
+    # column names
+   rename("Communality" = V1,
+           "Uniqueness" = V2,
+           "Complexity" = V3) %>%
+    #get the item names from the vector
+    rownames_to_column("item")
+  #build table
+  loadings %>%
+    unclass() %>%
+    as.data.frame() %>%
+    rownames_to_column("item") %>%
+    left_join(add_info) %>%
+    mutate(
+      item = if_else(item %in% names(rename_map), rename_map[item], item),
+      across(where(is.numeric), round, 3)
+    )
+}
+
+
+fa_table(kahan.fa) %>%
+  #rename(Pdevelop = MR1, Ndevelop = MR2, Items= item) %>%
+  flex("Kahan Exploratory Factor Analysis Table")
+
+
+
+```
+
+\elandscape
+
+\newpage
+
+```{r, echo=FALSE}
+
+kahan.fa[["Vaccounted"]] %>%
+  as.data.frame() %>%
+  rownames_to_column("Property") %>%
+    mutate(across(where(is.numeric), round, 3)) %>%
+    flex("Eigenvalues and Variance Explained for Rotated Factor Solution")
+
+```
+
+
+
+
+
+# LMs with EFA Kahan factors 
+
+```{r, echo=FALSE}
+
+demoEFA <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban, data = fascale_scores4)
+
+summary(demoEFA)
+
+# 2) lm with all demographic variables
+demoEFA2<- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State, data = fascale_scores4)
+summary(demoEFA2)
+
+# 3) lm with kahan 
+demoEFA3 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State + CE + HE , data = fascale_scores4)
+
+summary(demoEFA3)
+
+```
+
+#2.  Kahan scale EFA  
+```{r, echo=FALSE}
+
+
+
+Kahan_scale2<- fascales %>%
+  dplyr::select(starts_with("K_"))
+  
+kahan2.fa <- fa(Kahan_scale2, nfactors = 2, rotate = "varimax")
+
+print.psych(kahan2.fa, cut = 0.4, sort = TRUE)
+
+# I don't know still doesn't make a lot of sense to me- the two factors make more sense - 1) people centered development 2) nationalist development
+# So I am going to extract factor scores and bind them to the dataset
+
+Kahanefa2 <- psych::factor.scores(Kahan_scale2, kahan2.fa)
+
+# The factor scores will be stored in the scores element of the returned list
+kahanefascores2 <- Kahanefa2$scores
+
+
+fascale_scores5 <- cbind(fascales, kahanefascores2) %>%
+  rename(CE = MR1)%>%
+  rename(HE = MR2) #%>%
+
+```
+
+
+
+# 2. LMs with EFA Kahan factors 
+
+```{r, echo=FALSE}
+
+KEFA <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban, data = fascale_scores5)
+
+summary(KEFA)
+
+# 2) lm with all demographic variables
+KEFA2<- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State, data = fascale_scores5)
+summary(KEFA2)
+
+# 3) lm with kahan 
+KEFA3 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State + CE + HE , data = fascale_scores5)
+
+summary(KEFA3)
+
+
+
+```
+
+
+
+
+
+
 
 
 \newpage
