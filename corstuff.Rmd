@@ -1034,7 +1034,7 @@ m1_allscales2 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + Ka
 ```
 
 \newpage
-#Correlation table Eco-pol scale and Kahan CFA scores
+# Correlation table Eco-pol scale and Kahan CFA scores
 
 ```{r, echo=FALSE}
 
