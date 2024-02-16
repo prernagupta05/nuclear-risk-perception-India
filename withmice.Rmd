@@ -1,0 +1,193 @@
+---
+title: "withmice"
+output:
+  pdf_document:
+    toc: yes
+    toc_depth: 2
+    keep_tex: yes
+  header-includes:
+  - \usepackage{dcolumn}
+  - \usepackage{array}
+  - "\\usepackage{placeins}"
+  keep_md: yes
+---
+
+```{r load packages, warning = FALSE, message = FALSE, echo=FALSE}
+  knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(readxl))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(tidyr))
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(lavaan))
+suppressPackageStartupMessages(library(tsibble))
+suppressPackageStartupMessages(library(DT))
+suppressPackageStartupMessages(library(knitr))
+suppressPackageStartupMessages(library(psych)) 
+suppressPackageStartupMessages(library(foreign))
+suppressPackageStartupMessages(library(MASS))
+suppressPackageStartupMessages(library(Hmisc))
+suppressPackageStartupMessages(library(reshape2))
+suppressPackageStartupMessages(library(mice))
+
+```
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+moduletwo <- read_excel(here::here("thesis_surveydata/political_factors_complete.xlsx"))
+module2 <- data.frame(moduletwo)
+module2[module2 == "Rather not say/ Don't know"] <- "Rather not say/Don't know"
+
+
+
+# loaded data set for module 2 eco -pol variables and removes the rows with question number and question text
+```
+
+
+```{r, eval =TRUE, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+#This chunk contains the coding schemes of various scales used in survey one: eco-political factors, kahan scale and acceptance scale
+codedmodule2 <- module2 %>%
+  
+#remove row 1
+  filter(!row_number() %in% c(1,2)) %>% 
+  
+# replace risky likert scale with numbers
+  mutate_at(vars(starts_with("Risky")), funs(case_when(. =="Not at all risky" ~ 1, 
+                                                       . =="Slightly risky" ~ 2, 
+                                                       . =="Moderately risky" ~ 3, 
+                                                       . =="Very risky" ~ 4, 
+                                                       . =="Extremely risky" ~ 5))) %>%
+
+# replace beneficial likert scale with numbers  
+  mutate_at(vars(starts_with("Ben")), funs(case_when(. =="Not at all beneficial" ~ 1,
+                                                     . =="Slightly beneficial" ~ 2,
+                                                     . =="Moderately beneficial" ~ 3,
+                                                     . =="Very beneficial" ~ 4,
+                                                     . =="Extremely beneficial" ~ 5 ))) %>%
+
+# replace nuclear acceptance likert scale with numbers
+  mutate_at(vars(N_accept,N_reluctantlyaccept,N_reject), funs(case_when(. == "Strongly disagree" ~ 1, 
+                                                                        . == "Somewhat disagree" ~ 2,
+                                                                        . == "Neither agree nor disagree" ~3,
+                                                                        . == "Somewhat agree" ~ 4,
+                                                                        . == "Strongly agree" ~ 5))) %>%
+  
+  
+# code likert scale for variables for Kahan scale into numbers
+  mutate_at(vars(starts_with (c("K_S","K_E","DISPLACE", "POLLUTE", "HEALTH", "JOBS", "BEAUTY", "PRIDE", "NPRIDE","DEVNUCLEAR","DEVSOLAR", "DEVCOAL","PROSPER", "RELY"))), funs(case_when(. == "Strongly disagree" ~ 1, 
+               . == "Somewhat disagree" ~ 2,
+               . == "Neither agree nor disagree" ~3,
+               . == "Somewhat agree" ~ 4,
+               . == "Strongly agree" ~ 5))) %>%
+  
+# NO reverse coding for likert scale for variables for Kahan scale into numbers
+  mutate_at(vars(starts_with (c("K_H","K_I"))), funs(case_when(. == "Strongly disagree" ~ 1, 
+                                                               . == "Somewhat disagree" ~ 2,
+                                                               . == "Neither agree nor disagree" ~3,
+                                                               . == "Somewhat agree" ~ 4,
+                                                               . == "Strongly agree" ~ 5))) %>%
+
+# code eco-pol scale variables into numbers
+mutate_at(vars(SYSTEMDEMO,SYSTEMRELIGION,SYSTEMTECHNO,SYSTEMTOTAL,WEALTHLIM,MECHANISATION,DECISIONDECEN,INDUSTRYSMALL,ECONOMYLOCAL,ENVOVERDEV,OWNERPUB, OWNERREG), funs(case_when(. == "Strongly disagree" ~ 1, 
+                        . == "Somewhat disagree" ~ 2,
+                        . == "Neither agree nor disagree" ~3,
+                        . == "Somewhat agree" ~ 4,
+                        . == "Strongly agree" ~ 5))) %>%
+
+# NO reverse code eco-pol scale variables into numbers 
+ mutate_at(vars(DECISIONCEN,INDUSTRYLARGE,ECONOMYGLOBAL,OWNERPVT,OWNERNOREG, DEVOVERENV), funs(case_when(. == "Strongly disagree" ~ 1, 
+                                                                                                         . == "Somewhat disagree" ~ 2,
+                                                                                                         . == "Neither agree nor disagree" ~3,
+                                                                                                         . == "Somewhat agree" ~ 4,
+                                                                                                         . == "Strongly agree" ~ 5))) %>%
+  mutate_all(~ifelse(. == "Rather not say/ Don't know", "Rather not say/Don't know", .))%>%
+  mutate_all(~ifelse(. == "West bengal", "West Bengal", .))%>%
+  mutate_all(~ifelse(. == "WEST BENGAL", "West Bengal", .))%>%
+  mutate_all(~ifelse(. == "Up", "Uttar Pradesh", .))%>%
+  mutate_all(~ifelse(. == "Tamilnadu", "Tamil Nadu", .))%>%
+  mutate_all(~ifelse(. == "UP", "Uttar Pradesh", .))
+  
+
+```
+
+
+
+```{r, echo=FALSE}
+
+module2mice <- codedmodule2 %>%
+              dplyr::select(starts_with (c("Risky_Nuclear", "Risky_Solar", "Risky_Coal", "Ben_Nuclear", "Ben_Solar", "Ben_Coal","K_S","K_E","DISPLACE", "POLLUTE", "HEALTH", "JOBS", "BEAUTY", "PRIDE", "NPRIDE","DEVNUCLEAR", "DEVSOLAR", "DEVCOAL","PROSPER", "RELY","K_H","K_I", "WEALTHLIM", "MECHANISATION", "DECISIONDECEN", "INDUSTRYSMALL", "ECONOMYLOCAL", "ENVOVERDEV", "OWNERPUB","OWNERREG", "DECISIONCEN", "INDUSTRYLARGE", "ECONOMYGLOBAL", "OWNERPVT", "OWNERNOREG", "DEVOVERENV", "age", "urban_rural", "gender", "caste", "religion", "State"))) %>%
+              dplyr::select(!religiontext)
+                
+module2mice2 <- module2mice %>%
+  mutate(across(starts_with("Risky_"), ~factor(.x, ordered = TRUE))) %>%
+  mutate(across(starts_with("Ben_"), ~factor(.x, ordered = TRUE))) %>%
+  mutate(across(starts_with("K_S"), ~factor(.x, ordered = TRUE))) %>%
+  mutate(across(starts_with("K_E"), ~factor(.x, ordered = TRUE))) %>%
+  mutate(across(starts_with("DISPLACE"), ~factor(.x, ordered = TRUE))) %>%
+  mutate(across(starts_with("POLLUTE"), ~factor(.x, ordered = TRUE))) %>%
+  mutate(across(starts_with("HEALTH"), ~factor(.x, ordered = TRUE))) %>%
+  mutate(across(starts_with("JOBS"), ~factor(.x, ordered = TRUE))) %>%
+  mutate(across(starts_with("BEAUTY"), ~factor(.x, ordered = TRUE))) %>%
+  mutate(across(starts_with("PRIDE"), ~factor(.x, ordered = TRUE))) %>%
+  mutate(across(starts_with("NPRIDE"), ~factor(.x, ordered = TRUE))) %>%
+  mutate(across(starts_with("DEV"), ~factor(.x, ordered = TRUE))) %>%
+  mutate(across(starts_with("PROSPER"), ~factor(.x, ordered = TRUE))) %>%
+  mutate(across(starts_with("RELY"), ~factor(.x, ordered = TRUE))) %>%
+  mutate(across(starts_with("K_H"), ~factor(.x, ordered = TRUE))) %>%
+  mutate(across(starts_with("K_I"), ~factor(.x, ordered = TRUE))) %>%
+  mutate(across(starts_with("WEALTHLIM"), ~factor(.x, ordered = TRUE))) %>%
+  mutate(across(starts_with("MECHANISATION"), ~factor(.x, ordered = TRUE))) %>%
+  mutate(across(starts_with("DECISIONDECEN"), ~factor(.x, ordered = TRUE))) %>%
+  mutate(across(starts_with("INDUSTRYSMALL"), ~factor(.x, ordered = TRUE))) %>%
+  mutate(across(starts_with("ECONOMYLOCAL"), ~factor(.x, ordered = TRUE))) %>%
+  mutate(across(starts_with("ENVOVERDEV"), ~factor(.x, ordered = TRUE))) %>%
+  mutate(across(starts_with("OWNERPUB"), ~factor(.x, ordered = TRUE))) %>%
+  mutate(across(starts_with("OWNERREG"), ~factor(.x, ordered = TRUE))) %>%
+  mutate(across(starts_with("DECISIONCEN"), ~factor(.x, ordered = TRUE))) %>%
+  mutate(across(starts_with("INDUSTRYLARGE"), ~factor(.x, ordered = TRUE))) %>%
+  mutate(across(starts_with("ECONOMYGLOBAL"), ~factor(.x, ordered = TRUE))) %>%
+  mutate(across(starts_with("OWNERPVT"), ~factor(.x, ordered = TRUE))) %>%
+  mutate(across(starts_with("OWNERNOREG"), ~factor(.x, ordered = TRUE))) %>%
+  mutate(across(starts_with("DEVOVERENV"), ~factor(.x, ordered = TRUE))) %>%
+  mutate(across(starts_with("age"), ~factor(.x, ordered = TRUE)))%>%
+  mutate(across(starts_with("urban_rural"), ~factor(.x, ordered = FALSE)))%>%
+  mutate(across(starts_with("gender"), ~factor(.x, ordered = FALSE)))%>%
+  mutate(across(starts_with("caste"), ~factor(.x, ordered = FALSE)))%>%
+  mutate(across(starts_with("religion"), ~factor(.x, ordered = FALSE)))%>%
+  mutate(across(starts_with("State"), ~factor(.x, ordered = FALSE)))
+  
+  
+str(module2mice2)
+
+```
+
+
+```{r, echo=FALSE}
+
+## checking levels for all the variables
+
+# Loop through each column in the dataframe
+for(col_name in names(module2mice2)) {
+  # Check if the column is a factor
+  if(is.factor(module2mice2[[col_name]])) {
+    # Print the levels of the factor
+    cat("Levels for", col_name, ":\n")
+    print(levels(module2mice2[[col_name]]))
+    cat("\n") # Just for better readability in the output
+  }
+}
+```
+
+
+
+```{r, echo=FALSE}
+
+d.pattern(module2mice2)
+
+```
+
+
+
