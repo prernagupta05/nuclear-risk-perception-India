@@ -1,28 +1,188 @@
 ---
-title: "withmice"
-output: html_document
+title: "models with mice"
+output:
+  pdf_document:
+    toc: yes
+    toc_depth: 2
+    keep_tex: yes
+  header-includes:
+  - \usepackage{dcolumn}
+  - \usepackage{array}
+  - "\\usepackage{placeins}"
+  keep_md: yes
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+
+```{r load packages, warning = FALSE, message = FALSE, echo=FALSE}
+  knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(readxl))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(tidyr))
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(lavaan))
+suppressPackageStartupMessages(library(tsibble))
+suppressPackageStartupMessages(library(DT))
+suppressPackageStartupMessages(library(knitr))
+suppressPackageStartupMessages(library(psych)) 
+suppressPackageStartupMessages(library(foreign))
+suppressPackageStartupMessages(library(MASS))
+suppressPackageStartupMessages(library(Hmisc))
+suppressPackageStartupMessages(library(reshape2))
+
 ```
 
-## R Markdown
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+moduletwo <- read_excel(here::here("thesis_surveydata/political_factors_complete.xlsx"))
+module2 <- data.frame(moduletwo)
+module2[module2 == "Rather not say/ Don't know"] <- "Rather not say/Don't know"
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-```{r cars}
-summary(cars)
+
+# loaded data set for module 2 eco -pol variables and removes the rows with question number and question text
 ```
 
-## Including Plots
+```{r, eval =TRUE, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+#This chunk contains the coding schemes of various scales used in survey one: eco-political factors, kahan scale and acceptance scale
+codedmodule2 <- module2 %>%
+  
+#remove row 1
+  filter(!row_number() %in% c(1,2)) %>% 
+  
+# replace risky likert scale with numbers
+  mutate_at(vars(starts_with("Risky")), funs(case_when(. =="Not at all risky" ~ 1, 
+                                                       . =="Slightly risky" ~ 2, 
+                                                       . =="Moderately risky" ~ 3, 
+                                                       . =="Very risky" ~ 4, 
+                                                       . =="Extremely risky" ~ 5))) %>%
 
-You can also embed plots, for example:
+# replace beneficial likert scale with numbers  
+  mutate_at(vars(starts_with("Ben")), funs(case_when(. =="Not at all beneficial" ~ 1,
+                                                     . =="Slightly beneficial" ~ 2,
+                                                     . =="Moderately beneficial" ~ 3,
+                                                     . =="Very beneficial" ~ 4,
+                                                     . =="Extremely beneficial" ~ 5 ))) %>%
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+# replace nuclear acceptance likert scale with numbers
+  mutate_at(vars(N_accept,N_reluctantlyaccept,N_reject), funs(case_when(. == "Strongly disagree" ~ 1, 
+                                                                        . == "Somewhat disagree" ~ 2,
+                                                                        . == "Neither agree nor disagree" ~3,
+                                                                        . == "Somewhat agree" ~ 4,
+                                                                        . == "Strongly agree" ~ 5))) %>%
+  
+  
+# code likert scale for variables for Kahan scale into numbers
+  mutate_at(vars(starts_with (c("K_S","K_E","DISPLACE", "POLLUTE", "HEALTH", "JOBS", "BEAUTY", "PRIDE", "NPRIDE","DEV","PROSPER", "RELY"))), funs(case_when(. == "Strongly disagree" ~ 1, 
+               . == "Somewhat disagree" ~ 2,
+               . == "Neither agree nor disagree" ~3,
+               . == "Somewhat agree" ~ 4,
+               . == "Strongly agree" ~ 5))) %>%
+  
+# reverse code for likert scale for variables for Kahan scale into numbers
+  mutate_at(vars(starts_with (c("K_H","K_I"))), funs(case_when(. == "Strongly disagree" ~ 5, 
+                                                               . == "Somewhat disagree" ~ 4,
+                                                               . == "Neither agree nor disagree" ~3,
+                                                               . == "Somewhat agree" ~ 2,
+                                                               . == "Strongly agree" ~ 1))) %>%
+
+# code eco-pol scale variables into numbers
+mutate_at(vars(SYSTEMDEMO,SYSTEMRELIGION,SYSTEMTECHNO,SYSTEMTOTAL,WEALTHLIM,MECHANISATION,DECISIONDECEN,INDUSTRYSMALL,ECONOMYLOCAL,ENVOVERDEV,OWNERPUB, OWNERREG), funs(case_when(. == "Strongly disagree" ~ 1, 
+                        . == "Somewhat disagree" ~ 2,
+                        . == "Neither agree nor disagree" ~3,
+                        . == "Somewhat agree" ~ 4,
+                        . == "Strongly agree" ~ 5))) %>%
+
+# NO reverse code eco-pol scale variables into numbers 
+ mutate_at(vars(DECISIONCEN,INDUSTRYLARGE,ECONOMYGLOBAL,OWNERPVT,OWNERNOREG), funs(case_when(. == "Strongly disagree" ~ 1, 
+                                                                                                         . == "Somewhat disagree" ~ 2,
+                                                                                                         . == "Neither agree nor disagree" ~3,
+                                                                                                         . == "Somewhat agree" ~ 4,
+                                                                                                         . == "Strongly agree" ~ 5))) %>%
+  mutate_all(~ifelse(. == "Rather not say/ Don't know", "Rather not say/Don't know", .))%>%
+  mutate_all(~ifelse(. == "West bengal", "West Bengal", .))%>%
+  mutate_all(~ifelse(. == "WEST BENGAL", "West Bengal", .))%>%
+  mutate_all(~ifelse(. == "Up", "Uttar Pradesh", .))%>%
+  mutate_all(~ifelse(. == "Tamilnadu", "Tamil Nadu", .))%>%
+  mutate_all(~ifelse(. == "UP", "Uttar Pradesh", .))
+  
+
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r}
+
+## Can do something with accept, reject and reluctantly accept. 
+
+n_acceptreject<- codedmodule2 %>%
+                dplyr::select("N_accept", "N_reluctantlyaccept", "N_reject")
+
+summary(n_acceptreject)
+```
+
+
+```{r, echo=FALSE}
+
+
+formice <- codedmodule2[, grep("State|age|urban_rural|gender|caste|religion|Solar|SOLAR|Nuclear|NUCLEAR|Coal|COAL|K_S|K_E|K_H|K_I|WEALTHLIM|MECHANISATION|DECISIONDECEN|INDUSTRYSMALL|ECONOMYLOCAL|ENVOVERDEV|OWNERPUB|OWNERREG|DECISIONCEN|INDUSTRYLARGE|ECONOMYGLOBAL|OWNERPVT|OWNERNOREG", names(codedmodule2))]%>%
+        dplyr::select(-c("Language", "Risky_INDSolar", "Ben_INDSolar", "religiontext"))
+
+
+#dplyr:: select(starts_with (c("State", "age", "urban_rural", "gender", "caste", "religion","Risky_Solar", "Risky_Nuclear", "Risky_Coal", "Ben_Solar","Ben_Nuclear","Ben_Coal","K_S","K_E","K_H","K_I", "DISPLACE", "POLLUTE", "HEALTH", "JOBS", "BEAUTY", "PRIDE", "NPRIDE","DEV", "PROSPER", "RELY", "WEALTHLIM", "MECHANISATION", "DECISIONDECEN", "INDUSTRYSMALL", "ECONOMYLOCAL", "ENVOVERDEV", "OWNERPUB", "OWNERREG", "DECISIONCEN","INDUSTRYLARGE","ECONOMYGLOBAL","OWNERPVT","OWNERNOREG" )))
+
+library(dplyr)
+
+formice <- formice %>%
+  mutate(across(Risky_Solar:age, ~factor(.x, ordered = TRUE)))%>%
+  mutate(across(urban_rural:religion, ~factor(.x, ordered = FALSE)))%>%
+  mutate(across(State, ~factor(.x, ordered = FALSE)))
+
+str(formice)
+summary(formice)
+
+
+```
+
+
+```{r, echo =FALSE}
+library(mifa)
+library(mice)
+library(psych)
+
+ #cov_vars = -c(State, Risky_Solar, Risky_Nuclear, Risky_Coal, Ben_Solar, Ben_Nuclear, Ben_Coal, DECISIONDECEN, DECISIONCEN, INDUSTRYSMALL, INDUSTRYLARGE, ECONOMYLOCAL, ECONOMYGLOBAL, ENVOVERDEV, OWNERPVT, OWNERPUB, OWNERREG, OWNERNOREG, WEALTHLIM, MECHANISATION, DISPLACESOLAR, POLLUTESOLAR, HEALTHSOLAR, JOBSSOLAR, BEAUTYSOLAR, PRIDESOLAR, NPRIDESOLAR, DEVSOLAR, PROSPERSOLAR, RELYSOLAR, DISPLACECOAL, POLLUTECOAL, HEALTHCOAL, JOBSCOAL, BEAUTYCOAL, PRIDECOAL, NPRIDECOAL, DEVCOAL, PROSPERCOAL, RELYCOAL, DISPLACENUCLEAR, POLLUTENUCLEAR, HEALTHNUCLEAR, JOBSNUCLEAR, BEAUTYNUCLEAR, PRIDENUCLEAR, NPRIDENUCLEAR, DEVNUCLEAR, PROSPERNUCLEAR, RELYNUCLEAR, age, urban_rural, gender, caste, religion),
+
+kahanall <- codedmodule2 %>%
+          dplyr::select(c(starts_with("K_")))
+
+mikahan <- mifa(data= kahanall,
+                cov_vars = everything(),
+                n_pc= 2:4,
+                ci = "fieller", 
+                n_boot=1000,
+                print = FALSE,
+                progress= TRUE, )
+
+mikahan
+
+
+library(psych)
+
+fit <- psych::fa(mikahan$cov_combined,n.obs = nrow(mikahan), nfactors = 2, rotate = "varimax")
+
+print(fit, sort= TRUE, cut= 0.4)
+
+
+data_imp <- mice::complete(mice::mice(kahanall, 1, print = FALSE))
+  
+fct_scores <- data.frame(factor.scores(data_imp[, 1:12], fit)$scores)
+
+```
+
+
+
+
+
