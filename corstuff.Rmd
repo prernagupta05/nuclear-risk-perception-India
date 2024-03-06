@@ -1198,7 +1198,7 @@ Kahan_scale<- Kahan_scale1 %>%
   
 kahan.fa <- fa(Kahan_scale, nfactors = 2, rotate = "varimax")
 
-#print.psych(kahan.fa, cut = 0.4, sort = TRUE)
+print.psych(kahan.fa, cut = 0.4, sort = TRUE)
 
 # I don't know still doesn't make a lot of sense to me- the two factors make more sense - 1) people centered development 2) nationalist development
 # So I am going to extract factor scores and bind them to the dataset

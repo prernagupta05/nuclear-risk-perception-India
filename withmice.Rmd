@@ -113,6 +113,7 @@ mutate_at(vars(SYSTEMDEMO,SYSTEMRELIGION,SYSTEMTECHNO,SYSTEMTOTAL,WEALTHLIM,MECH
 
 ```
 
+## Can do something with accept, reject and reluctantly accept. 
 
 ```{r}
 
@@ -147,7 +148,7 @@ summary(formice)
 
 ```
 
-
+## Mifa dor Kahan scale 
 ```{r, echo =FALSE}
 library(mifa)
 library(mice)
@@ -164,25 +165,160 @@ mikahan <- mifa(data= kahanall,
                 ci = "fieller", 
                 n_boot=1000,
                 print = FALSE,
-                progress= TRUE, )
+                progress= TRUE, 
+                seed = 427,)
+
+
+
 
 mikahan
 
 
 library(psych)
 
-fit <- psych::fa(mikahan$cov_combined,n.obs = nrow(mikahan), nfactors = 2, rotate = "varimax")
+fit <- psych::fa(mikahan$cov_combined, nfactors = 2, rotate = "varimax")
 
-print(fit, sort= TRUE, cut= 0.4)
+print.psych(fit, sort= TRUE, cut= 0.4)
 
 
 data_imp <- mice::complete(mice::mice(kahanall, 1, print = FALSE))
   
 fct_scores <- data.frame(factor.scores(data_imp[, 1:12], fit)$scores)
 
+
 ```
 
 
+#checking imputations: Kahan scale
+
+```{r}
+orgscores <- data.frame(kahanefascores)
 
 
+summary(mikahan)
+names(mikahan)
+
+mikahan$mids
+
+
+complete_data_first <- complete(mikahan$mids, 1)
+
+summary(complete_data_first)
+
+complete_data_2 <- complete(mikahan$mids, 2)
+
+summary(complete_data_2)
+
+complete_data_3 <- complete(mikahan$mids, 3)
+
+summary(complete_data_3)
+
+complete_data_4 <- complete(mikahan$mids, 4)
+
+summary(complete_data_4)
+
+complete_data_5 <- complete(mikahan$mids, 5)
+
+summary(complete_data_5)
+```
+
+ 
+## Distribution check: kahan Scale
+
+```{r}
+# Add an identifier column to each dataset
+fct_scores$Dataset <- 'fct_scores'
+orgscores$Dataset <- 'orgscores'
+
+# Combine the datasets for plotting
+combined_data <- rbind(fct_scores, orgscores)
+
+# Select only necessary columns (assuming 'Index' isn't needed anymore)
+combined_data <- combined_data[, c("MR1", "MR2", "Dataset")]
+
+
+ggplot(combined_data, aes(x = Dataset, y = MR1, fill = Dataset)) +
+  geom_boxplot() +
+  geom_jitter(width = 0.2, aes(color = Dataset), size = 1.5, alpha = 0.5) +
+  labs(title = "Boxplot of MR1 for Each Dataset", x = "", y = "MR1 Value") +
+  scale_fill_manual(values = c("fct_scores" = "blue", "orgscores" = "red")) +
+  scale_color_manual(values = c("fct_scores" = "blue", "orgscores" = "red")) +
+  theme_minimal()
+
+```
+```{r}
+ggplot(combined_data, aes(x = Dataset, y = MR2, fill = Dataset)) +
+  geom_boxplot() +
+  geom_jitter(width = 0.2, aes(color = Dataset), size = 1.5, alpha = 0.5) +
+  labs(title = "Boxplot of MR2 for Each Dataset with Points", x = "", y = "MR2 Value") +
+  scale_fill_manual(values = c("fct_scores" = "blue", "orgscores" = "red")) +
+  scale_color_manual(values = c("fct_scores" = "blue", "orgscores" = "red")) +
+  theme_minimal()
+
+```
+
+
+# Mifa for new eco-pol value scale : Nuclear energy
+
+```{r}
+
+ecopoln <- codedmodule2[, grep("NUCLEAR|WEALTHLIM|MECHANISATION|DECISIONDECEN|INDUSTRYSMALL|ECONOMYLOCAL|ENVOVERDEV|OWNERPUB|OWNERREG|DECISIONCEN|INDUSTRYLARGE|ECONOMYGLOBAL|OWNERPVT|OWNERNOREG", names(codedmodule2))]
+
+
+miecopol <- mifa(data= ecopoln,
+                cov_vars = everything(),
+                n_pc= 2:4,
+                ci = "fieller", 
+                n_boot=1000,
+                print = FALSE,
+                progress= TRUE, 
+                seed = 429,)
+
+miecopol
+
+
+fit2 <- psych::fa(miecopol$cov_combined, nfactors = 2, rotate = "varimax")
+
+print.psych(fit2, sort= TRUE, cut= 0.4)
+
+
+data_imp2 <- mice::complete(mice::mice(ecopoln, 1, print = FALSE))
+  
+fct_scores2 <- data.frame(factor.scores(data_imp2[, 1:23], fit2)$scores)
+
+```
+
+## Checking imputations : Eco-pol scale
+
+```{r, echo=FALSE}
+
+orgscores <- data.frame(kahanefascores)
+
+
+summary(miecopol)
+names(miecopol)
+
+miecopol$mids
+
+
+complete_ecopol_first <- complete(miecopol$mids, 1)
+
+summary(complete_ecopol_first)
+
+complete_ecopol_2 <- complete(miecopol$mids, 2)
+
+summary(complete_ecopol_2)
+
+complete_ecopol_3 <- complete(miecopol$mids, 3)
+
+summary(complete_ecopol_3)
+
+complete_ecopol_4 <- complete(miecopol$mids, 4)
+
+summary(complete_ecopol_4)
+
+complete_ecopol_5 <- complete(miecopol$mids, 5)
+
+summary(complete_ecopol_5)
+```
 
