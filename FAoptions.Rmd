@@ -278,7 +278,7 @@ ecopolall <- fascales %>%
 
 ecopolall2.fa <- fa(ecopolall, nfactors = 2, rotate = "varimax")
 
-#print.psych(ecopolall2.fa, cut = 0.4, sort = TRUE)
+print.psych(ecopolall2.fa, cut = 0.4, sort = TRUE)
 
 ecopol_fas <- '
   Pdevelop =~ HEALTHNUCLEAR + BEAUTYNUCLEAR + DISPLACENUCLEAR + POLLUTENUCLEAR + INDUSTRYSMALL + OWNERREG + MECHANISATION

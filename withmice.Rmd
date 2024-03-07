@@ -148,7 +148,7 @@ summary(formice)
 
 ```
 
-## Mifa dor Kahan scale 
+## Mifa for Kahan scale 
 ```{r, echo =FALSE}
 library(mifa)
 library(mice)
@@ -192,6 +192,8 @@ fct_scores <- data.frame(factor.scores(data_imp[, 1:12], fit)$scores)
 #checking imputations: Kahan scale
 
 ```{r}
+
+
 orgscores <- data.frame(kahanefascores)
 
 
@@ -199,7 +201,6 @@ summary(mikahan)
 names(mikahan)
 
 mikahan$mids
-
 
 complete_data_first <- complete(mikahan$mids, 1)
 
@@ -292,13 +293,12 @@ fct_scores2 <- data.frame(factor.scores(data_imp2[, 1:23], fit2)$scores)
 
 ```{r, echo=FALSE}
 
-orgscores <- data.frame(kahanefascores)
-
 
 summary(miecopol)
 names(miecopol)
 
 miecopol$mids
+
 
 
 complete_ecopol_first <- complete(miecopol$mids, 1)
@@ -320,5 +320,60 @@ summary(complete_ecopol_4)
 complete_ecopol_5 <- complete(miecopol$mids, 5)
 
 summary(complete_ecopol_5)
+
+
+
+```
+
+
+
+
+
+```{r}
+
+nscores <- data.frame(ecopolall_scores$scores)
+nscores
+
+# Add an identifier column to each dataset
+fct_scores2$Dataset <- 'imputed'
+nscores$Dataset <- 'original'
+
+# Combine the datasets for plotting
+compare2 <- rbind(fct_scores2, nscores)
+
+# Select only necessary columns (assuming 'Index' isn't needed anymore)
+compare2<- compare2[, c("MR1", "MR2", "Dataset")]
+
+
+ggplot(compare2, aes(x = Dataset, y = MR1, fill = Dataset)) +
+  geom_boxplot() +
+  geom_jitter(width = 0.2, aes(color = Dataset), size = 1.5, alpha = 0.5) +
+  labs(title = "Boxplot of Pdevelop for Each Dataset", x = "", y = "MR1 Value") +
+  scale_fill_manual(values = c("imputed" = "blue", "original" = "red")) +
+  scale_color_manual(values = c("imputed" = "blue", "original" = "red")) +
+  theme_minimal()
+
+
+
+```
+
+
+```{r}
+
+ggplot(compare2, aes(x = Dataset, y = MR2, fill = Dataset)) +
+  geom_boxplot() +
+  geom_jitter(width = 0.2, aes(color = Dataset), size = 1.5, alpha = 0.5) +
+  labs(title = "Boxplot of Ndevelop for Each Dataset with Points", x = "", y = "MR2 Value") +
+  scale_fill_manual(values = c("imputed" = "blue", "original" = "red")) +
+  scale_color_manual(values = c("imputed" = "blue", "original" = "red")) +
+  theme_minimal()
+
+```
+
+
+```{r}
+
+
+
 ```
 
