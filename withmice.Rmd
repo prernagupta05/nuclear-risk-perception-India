@@ -82,12 +82,12 @@ codedmodule2 <- module2 %>%
                . == "Somewhat agree" ~ 4,
                . == "Strongly agree" ~ 5))) %>%
   
-# reverse code for likert scale for variables for Kahan scale into numbers
-  mutate_at(vars(starts_with (c("K_H","K_I"))), funs(case_when(. == "Strongly disagree" ~ 5, 
-                                                               . == "Somewhat disagree" ~ 4,
+# NO reverse code for likert scale for variables for Kahan scale into numbers
+  mutate_at(vars(starts_with (c("K_H","K_I"))), funs(case_when(. == "Strongly disagree" ~ 1, 
+                                                               . == "Somewhat disagree" ~ 2,
                                                                . == "Neither agree nor disagree" ~3,
-                                                               . == "Somewhat agree" ~ 2,
-                                                               . == "Strongly agree" ~ 1))) %>%
+                                                               . == "Somewhat agree" ~ 4,
+                                                               . == "Strongly agree" ~ 5))) %>%
 
 # code eco-pol scale variables into numbers
 mutate_at(vars(SYSTEMDEMO,SYSTEMRELIGION,SYSTEMTECHNO,SYSTEMTOTAL,WEALTHLIM,MECHANISATION,DECISIONDECEN,INDUSTRYSMALL,ECONOMYLOCAL,ENVOVERDEV,OWNERPUB, OWNERREG), funs(case_when(. == "Strongly disagree" ~ 1, 
@@ -161,6 +161,7 @@ kahanall <- codedmodule2 %>%
 
 mikahan <- mifa(data= kahanall,
                 cov_vars = everything(),
+                m = 10,
                 n_pc= 2:4,
                 ci = "fieller", 
                 n_boot=1000,
@@ -243,6 +244,13 @@ ggplot(combined_data, aes(x = Dataset, y = MR1, fill = Dataset)) +
   geom_jitter(width = 0.2, aes(color = Dataset), size = 1.5, alpha = 0.5) +
   labs(title = "Boxplot of MR1 for Each Dataset", x = "", y = "MR1 Value") +
   scale_fill_manual(values = c("fct_scores" = "blue", "orgscores" = "red")) +
+  scale_color_manual(values = c("fct_scores" = "blue", "orgscores" = "red")) +
+  theme_minimal()
+
+
+ggplot(combined_data, aes(x = MR1, color = Dataset)) +
+  geom_density(fill = NA, alpha = 0.5) +
+  labs(title = "Density Plot of MR1 for Each Dataset", x = "MR1 Value", y = "Density") +
   scale_color_manual(values = c("fct_scores" = "blue", "orgscores" = "red")) +
   theme_minimal()
 
@@ -332,7 +340,6 @@ summary(complete_ecopol_5)
 ```{r}
 
 nscores <- data.frame(ecopolall_scores$scores)
-nscores
 
 # Add an identifier column to each dataset
 fct_scores2$Dataset <- 'imputed'
@@ -372,6 +379,35 @@ ggplot(compare2, aes(x = Dataset, y = MR2, fill = Dataset)) +
 
 
 ```{r}
+
+library(ggplot2)
+
+ggplot(compare2, aes(x = MR2, color = Dataset)) +
+  geom_density(fill = NA, alpha = 0.5) +
+  labs(title = "Density Plot of MR2 for Each Dataset", x = "MR2 Value", y = "Density") +
+  scale_color_manual(values = c("imputed" = "blue", "original" = "red")) +
+  theme_minimal()
+
+
+
+```
+
+# Binding imputed values to formice dataset
+
+```{r, echo = FALSE}
+
+# binding the imputed  factor analysis scores for kahan scale and eco-pol value scale to the larger dataset codedmodule2
+
+ecopolnuclear <- fct_scores2 %>%
+  rename(Pdevelop = MR1, Ndevelop = MR2)
+
+
+kahannuclear <- fct_scores%>%
+  rename(Communitarian_Egalitarian = MR1, Hierarchy = MR2)
+
+nuclearformice <- cbind(formice, kahannuclear, ecopolnuclear) %>%
+                  dplyr::select(-c(Dataset))
+
 
 
 
