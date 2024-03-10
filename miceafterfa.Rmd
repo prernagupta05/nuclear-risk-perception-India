@@ -1,0 +1,249 @@
+---
+title: "miceafterFA"
+output:
+  pdf_document:
+    toc: yes
+    toc_depth: 2
+    keep_tex: yes
+  header-includes:
+  - \usepackage{dcolumn}
+  - \usepackage{array}
+  - "\\usepackage{placeins}"
+  keep_md: yes
+---
+
+
+```{r load packages, warning = FALSE, message = FALSE, echo=FALSE}
+  knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(readxl))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(tidyr))
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(lavaan))
+suppressPackageStartupMessages(library(tsibble))
+suppressPackageStartupMessages(library(DT))
+suppressPackageStartupMessages(library(knitr))
+suppressPackageStartupMessages(library(psych)) 
+suppressPackageStartupMessages(library(foreign))
+suppressPackageStartupMessages(library(MASS))
+suppressPackageStartupMessages(library(Hmisc))
+suppressPackageStartupMessages(library(reshape2))
+suppressPackageStartupMessages(library(naniar))
+suppressPackageStartupMessages(library(mice))
+
+
+```
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+moduletwo <- read_excel(here::here("thesis_surveydata/political_factors_complete.xlsx"))
+module2 <- data.frame(moduletwo)
+module2[module2 == "Rather not say/ Don't know"] <- "Rather not say/Don't know"
+
+
+
+# loaded data set for module 2 eco -pol variables and removes the rows with question number and question text
+```
+
+```{r, eval =TRUE, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+#This chunk contains the coding schemes of various scales used in survey one: eco-political factors, kahan scale and acceptance scale
+codedmodule2 <- module2 %>%
+  
+#remove row 1
+  filter(!row_number() %in% c(1,2)) %>% 
+  
+# replace risky likert scale with numbers
+  mutate_at(vars(starts_with("Risky")), funs(case_when(. =="Not at all risky" ~ 1, 
+                                                       . =="Slightly risky" ~ 2, 
+                                                       . =="Moderately risky" ~ 3, 
+                                                       . =="Very risky" ~ 4, 
+                                                       . =="Extremely risky" ~ 5))) %>%
+
+# replace beneficial likert scale with numbers  
+  mutate_at(vars(starts_with("Ben")), funs(case_when(. =="Not at all beneficial" ~ 1,
+                                                     . =="Slightly beneficial" ~ 2,
+                                                     . =="Moderately beneficial" ~ 3,
+                                                     . =="Very beneficial" ~ 4,
+                                                     . =="Extremely beneficial" ~ 5 ))) %>%
+
+# replace nuclear acceptance likert scale with numbers
+  mutate_at(vars(N_accept,N_reluctantlyaccept,N_reject), funs(case_when(. == "Strongly disagree" ~ 1, 
+                                                                        . == "Somewhat disagree" ~ 2,
+                                                                        . == "Neither agree nor disagree" ~3,
+                                                                        . == "Somewhat agree" ~ 4,
+                                                                        . == "Strongly agree" ~ 5))) %>%
+  
+  
+# code likert scale for variables for Kahan scale into numbers
+  mutate_at(vars(starts_with (c("K_S","K_E","DISPLACE", "POLLUTE", "HEALTH", "JOBS", "BEAUTY", "PRIDE", "NPRIDE","DEV","PROSPER", "RELY"))), funs(case_when(. == "Strongly disagree" ~ 1, 
+               . == "Somewhat disagree" ~ 2,
+               . == "Neither agree nor disagree" ~3,
+               . == "Somewhat agree" ~ 4,
+               . == "Strongly agree" ~ 5))) %>%
+  
+# NO reverse code for likert scale for variables for Kahan scale into numbers
+  mutate_at(vars(starts_with (c("K_H","K_I"))), funs(case_when(. == "Strongly disagree" ~ 1, 
+                                                               . == "Somewhat disagree" ~ 2,
+                                                               . == "Neither agree nor disagree" ~3,
+                                                               . == "Somewhat agree" ~ 4,
+                                                               . == "Strongly agree" ~ 5))) %>%
+
+# code eco-pol scale variables into numbers
+mutate_at(vars(SYSTEMDEMO,SYSTEMRELIGION,SYSTEMTECHNO,SYSTEMTOTAL,WEALTHLIM,MECHANISATION,DECISIONDECEN,INDUSTRYSMALL,ECONOMYLOCAL,ENVOVERDEV,OWNERPUB, OWNERREG), funs(case_when(. == "Strongly disagree" ~ 1, 
+                        . == "Somewhat disagree" ~ 2,
+                        . == "Neither agree nor disagree" ~3,
+                        . == "Somewhat agree" ~ 4,
+                        . == "Strongly agree" ~ 5))) %>%
+
+# NO reverse code eco-pol scale variables into numbers 
+ mutate_at(vars(DECISIONCEN,INDUSTRYLARGE,ECONOMYGLOBAL,OWNERPVT,OWNERNOREG), funs(case_when(. == "Strongly disagree" ~ 1, 
+                                                                                                         . == "Somewhat disagree" ~ 2,
+                                                                                                         . == "Neither agree nor disagree" ~3,
+                                                                                                         . == "Somewhat agree" ~ 4,
+                                                                                                         . == "Strongly agree" ~ 5))) %>%
+  mutate_all(~ifelse(. == "Rather not say/ Don't know", "Rather not say/Don't know", .))%>%
+  mutate_all(~ifelse(. == "West bengal", "West Bengal", .))%>%
+  mutate_all(~ifelse(. == "WEST BENGAL", "West Bengal", .))%>%
+  mutate_all(~ifelse(. == "Up", "Uttar Pradesh", .))%>%
+  mutate_all(~ifelse(. == "Tamilnadu", "Tamil Nadu", .))%>%
+  mutate_all(~ifelse(. == "UP", "Uttar Pradesh", .))
+  
+
+
+
+```
+
+```{r}
+
+codedmodule2$State <- as.factor(codedmodule2$State)
+codedmodule2$gender <- as.factor(codedmodule2$gender)
+codedmodule2$Urban <- as.factor(codedmodule2$urban_rural)
+codedmodule2$caste <- as.factor(codedmodule2$caste)
+codedmodule2$religion <- as.factor(codedmodule2$religion)
+# # Convert `caste` into binary variable 'upper' (1) vs 'non-upper' (0)
+codedmodule2$Uppercaste <- ifelse(codedmodule2$caste %in% c('Brahmin', 'General'), 1, 0)
+# Convert `gender` into binary variable 'male' (1) vs 'female' (0)
+codedmodule2$Male <- ifelse(codedmodule2$gender == 'Male', 1, 0)
+# Convert `religion` into binary variable 'Hinduism' (1) vs 'Non-Hinduism' (0)
+codedmodule2$Hindu <- ifelse(codedmodule2$religion == 'Hinduism', 1, 0)
+```
+
+
+
+# missing data pattern and MCAR
+
+```{r, echo=FALSE}
+
+
+formice1 <- codedmodule2[, grep("State|age|Urban|Male|Uppercaste|Hindu|Solar|SOLAR|Nuclear|NUCLEAR|Coal|COAL|K_S|K_E|K_H|K_I|WEALTHLIM|MECHANISATION|DECISIONDECEN|INDUSTRYSMALL|ECONOMYLOCAL|ENVOVERDEV|OWNERPUB|OWNERREG|DECISIONCEN|INDUSTRYLARGE|ECONOMYGLOBAL|OWNERPVT|OWNERNOREG", names(codedmodule2))]%>%
+        dplyr::select(-c("Language", "Risky_INDSolar", "Ben_INDSolar")) %>%
+  mutate_at(vars(age), funs(case_when(. == "18-24 years old" ~ 1, 
+                                      . == "25-34 years old" ~ 2,
+                                      . ==  "35-44 years old" ~3,
+                                      . == "45-54 years old" ~ 4,
+                                      . == "55-64 years old" ~ 5,
+                                      . == "65-74 years old" ~ 6,
+                                      . == "75 years or older" ~ 7)))
+
+#dplyr:: select(starts_with (c("State", "age", "urban_rural", "gender", "caste", "religion","Risky_Solar", "Risky_Nuclear", "Risky_Coal", "Ben_Solar","Ben_Nuclear","Ben_Coal","K_S","K_E","K_H","K_I", "DISPLACE", "POLLUTE", "HEALTH", "JOBS", "BEAUTY", "PRIDE", "NPRIDE","DEV", "PROSPER", "RELY", "WEALTHLIM", "MECHANISATION", "DECISIONDECEN", "INDUSTRYSMALL", "ECONOMYLOCAL", "ENVOVERDEV", "OWNERPUB", "OWNERREG", "DECISIONCEN","INDUSTRYLARGE","ECONOMYGLOBAL","OWNERPVT","OWNERNOREG" )))
+
+
+#str(formice)
+#summary(formice)
+
+# litte's MCAR test 
+
+mcar_test(data=formice1)
+
+# p value = 1, which means MAR condition is met. 
+
+```
+
+```{r}
+
+
+
+Kahan_scale <- codedmodule2 %>%
+  dplyr::select(starts_with("K_"))
+
+# EFA on Kahan scale 
+  
+kahan.fa <- fa(Kahan_scale, nfactors = 2, rotate = "varimax")
+print.psych(kahan.fa, cut = 0.4, sort = TRUE)
+
+# extract factor scores
+
+Kahanefa <- psych::factor.scores(Kahan_scale, kahan.fa)
+
+# The factor scores will be stored in the scores element of the returned list
+kahanefascores <- data.frame(Kahanefa$scores) %>%
+  rename(CommEgal = MR1)%>%
+  rename(Hierarchy = MR2)
+
+
+```
+
+
+```{r, echo=FALSE}
+
+library(psych)
+library(tidyverse)
+
+ecopolall <- codedmodule2 %>%
+        dplyr::select("WEALTHLIM","MECHANISATION","DECISIONDECEN","DECISIONCEN","INDUSTRYLARGE","INDUSTRYSMALL","ECONOMYGLOBAL","ECONOMYLOCAL", "ENVOVERDEV","DEVOVERENV","OWNERPVT","OWNERNOREG","OWNERPUB", "OWNERREG","DISPLACENUCLEAR",  "POLLUTENUCLEAR", "HEALTHNUCLEAR", "JOBSNUCLEAR", "BEAUTYNUCLEAR", "PRIDENUCLEAR", "NPRIDENUCLEAR", "DEVNUCLEAR", "PROSPERNUCLEAR", "RELYNUCLEAR")
+
+
+# running EFA using psych package 
+
+ecopolall2.fa <- fa(ecopolall, nfactors = 2, rotate = "varimax")
+
+print.psych(ecopolall2.fa, sort = TRUE)
+
+# the two factors make more sense - 1) people centered development 2) nationalist development
+# So I am going to extract factor scores and bind them to the dataset
+
+ecopolall_scores <- psych::factor.scores(ecopolall, ecopolall2.fa)
+
+# The factor scores will be stored in the scores element of the returned list
+scores1 <- data.frame(ecopolall_scores$scores) %>%
+  rename(Pdevelop = MR1)%>%
+  rename(Ndevelop = MR2) 
+
+#binding factor scores to the dataset
+
+premice <- cbind (formice1, kahanefascores, scores1) %>%
+          dplyr::select(-c(DECISIONDECEN, DECISIONCEN, INDUSTRYSMALL, INDUSTRYLARGE, ECONOMYLOCAL, ECONOMYGLOBAL, ENVOVERDEV, OWNERPVT, OWNERPUB, OWNERREG, OWNERNOREG, WEALTHLIM, MECHANISATION, DISPLACESOLAR, POLLUTESOLAR, HEALTHSOLAR, JOBSSOLAR, BEAUTYSOLAR, PRIDESOLAR, NPRIDESOLAR, DEVSOLAR, PROSPERSOLAR, RELYSOLAR, DISPLACECOAL, POLLUTECOAL, HEALTHCOAL, JOBSCOAL, BEAUTYCOAL, PRIDECOAL, NPRIDECOAL, DEVCOAL, PROSPERCOAL, RELYCOAL))
+
+
+
+```
+
+
+
+```{r}
+# conducting mice
+
+postmice <- mice(premice, m =5, maxit =5,  seed = 420, print = FALSE)
+
+summary(postmice)
+
+complete(postmice)
+
+
+fit <- with(postmice, lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + Urban + age + State+ CommEgal + Hierarchy + Pdevelop + Ndevelop))
+
+summary(pool(fit))
+
+
+```
+
+
+
+```{r}
+
+```
+

@@ -30,6 +30,9 @@ suppressPackageStartupMessages(library(foreign))
 suppressPackageStartupMessages(library(MASS))
 suppressPackageStartupMessages(library(Hmisc))
 suppressPackageStartupMessages(library(reshape2))
+suppressPackageStartupMessages(library(naniar))
+suppressPackageStartupMessages(library(mice))
+
 
 ```
 
@@ -111,7 +114,11 @@ mutate_at(vars(SYSTEMDEMO,SYSTEMRELIGION,SYSTEMTECHNO,SYSTEMTOTAL,WEALTHLIM,MECH
   
 
 
+
 ```
+
+
+
 
 ## Can do something with accept, reject and reluctantly accept. 
 
@@ -125,51 +132,199 @@ n_acceptreject<- codedmodule2 %>%
 summary(n_acceptreject)
 ```
 
+# missing data pattern and MCAR
 
 ```{r, echo=FALSE}
 
 
-formice <- codedmodule2[, grep("State|age|urban_rural|gender|caste|religion|Solar|SOLAR|Nuclear|NUCLEAR|Coal|COAL|K_S|K_E|K_H|K_I|WEALTHLIM|MECHANISATION|DECISIONDECEN|INDUSTRYSMALL|ECONOMYLOCAL|ENVOVERDEV|OWNERPUB|OWNERREG|DECISIONCEN|INDUSTRYLARGE|ECONOMYGLOBAL|OWNERPVT|OWNERNOREG", names(codedmodule2))]%>%
-        dplyr::select(-c("Language", "Risky_INDSolar", "Ben_INDSolar", "religiontext"))
-
+formice1 <- codedmodule2[, grep("State|age|urban_rural|gender|caste|religion|Solar|SOLAR|Nuclear|NUCLEAR|Coal|COAL|K_S|K_E|K_H|K_I|WEALTHLIM|MECHANISATION|DECISIONDECEN|INDUSTRYSMALL|ECONOMYLOCAL|ENVOVERDEV|OWNERPUB|OWNERREG|DECISIONCEN|INDUSTRYLARGE|ECONOMYGLOBAL|OWNERPVT|OWNERNOREG", names(codedmodule2))]%>%
+        dplyr::select(-c("Language", "Risky_INDSolar", "Ben_INDSolar", "religiontext")) %>%
+          mutate(across(age, ~factor(.x, ordered = TRUE)))%>%  
+          mutate(across(urban_rural:religion, ~factor(.x, ordered = FALSE)))%>%
+          mutate(across(State, ~factor(.x, ordered = FALSE))) %>%
+          mutate(Uppercaste = ifelse(caste %in% c('Brahmin', 'General'), 1, 0)) %>%
+          mutate(Male = ifelse(gender == 'Male', 1, 0))%>%
+          mutate(Hindu = ifelse(religion == 'Hinduism', 1, 0))%>%
+           mutate(Age = case_when(
+                                  age == "18-24 years old" ~ 1,
+                                  age == "25-34 years old" ~ 2,
+                                  age == "35-44 years old" ~ 3,
+                                  age == "45-54 years old" ~ 4,
+                                  age == "55-64 years old" ~ 5,
+                                  age == "65-74 years old" ~ 6,
+                                  age == "75 years or older" ~ 7))
+  
 
 #dplyr:: select(starts_with (c("State", "age", "urban_rural", "gender", "caste", "religion","Risky_Solar", "Risky_Nuclear", "Risky_Coal", "Ben_Solar","Ben_Nuclear","Ben_Coal","K_S","K_E","K_H","K_I", "DISPLACE", "POLLUTE", "HEALTH", "JOBS", "BEAUTY", "PRIDE", "NPRIDE","DEV", "PROSPER", "RELY", "WEALTHLIM", "MECHANISATION", "DECISIONDECEN", "INDUSTRYSMALL", "ECONOMYLOCAL", "ENVOVERDEV", "OWNERPUB", "OWNERREG", "DECISIONCEN","INDUSTRYLARGE","ECONOMYGLOBAL","OWNERPVT","OWNERNOREG" )))
 
 library(dplyr)
 
-formice <- formice %>%
+formice <- formice1 %>%
   mutate(across(Risky_Solar:age, ~factor(.x, ordered = TRUE)))%>%
   mutate(across(urban_rural:religion, ~factor(.x, ordered = FALSE)))%>%
   mutate(across(State, ~factor(.x, ordered = FALSE)))
 
-str(formice)
-summary(formice)
+#str(formice)
+#summary(formice)
+
+# litte's MCAR test 
+
+mcar_test(data=formice)
+
+# p value = 1, which means MAR condition is met. 
+
+```
+
+
+
+# mice on entire dataset 
+
+```{r, echo=FALSE}
+
+#str(formice1)
+
+#formice1.imp <- mice(formice1, m =5, maxit =5,  seed = 430, print = TRUE)
+
+#formice1.imp$chainMean
+
+#plot(formice1.imp)
+
+```
+
+
+# Diagnostic checking
+```{r, echo= FALSE}
+
+formice1.imp$imp$Risky_Nuclear
+
+complete(formice1.imp)
+
+library(mice)
+
+# Select the variables you want to plot
+selected_vars <- c("Risky_Nuclear", "Risky_Solar", "Risky_Coal")
+
+# Use stripplot to plot only the selected variables
+
+stripplot(formice1.imp, scales = list(x = list(relation = "free")),layout = c(3, 1), pch = 20, cex = 1.2)
 
 
 ```
 
+
+# Density plot - entire dataset 
+```{r, echo=FALSE}
+
+densityplot(formice1.imp, scales = list(x = list(relation = "free")), layout = c(5, 1))
+
+```
+
+# propensity score check imputations 
+
+```{r}
+
+formice1.imp
+#hc.na <- is.na(boys$hc)
+
+#fit.hc <- with(imp.kendall, glm(hc.na ~ age + wgt + hgt + reg,
+#family = binomial))
+#ps <- rep(rowMeans(sapply(fit.hc$analyses, fitted.values)), 6)
+```
+
+
+
+# Checking MAR condition and missing data pattern for the Kahan Scale.
+```{r, echo=FALSE}
+
+kahanall <- codedmodule2 %>%
+          dplyr::select(c(starts_with("K_"), "age", "gender", "caste", "State", "urban_rural", "religion")) %>%
+          mutate(across(age:religion, ~factor(.x, ordered = FALSE)))
+          
+  
+
+md.pattern(kahanall) #the variables with missing values: K_SHARM K_IPROTECT K_IPRIVACY K_SPROTECT K_SLIMCHOI K_IINTRFER K_HEQUAL K_HREVDIS1 
+
+mcar_test(data=kahanall) # p values is less than 0.05 - the condition for MCAR is not met 
+
+# dataset with missing variables to compare and test group comaprisons 
+
+
+MARkahan <- codedmodule2 %>%
+          dplyr::select(c("K_SHARM", "K_IPROTECT", "K_IPRIVACY", "K_SPROTECT", "K_SLIMCHOI", "K_IINTRFER",  "K_HEQUAL", "K_HREVDIS1" , "age", "gender", "caste", "State", "urban_rural", "religion"))
+
+MARkahan$K_SHARM_MAR <- MARkahan$K_SHARM
+
+MARkahan$K_IPROTECT_MAR <- MARkahan$K_IPROTECT
+
+MARkahan$K_SPROTECT_MAR <- MARkahan$K_SPROTECT
+
+MARkahan$K_SLIMCHOI_MAR <- MARkahan$K_SLIMCHOI
+
+library(finalfit)
+
+# "K_SHARM" = "(C)Sometimes the government needs to make laws that keep people from hurting themselves.",
+explanatory = c("age", "gender", "caste", "State", "urban_rural", "religion")
+dependent = "K_SHARM_MAR"
+MARkahan %>% 
+  missing_compare(dependent, explanatory) %>% 
+    knitr::kable(row.names=FALSE, align = c("l", "l", "r", "r", "r"), 
+        caption = "comparisons between values of responders (Not missing) and 
+        non-responders (Missing) on the K_SHARM variable.") 
+
+#   "K_IPROTECT" = "(I)It’s not the government’s business to try to protect people from themselves."
+explanatory = c("age", "gender", "caste", "State", "urban_rural", "religion")
+dependent = "K_IPROTECT_MAR"
+MARkahan %>% 
+  missing_compare(dependent, explanatory) %>% 
+    knitr::kable(row.names=FALSE, align = c("l", "l", "r", "r", "r"), 
+        caption = "comparisons between values of responders (Not missing) and 
+        non-responders (Missing) on the K_IPROTECT variable.") 
+
+#  "K_SPROTECT" = "(C)The government should do more to advance society’s goals, even if that means limiting the freedom and choices of individuals.",
+explanatory = c("age", "gender", "caste", "State", "urban_rural", "religion")
+dependent = "K_SPROTECT_MAR"
+MARkahan %>% 
+  missing_compare(dependent, explanatory) %>% 
+    knitr::kable(row.names=FALSE, align = c("l", "l", "r", "r", "r"), 
+        caption = "comparisons between values of responders (Not missing) and 
+        non-responders (Missing) on the K_SPROTECT variable.") 
+
+
+#  "K_SLIMCHOI" = "(C)The government should put limits on the choices individuals can make so they don’t get in the way of what’s good for society.",
+explanatory = c("age", "gender", "caste", "State", "urban_rural", "religion")
+dependent = "K_SLIMCHOI_MAR"
+MARkahan %>% 
+  missing_compare(dependent, explanatory) %>% 
+    knitr::kable(row.names=FALSE, align = c("l", "l", "r", "r", "r"), 
+        caption = "comparisons between values of responders (Not missing) and 
+        non-responders (Missing) on the K_SPROTECT variable.") 
+
+```
+
+
+
+
 ## Mifa for Kahan scale 
 ```{r, echo =FALSE}
+
+
 library(mifa)
 library(mice)
 library(psych)
 
  #cov_vars = -c(State, Risky_Solar, Risky_Nuclear, Risky_Coal, Ben_Solar, Ben_Nuclear, Ben_Coal, DECISIONDECEN, DECISIONCEN, INDUSTRYSMALL, INDUSTRYLARGE, ECONOMYLOCAL, ECONOMYGLOBAL, ENVOVERDEV, OWNERPVT, OWNERPUB, OWNERREG, OWNERNOREG, WEALTHLIM, MECHANISATION, DISPLACESOLAR, POLLUTESOLAR, HEALTHSOLAR, JOBSSOLAR, BEAUTYSOLAR, PRIDESOLAR, NPRIDESOLAR, DEVSOLAR, PROSPERSOLAR, RELYSOLAR, DISPLACECOAL, POLLUTECOAL, HEALTHCOAL, JOBSCOAL, BEAUTYCOAL, PRIDECOAL, NPRIDECOAL, DEVCOAL, PROSPERCOAL, RELYCOAL, DISPLACENUCLEAR, POLLUTENUCLEAR, HEALTHNUCLEAR, JOBSNUCLEAR, BEAUTYNUCLEAR, PRIDENUCLEAR, NPRIDENUCLEAR, DEVNUCLEAR, PROSPERNUCLEAR, RELYNUCLEAR, age, urban_rural, gender, caste, religion),
 
-kahanall <- codedmodule2 %>%
-          dplyr::select(c(starts_with("K_")))
+
 
 mikahan <- mifa(data= kahanall,
-                cov_vars = everything(),
-                m = 10,
+                cov_vars  = -c("age", "gender", "caste", "State", "urban_rural", "religion"),
+                m = 5,
                 n_pc= 2:4,
                 ci = "fieller", 
                 n_boot=1000,
                 print = FALSE,
                 progress= TRUE, 
                 seed = 427,)
-
-
 
 
 mikahan
@@ -182,23 +337,41 @@ fit <- psych::fa(mikahan$cov_combined, nfactors = 2, rotate = "varimax")
 print.psych(fit, sort= TRUE, cut= 0.4)
 
 
-data_imp <- mice::complete(mice::mice(kahanall, 1, print = FALSE))
-  
-fct_scores <- data.frame(factor.scores(data_imp[, 1:12], fit)$scores)
-
-
 ```
 
 
-#checking imputations: Kahan scale
+# checking merging of imputations  : kahan scale 
 
 ```{r}
 
 
+kahan_imp <- mice(kahanall, m =5, maxit =30,  seed = 427, print = TRUE)
+
+kahan_imp$chainMean
+
+data_imp <- mice::complete(mice::mice(kahanall, 1, print = FALSE))
+  
+fct_scores <- data.frame(factor.scores(data_imp[, 1:12], fit)$scores)
+
+plot(kahan_imp)
+
+```
+
+ 
+ 
+ 
+ 
+#checking imputations: Kahan scale - are values plausible ? 
+
+yes all value are whole numbers between 1 and 5 
+
+```{r, echo=FALSE}
+
 orgscores <- data.frame(kahanefascores)
 
-
 summary(mikahan)
+
+str(data_imp)
 names(mikahan)
 
 mikahan$mids
@@ -227,9 +400,16 @@ summary(complete_data_5)
  
 ## Distribution check: kahan Scale
 
-```{r}
+```{r, echo = False }
+
+densityplot(kahan_imp, scales = list(x = list(relation = "free")), layout = c(5, 1))
+
+```
+
+
+```{r, echo=FALSE}
 # Add an identifier column to each dataset
-fct_scores$Dataset <- 'fct_scores'
+fct_scores$Dataset <- 'impscores'
 orgscores$Dataset <- 'orgscores'
 
 # Combine the datasets for plotting
@@ -239,31 +419,83 @@ combined_data <- rbind(fct_scores, orgscores)
 combined_data <- combined_data[, c("MR1", "MR2", "Dataset")]
 
 
-ggplot(combined_data, aes(x = Dataset, y = MR1, fill = Dataset)) +
-  geom_boxplot() +
-  geom_jitter(width = 0.2, aes(color = Dataset), size = 1.5, alpha = 0.5) +
-  labs(title = "Boxplot of MR1 for Each Dataset", x = "", y = "MR1 Value") +
-  scale_fill_manual(values = c("fct_scores" = "blue", "orgscores" = "red")) +
-  scale_color_manual(values = c("fct_scores" = "blue", "orgscores" = "red")) +
-  theme_minimal()
-
-
 ggplot(combined_data, aes(x = MR1, color = Dataset)) +
   geom_density(fill = NA, alpha = 0.5) +
-  labs(title = "Density Plot of MR1 for Each Dataset", x = "MR1 Value", y = "Density") +
-  scale_color_manual(values = c("fct_scores" = "blue", "orgscores" = "red")) +
+  labs(title = "Density Plot of Hierachy- Egalitarianism for Each Dataset", x = "HE Value", y = "Density") +
+  scale_color_manual(values = c("impscores" = "blue", "orgscores" = "red")) +
   theme_minimal()
 
 ```
+
+
+
 ```{r}
-ggplot(combined_data, aes(x = Dataset, y = MR2, fill = Dataset)) +
-  geom_boxplot() +
-  geom_jitter(width = 0.2, aes(color = Dataset), size = 1.5, alpha = 0.5) +
-  labs(title = "Boxplot of MR2 for Each Dataset with Points", x = "", y = "MR2 Value") +
-  scale_fill_manual(values = c("fct_scores" = "blue", "orgscores" = "red")) +
-  scale_color_manual(values = c("fct_scores" = "blue", "orgscores" = "red")) +
+ggplot(combined_data, aes(x = MR2, color = Dataset)) +
+  geom_density(fill = NA, alpha = 0.5) +
+  labs(title = "Density Plot of Communitarianism for Each Dataset", x = "Communitarianism Value", y = "Density") +
+  scale_color_manual(values = c("impscores" = "blue", "orgscores" = "red")) +
   theme_minimal()
 
+```
+
+
+
+# ecopol scale - checking MAR 
+
+```{r}
+
+ecopoln <- formice1 %>%
+  dplyr::select(
+    DECISIONDECEN, DECISIONCEN, INDUSTRYSMALL, INDUSTRYLARGE,
+    ECONOMYLOCAL, ECONOMYGLOBAL, ENVOVERDEV, OWNERPVT, OWNERPUB,
+    OWNERREG, OWNERNOREG, WEALTHLIM, MECHANISATION,
+    DISPLACENUCLEAR,  POLLUTENUCLEAR, HEALTHNUCLEAR, JOBSNUCLEAR, BEAUTYNUCLEAR,
+    PRIDENUCLEAR, NPRIDENUCLEAR, DEVNUCLEAR, PROSPERNUCLEAR,
+    RELYNUCLEAR,age, urban_rural, gender, caste, religion, State
+  )
+
+
+
+md.pattern(ecopoln) #the variables with missing values: PRIDENUCLEAR PROSPERNUCLEAR JOBSNUCLEAR HEALTHNUCLEAR BEAUTYNUCLEAR POLLUTENUCLEAR DISPLACENUCLEAR RELYNUCLEAR  
+
+mcar_test(data=ecopoln) # p values is less than 0.76 - the condition for MCAR is met 
+
+# dataset with missing variables to compare and test group comaprisons 
+
+MARecopol <- codedmodule2 %>%
+          dplyr::select(c(DECISIONDECEN, DECISIONCEN, INDUSTRYSMALL, INDUSTRYLARGE,
+    ECONOMYLOCAL, ECONOMYGLOBAL, ENVOVERDEV, OWNERPVT, OWNERPUB,
+    OWNERREG, OWNERNOREG, WEALTHLIM, MECHANISATION,
+    DISPLACENUCLEAR,  POLLUTENUCLEAR, HEALTHNUCLEAR, JOBSNUCLEAR, BEAUTYNUCLEAR,
+    PRIDENUCLEAR, NPRIDENUCLEAR, DEVNUCLEAR, PROSPERNUCLEAR,
+    RELYNUCLEAR,age, urban_rural, gender, caste, religion, State))
+
+MARecopol$JOBSNUCLEAR_MAR <- MARecopol$JOBSNUCLEAR
+
+MARecopol$PRIDENUCLEAR_MAR <- MARecopol$PRIDENUCLEAR
+
+
+library(finalfit)
+
+# JOBSNUCLEAR
+explanatory = c("age", "gender", "caste", "State", "urban_rural", "religion")
+dependent = "JOBSNUCLEAR_MAR"
+MARecopol %>% 
+  missing_compare(dependent, explanatory) %>% 
+    knitr::kable(row.names=FALSE, align = c("l", "l", "r", "r", "r"), 
+        caption = "comparisons between values of responders (Not missing) and 
+        non-responders (Missing) on the JOBSNUCLEAR variable.") 
+
+# PRIDENUCLEAR
+explanatory = c("age", "gender", "caste", "State", "urban_rural", "religion")
+dependent = "PRIDENUCLEAR_MAR"
+MARecopol %>% 
+  missing_compare(dependent, explanatory) %>% 
+    knitr::kable(row.names=FALSE, align = c("l", "l", "r", "r", "r"), 
+        caption = "comparisons between values of responders (Not missing) and 
+        non-responders (Missing) on the PRIDENUCLEAR variable.") 
+
+ 
 ```
 
 
@@ -271,15 +503,17 @@ ggplot(combined_data, aes(x = Dataset, y = MR2, fill = Dataset)) +
 
 ```{r}
 
-ecopoln <- codedmodule2[, grep("NUCLEAR|WEALTHLIM|MECHANISATION|DECISIONDECEN|INDUSTRYSMALL|ECONOMYLOCAL|ENVOVERDEV|OWNERPUB|OWNERREG|DECISIONCEN|INDUSTRYLARGE|ECONOMYGLOBAL|OWNERPVT|OWNERNOREG", names(codedmodule2))]
+#ecopoln <- codedmodule2[, grep("NUCLEAR|WEALTHLIM|MECHANISATION|DECISIONDECEN|INDUSTRYSMALL|ECONOMYLOCAL|ENVOVERDEV|OWNERPUB|OWNERREG|DECISIONCEN|INDUSTRYLARGE|ECONOMYGLOBAL|OWNERPVT|OWNERNOREG|", names(codedmodule2))]  
 
+
+summary(formice1)
 
 miecopol <- mifa(data= ecopoln,
-                cov_vars = everything(),
+                cov_vars  = -c("age", "gender", "caste", "State", "urban_rural", "religion"),
                 n_pc= 2:4,
                 ci = "fieller", 
                 n_boot=1000,
-                print = FALSE,
+                print = TRUE,
                 progress= TRUE, 
                 seed = 429,)
 
@@ -299,6 +533,8 @@ fct_scores2 <- data.frame(factor.scores(data_imp2[, 1:23], fit2)$scores)
 
 ## Checking imputations : Eco-pol scale
 
+imputations are pluasible- all natural numbers between 1 and 5 
+
 ```{r, echo=FALSE}
 
 
@@ -306,8 +542,6 @@ summary(miecopol)
 names(miecopol)
 
 miecopol$mids
-
-
 
 complete_ecopol_first <- complete(miecopol$mids, 1)
 
@@ -335,8 +569,7 @@ summary(complete_ecopol_5)
 
 
 
-
-
+# Density plots - 2 factors from eco-pol scale 
 ```{r}
 
 nscores <- data.frame(ecopolall_scores$scores)
@@ -352,30 +585,9 @@ compare2 <- rbind(fct_scores2, nscores)
 compare2<- compare2[, c("MR1", "MR2", "Dataset")]
 
 
-ggplot(compare2, aes(x = Dataset, y = MR1, fill = Dataset)) +
-  geom_boxplot() +
-  geom_jitter(width = 0.2, aes(color = Dataset), size = 1.5, alpha = 0.5) +
-  labs(title = "Boxplot of Pdevelop for Each Dataset", x = "", y = "MR1 Value") +
-  scale_fill_manual(values = c("imputed" = "blue", "original" = "red")) +
-  scale_color_manual(values = c("imputed" = "blue", "original" = "red")) +
-  theme_minimal()
-
-
-
 ```
 
 
-```{r}
-
-ggplot(compare2, aes(x = Dataset, y = MR2, fill = Dataset)) +
-  geom_boxplot() +
-  geom_jitter(width = 0.2, aes(color = Dataset), size = 1.5, alpha = 0.5) +
-  labs(title = "Boxplot of Ndevelop for Each Dataset with Points", x = "", y = "MR2 Value") +
-  scale_fill_manual(values = c("imputed" = "blue", "original" = "red")) +
-  scale_color_manual(values = c("imputed" = "blue", "original" = "red")) +
-  theme_minimal()
-
-```
 
 
 ```{r}
@@ -389,8 +601,9 @@ ggplot(compare2, aes(x = MR2, color = Dataset)) +
   theme_minimal()
 
 
-
 ```
+
+
 
 # Binding imputed values to formice dataset
 
@@ -399,17 +612,179 @@ ggplot(compare2, aes(x = MR2, color = Dataset)) +
 # binding the imputed  factor analysis scores for kahan scale and eco-pol value scale to the larger dataset codedmodule2
 
 ecopolnuclear <- fct_scores2 %>%
-  rename(Pdevelop = MR1, Ndevelop = MR2)
-
+  rename(Ndevelop = MR1, Pdevelop = MR2)
 
 kahannuclear <- fct_scores%>%
-  rename(Communitarian_Egalitarian = MR1, Hierarchy = MR2)
+  rename(Hierarchy_Egalitarian = MR1, Communitarian = MR2)
 
-nuclearformice <- cbind(formice, kahannuclear, ecopolnuclear) %>%
-                  dplyr::select(-c(Dataset))
+formice1
 
 
+allformice<- cbind(formice1,ecopolnuclear, kahannuclear)
+
+  
+#summary(formice)
+
+#method_list <- rep("polr", ncol(formice))
+#names(method_list) <- colnames(formice)
+
+#skip_vars <- c("age",  "urban_rural", "gender",  "caste", "religion", "K_ERADEQ2","K_ERADEQ1", "INDUSTRYSMALL","INDUSTRYLARGE","WEALTHLIM", "MECHANISATION", "State","K_IINTRFER",  "K_IPRIVACY",  "K_SHARM",  "K_IPROTECT",  "K_SLIMCHOI",  "K_SPROTECT",  "K_HEQUAL",  "K_HREVDIS1",  "K_EDISCRIM",    "K_EWEALTH",  "DECISIONDECEN",  "DECISIONCEN",     "ECONOMYLOCAL",  "ECONOMYGLOBAL",  "ENVOVERDEV",  "OWNERPVT",  "OWNERPUB",  "OWNERREG",  "DISPLACESOLAR",  "POLLUTESOLAR",  "HEALTHSOLAR",  "JOBSSOLAR",  "BEAUTYSOLAR",  "PRIDESOLAR",  "NPRIDESOLAR",  "DEVSOLAR",  "PROSPERSOLAR",  "RELYSOLAR",  "DISPLACECOAL",  "POLLUTECOAL",  "HEALTHCOAL",  "JOBSCOAL",  "BEAUTYCOAL",  "PRIDECOAL",  "NPRIDECOAL",  "DEVCOAL",  "PROSPERCOAL",  "RELYCOAL",  "DISPLACENUCLEAR",  "POLLUTENUCLEAR",  "HEALTHNUCLEAR",  "JOBSNUCLEAR",  "BEAUTYNUCLEAR",  "PRIDENUCLEAR",  "NPRIDENUCLEAR",  "DEVNUCLEAR",  "PROSPERNUCLEAR",  "RELYNUCLEAR", "OWNERNOREG")
+    
+#Set method to "" for variables to skip
+#method_list[skip_vars] <- ""
+
+#nuclear_imp1 <- mice(formice, method=method_list, maxit = 5, m =5,  seed = 123, print = TRUE)
+
+
+print(nuclear_imp1)
+summary(nuclear_imp1)
+nuclear_imp1$imp$Risky_Nuclear
 
 
 ```
 
+
+
+```{r, echo=FALSE}
+
+str(allformice)
+library(mice)
+library(dplyr)
+
+# Initialize the mice process to create the predictor matrix
+ini <- mice(allformice, maxit = 0, pri = FALSE)
+
+# Extract the predictor matrix from the initialized object
+pred <- ini$predictorMatrix
+
+# Set the columns for "Uppercaste", "Male", "Hindu", and "Age" to 0
+pred[, "Uppercaste"] <- 0
+pred[, "Male"] <- 0
+pred[, "Hindu"] <- 0
+pred[, "Age"] <- 0
+pred[, "Ndevelop"] <- 0
+pred[, "Pdevelop"] <- 0
+pred[, "Hierarchy_Egalitarian"] <- 0
+pred[, "Communitarian"] <- 0
+# Identify columns that start with "K_" and set them to 0
+k_columns <- grep("^K_", colnames(formice1))
+pred[, k_columns] <- 0
+
+# Perform the mice imputation with the updated predictor matrix
+allformice.imp <- mice(allformice, m = 5, maxit = 10, predictorMatrix = pred, seed = 430, print = TRUE)
+
+summary(allformice.imp)
+allformice.imp$chainMean
+
+plot(allformice.imp)
+
+```
+
+
+```{r}
+
+
+nuclearfit1 <- with(allformice.imp, lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age))
+
+nuclearfit2 <- with(allformice.imp, lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State))
+
+
+nuclearfit3 <- with(allformice.imp, lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State+ Communitarian + Hierarchy_Egalitarian))
+
+nuclearfit4 <- with(allformice.imp, lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State+ Communitarian + Hierarchy_Egalitarian + Pdevelop + Ndevelop))
+
+summary(pool(nuclearfit1))
+summary(pool(nuclearfit2))
+summary(pool(nuclearfit3))
+summary(pool(nuclearfit4))
+
+```
+
+
+# LM with demographic variables 
+
+```{r}
+
+
+# The pool() function from the mice package creates a list containing the results,
+# so we need to access the summary of the model directly.
+
+pooled_fit <- pool(nuclearfit1)
+
+pooled_summary <- summary(pooled_fit)
+
+coefficients_df <- pooled_summary
+# To ensure the numeric values are rounded to two decimal places, you can use:
+coefficients_df <- round(coefficients_df[, -1], 2)  # Skipping the first column as it's factors (term names)
+coefficients_df$term <- pooled_summary$term  # Adding back the unrounded terms
+
+# Print the dataframe
+data.frame(coefficients_df) %>%
+  dplyr::select(term, estimate, std.error, statistic, df, p.value)
+```
+
+
+# LM with demographic variables and State 
+
+```{r}
+
+
+# The pool() function from the mice package creates a list containing the results,
+# so we need to access the summary of the model directly.
+
+pooled_fit2 <- pool(nuclearfit2)
+
+pooled_summary2 <- summary(pooled_fit2)
+
+coefficients_df2 <- pooled_summary2
+# To ensure the numeric values are rounded to two decimal places, you can use:
+coefficients_df2 <- round(coefficients_df2[, -1], 2)  # Skipping the first column as it's factors (term names)
+coefficients_df2$term <- pooled_summary2$term  # Adding back the unrounded terms
+
+# Print the dataframe
+data.frame(coefficients_df2) %>%
+  dplyr::select(term, estimate, std.error, statistic, df, p.value)
+```
+
+# LM with demographic variables and State 
+
+```{r}
+# The pool() function from the mice package creates a list containing the results,
+# so we need to access the summary of the model directly.
+
+pooled_fit3 <- pool(nuclearfit3)
+
+pooled_summary3 <- summary(pooled_fit3)
+
+coefficients_df3 <- pooled_summary3
+# To ensure the numeric values are rounded to two decimal places, you can use:
+coefficients_df3 <- round(coefficients_df3[, -1], 2)  # Skipping the first column as it's factors (term names)
+coefficients_df3$term <- pooled_summary3$term  # Adding back the unrounded terms
+
+# Print the dataframe
+data.frame(coefficients_df3) %>%
+  dplyr::select(term, estimate, std.error, statistic, df, p.value)
+```
+
+
+# LM with demographic variables and State 
+
+```{r}
+
+
+# The pool() function from the mice package creates a list containing the results,
+# so we need to access the summary of the model directly.
+
+pooled_fit4 <- pool(nuclearfit4)
+
+pooled_summary4 <- summary(pooled_fit4)
+
+coefficients_df4 <- pooled_summary4
+# To ensure the numeric values are rounded to two decimal places, you can use:
+coefficients_df4 <- round(coefficients_df4[, -1], 2)  # Skipping the first column as it's factors (term names)
+coefficients_df4$term <- pooled_summary4$term  # Adding back the unrounded terms
+
+# Print the dataframe
+data.frame(coefficients_df4) %>%
+  dplyr::select(term, estimate, std.error, statistic, df, p.value)
+```
