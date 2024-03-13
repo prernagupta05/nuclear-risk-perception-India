@@ -208,6 +208,18 @@ uncodedjoineddf <- full_join(numcolb, numcola, by = c("Respondent", "Language", 
 
 ```
 
+# Ns for states in joineddf
+```{r}
+
+statens <-  joineddf %>% dplyr::select(Risky_Nuclear, caste, gender, religion, urban_rural, age, State) %>%
+             mutate(across(State, ~factor(.x, ordered = FALSE))) %>%
+            na.omit()
+
+summary(statens)
+
+```
+
+
 
 
 
@@ -861,7 +873,7 @@ PCA24 <- principal(ecopolall, nfactors = 24, rotate = "none") # no rotation to s
 
 ecopolall2.fa <- fa(ecopolall, nfactors = 2, rotate = "varimax")
 
-print.psych(ecopolall2.fa, sort = TRUE)
+print.psych(ecopolall2.fa, sort = TRUE, cut = 0.4)
 
 # I don't know still doesn't make a lot of sense to me- the two factors make more sense - 1) people centered development 2) nationalist development
 # So I am going to extract factor scores and bind them to the dataset
