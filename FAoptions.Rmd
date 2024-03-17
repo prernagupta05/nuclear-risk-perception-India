@@ -77,7 +77,7 @@ codedmodule2 <- module2 %>%
                . == "Somewhat agree" ~ 4,
                . == "Strongly agree" ~ 5))) %>%
   
-# reverse code for likert scale for variables for Kahan scale into numbers
+# No reverse code for likert scale for variables for Kahan scale into numbers
 mutate_at(vars(starts_with (c("K_I","K_E"))), funs(case_when(. == "Strongly disagree" ~ 1, 
                                                                . == "Somewhat disagree" ~ 2,
                                                                . == "Neither agree nor disagree" ~3,
@@ -220,7 +220,7 @@ Kahan_cfa <- cfa(Kahan_fas, data = fascales, std.lv = TRUE)
 # RMSEA - between 0.05 and 0.08 (reasonable fit), less than 0.05 close fit and greater than 0.10 is poor fit 
 # CFI - greater than 0.90 or 0.95 indicates good fit
 #TFI - CFI>TFI >0.90 - indicates good fit
-#pvalue should be greater than 0.05 p > 0.0.5
+#pvalue should be greater than 0.05 p > 0.05
 
 # after having removed a few variables that had very low loading, the model is now a good fit, we have two latent variables - Hierarchy- egalitarian and Communitarian. Again we see that individualistic variables just don't fit here. 
 

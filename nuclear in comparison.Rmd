@@ -83,12 +83,12 @@ codedmodule2 <- module2 %>%
                . == "Somewhat agree" ~ 4,
                . == "Strongly agree" ~ 5))) %>%
   
-# reverse code for likert scale for variables for Kahan scale into numbers
-  mutate_at(vars(starts_with (c("K_S","K_E"))), funs(case_when(. == "Strongly disagree" ~ 5, 
-                                                               . == "Somewhat disagree" ~ 4,
+# No reverse code for likert scale for variables for Kahan scale into numbers
+  mutate_at(vars(starts_with (c("K_S","K_E"))), funs(case_when(. == "Strongly disagree" ~ 1, 
+                                                               . == "Somewhat disagree" ~ 2,
                                                                . == "Neither agree nor disagree" ~3,
-                                                               . == "Somewhat agree" ~ 2,
-                                                               . == "Strongly agree" ~ 1))) %>%
+                                                               . == "Somewhat agree" ~ 4,
+                                                               . == "Strongly agree" ~ 5))) %>%
 
 # code eco-pol scale variables into numbers
   mutate_at(vars(SYSTEMDEMO,SYSTEMRELIGION,SYSTEMTECHNO,SYSTEMTOTAL,WEALTHLIM,MECHANISATION,DECISIONDECEN,INDUSTRYLARGE,ECONOMYGLOBAL,OWNERPVT,OWNERNOREG), funs(case_when(. == "Strongly disagree" ~ 1, 
@@ -97,12 +97,12 @@ codedmodule2 <- module2 %>%
                         . == "Somewhat agree" ~ 4,
                         . == "Strongly agree" ~ 5))) %>%
 
-# reverse code eco-pol scale variables into numbers 
- mutate_at(vars(DECISIONCEN, INDUSTRYSMALL, ECONOMYLOCAL, ENVOVERDEV,OWNERPUB, OWNERREG), funs(case_when(. == "Strongly disagree" ~ 5, 
-                                                                                                         . == "Somewhat disagree" ~ 4,
+# No reverse code eco-pol scale variables into numbers 
+ mutate_at(vars(DECISIONCEN, INDUSTRYSMALL, ECONOMYLOCAL, ENVOVERDEV,OWNERPUB, OWNERREG), funs(case_when(. == "Strongly disagree" ~ 1, 
+                                                                                                         . == "Somewhat disagree" ~ 2,
                                                                                                          . == "Neither agree nor disagree" ~3,
-                                                                                                         . == "Somewhat agree" ~ 2,
-                                                                                                         . == "Strongly agree" ~ 1))) %>%
+                                                                                                         . == "Somewhat agree" ~ 4,
+                                                                                                         . == "Strongly agree" ~ 5))) %>%
   mutate_all(~ifelse(. == "Rather not say/ Don't know", "Rather not say/Don't know", .))%>%
   mutate_all(~ifelse(. == "West bengal", "West Bengal", .))%>%
   mutate_all(~ifelse(. == "WEST BENGAL", "West Bengal", .))%>%

@@ -1,14 +1,14 @@
 ---
 title: "models with mice"
-header-includes:
-- \usepackage{pdflscape}
-- \newcommand{\blandscape}{\begin{landscape}}
-- \newcommand{\elandscape}{\end{landscape}}
 output:
-  pdf_document: 
+  pdf_document:
     toc: yes
     toc_depth: 2
     keep_tex: yes
+  header-includes:
+  - \usepackage{dcolumn}
+  - \usepackage{array}
+  - "\\usepackage{placeins}"
   keep_md: yes
 ---
 
@@ -118,6 +118,98 @@ mutate_at(vars(SYSTEMDEMO,SYSTEMRELIGION,SYSTEMTECHNO,SYSTEMTOTAL,WEALTHLIM,MECH
 ```
 
 
+
+# Bar plot: STATE X PDEVELOP
+
+```{r}
+
+# Load necessary libraries
+library(dplyr)
+library(ggplot2)
+library(forcats)
+
+# Df to include relevant variables 
+
+WBques <- module2 %>%  filter(!row_number() %in% c(1,2)) %>% dplyr::select(State, DISPLACENUCLEAR, HEALTHNUCLEAR, BEAUTYNUCLEAR, POLLUTENUCLEAR ) %>%
+  mutate_all(~ifelse(. == "Rather not say/ Don't know", "Rather not say/Don't know", .))%>%
+  mutate_all(~ifelse(. == "West bengal", "West Bengal", .))%>%
+  mutate_all(~ifelse(. == "WEST BENGAL", "West Bengal", .))%>%
+  mutate_all(~ifelse(. == "Up", "Uttar Pradesh", .))%>%
+  mutate_all(~ifelse(. == "Tamilnadu", "Tamil Nadu", .))%>%
+  mutate_all(~ifelse(. == "UP", "Uttar Pradesh", .))
+
+levels_defined <- c("Strongly agree", "Somewhat agree","Neither agree nor disagree", "Somewhat disagree","Strongly disagree","Rather not say/Don't know")
+
+
+WBques_factors <- WBques
+WBques_factors[] <- lapply(names(WBques_factors), function(colname) {
+  if (colname != "State") {
+    factor(WBques_factors[[colname]], levels = levels_defined)
+  } else {
+    WBques_factors[[colname]] # Keep the State column unchanged
+  }
+})
+
+WBques_factors$State <- factor(WBques_factors$State, 
+                               levels = c("West Bengal", "Uttar Pradesh", "Maharashtra", "Rajasthan", "Tamil Nadu"))
+
+
+library(dplyr)
+library(ggplot2)
+
+# Assuming your updated data frame is named WBques_factors
+
+# Create a summary table with counts for each level of DISPLACENUCLEAR within each State
+WBques_summary <- WBques_factors %>%
+  count(State, DISPLACENUCLEAR) %>%
+  group_by(State) %>%
+  mutate(Proportion = n / sum(n))
+
+# Create a named vector with full statements for each variable
+full_statements <- c(DISPLACENUCLEAR = "Nuclear energy is leading to displacement of people from their land",
+                     BEAUTYNUCLEAR = "Nuclear energy spoils the natural beauty of the landscape",
+                     POLLUTENUCLEAR = "Nuclear energy increases pollution of air/water/land",
+                     HEALTHNUCLEAR = "Nuclear energy poses a great risk to the health of people living around it",
+                     ENVOVERDEV = "Polluting industries that spoil the environment should be shut down even if it costs people their jobs")
+
+# Reshape the data to long format for the selected variables
+WBques_long <- WBques_factors %>%
+  pivot_longer(cols = c(DISPLACENUCLEAR, HEALTHNUCLEAR, BEAUTYNUCLEAR, POLLUTENUCLEAR),
+               names_to = "Question",
+               values_to = "Response") %>%
+  mutate(Question = recode(Question, !!!full_statements)) # Replace var names with full statements
+
+# Create a summary table with proportions for each level of Response within each State and Question
+WBques_summary <- WBques_long %>%
+  count(State, Question, Response) %>%
+  group_by(State, Question) %>%
+  mutate(Proportion = n / sum(n))
+
+# Define the color sequence, with the darkest red for "Strongly agree"
+colorsequence <- c("#8C4646","#D9695F","#F2A679","#F2D091","#FFF2CC","#808080")
+
+# Plot the graph with facets for each Question
+ggplot(WBques_summary, aes(x = State, y = Proportion, fill = factor(Response, levels = rev(levels_defined)))) +
+  geom_bar(stat = "identity", position = "fill") +
+  scale_fill_manual(values = rev(colorsequence), name = NULL) +
+  facet_wrap(~ Question, scales = "free_y", ncol = 1) +
+  coord_flip() +
+  labs(x = "State", y = "Proportion", title = "Proportion of Responses by State for Nuclear energy related questions") +
+  theme_minimal() +
+  theme(
+    # Increase the size of the main title
+    plot.title = element_text(size = 16, face = "bold"),
+    # Increase the size of the axis titles
+    axis.title = element_text(size = 14),
+    # Increase the size of the facet strip text
+    strip.text.x = element_text(size = 12),
+    # Adjust text angle for State labels if necessary
+    axis.text.y = element_text(angle = 0)
+  )
+
+```
+
+
 # barplot of demographics 
 
 
@@ -143,7 +235,7 @@ demobar <- codedmodule2 %>%
 
 #changing factor levels for each variable from high to low n 
 
-demobar$State <- factor(demobar$State, levels = c("Maharashtra","Rajasthan", "West Bengal" , "Tamil Nadu", "Uttar Pradesh"))
+demobar$State <- factor(demobar$State, levels = c("Rajasthan", "Maharashtra","West Bengal" , "Tamil Nadu", "Uttar Pradesh"))
 demobar$Language <- factor(demobar$Language, levels = c("Hindi","Marathi","Bengali","Tamil", "English"))
 demobar$age <- factor(demobar$age, levels = c( "18-24 years old" ,  "25-34 years old","35-44 years old", "45-54 years old", "55-64 years old","65-74 years old","75 years or older"  ))
 demobar$urban_rural <- factor(demobar$urban_rural, levels = c("Rural","Urban"))
@@ -213,7 +305,7 @@ grid::grid.draw(combined_plot)
 
 ## Can do something with accept, reject and reluctantly accept. 
 
-n_acceptreject<- codedmodule2 %>%
+n_acceptreject<- module2 %>%
                 dplyr::select("N_accept", "N_reluctantlyaccept", "N_reject")
 
 summary(n_acceptreject)
@@ -232,7 +324,7 @@ formice1 <- codedmodule2[, grep("State|age|urban_rural|gender|caste|religion|Sol
           mutate(Uppercaste = ifelse(caste %in% c('Brahmin', 'General'), 1, 0)) %>%
           mutate(Male = ifelse(gender == 'Male', 1, 0))%>%
           mutate(Hindu = ifelse(religion == 'Hinduism', 1, 0))%>%
-           mutate(Age = case_when(
+          mutate(Age = case_when(
                                   age == "18-24 years old" ~ 1,
                                   age == "25-34 years old" ~ 2,
                                   age == "35-44 years old" ~ 3,
@@ -256,11 +348,18 @@ summary(formice)
 
 # litte's MCAR test 
 
+sum(is.na(formice))
+
 mcar_test(data= codedmodule2)
 
 # p value = 1, which means MAR condition is met. 
 
 ```
+
+
+
+
+
 
 
 
@@ -367,6 +466,10 @@ fit <- psych::fa(mikahan$cov_combined, nfactors = 2, rotate = "varimax")
 print.psych(fit, sort= TRUE, cut= 0.4)
 
 
+kahanfit4 <- psych::fa(mikahan$cov_combined, nfactors = 3, rotate = "varimax")
+
+print.psych(kahanfit4, sort= TRUE, cut= 0.4)
+
 ```
 
 
@@ -374,7 +477,7 @@ print.psych(fit, sort= TRUE, cut= 0.4)
 
 
 
-\blandscape
+
 
 ## Pretty Table: FA Kahan
 
@@ -455,24 +558,26 @@ fa_table <- function(x, cut) {
 }
 
 fa_table(fit , .4) %>%
-  rename(Hierarchy_Egalitarianism = MR1, Communitarianism = MR2, Items= item, Code= code) %>%
-  flex("EFA: Kahan Scale", col_widths = list(Items = 4.5, Code = 1))
+  rename(Egalitarianism = MR1, Communitarianism = MR2, Items= item, Code= code) %>%
+  flex("Table 1: EFA on adapted Cultural Cognition Scale from Kahan et al(2007)", col_widths = list(Items = 4.5, Code = 1))
 
 
 ```
 
 
-\elandscape
+
 
 
 ```{r, echo = FALSE}
 fit[["Vaccounted"]] %>%
   as.data.frame() %>%
   rownames_to_column("Property") %>%
-  rename(Hierarchy_Egalitarianism = MR1, Communitarianism = MR2) %>%
+  rename(Egalitarianism = MR1, Communitarianism = MR2) %>%
     mutate(across(where(is.numeric), round, 3)) %>%
-    flex("Eigenvalues and Variance Explained for Kahan Scale")
+    flex("Table 2: Eigenvalues and Variance Explained for Cultural Cognition Scale")
 ```
+
+
 
 
 
@@ -502,7 +607,7 @@ str(kahanallscores)
 
 nkahanall <- kahanallscores %>%
   rowwise() %>%
-  mutate( K_EWEALTH_mean = mean(c_across(starts_with("K_EWEALTH"))),
+  mutate(
     K_IINTRFER_mean = mean(c_across(starts_with("K_IINTRFER"))),
     K_IPRIVACY_mean = mean(c_across(starts_with("K_IPRIVACY"))),
     K_SHARM_mean = mean(c_across(starts_with("K_SHARM"))),
@@ -513,11 +618,13 @@ nkahanall <- kahanallscores %>%
     K_HREVDIS1_mean = mean(c_across(starts_with("K_HREVDIS1"))),
     K_EDISCRIM_mean = mean(c_across(starts_with("K_EDISCRIM"))),
     K_ERADEQ1_mean = mean(c_across(starts_with("K_ERADEQ1"))),
-    K_ERADEQ2_mean = mean(c_across(starts_with("K_ERADEQ2")))
+    K_ERADEQ2_mean = mean(c_across(starts_with("K_ERADEQ2"))),
+    K_EWEALTH_mean = mean(c_across(starts_with("K_EWEALTH")))
   ) %>%
   ungroup()%>%
   dplyr::select(contains("_mean")) %>%
    rename_with(~ gsub("_mean$", "", .x))
+
 
 
 nkahanfinal <- data.frame(factor.scores(nkahanall[, 1:12], fit)$scores)
@@ -525,6 +632,54 @@ nkahanfinal <- data.frame(factor.scores(nkahanall[, 1:12], fit)$scores)
 
 ```
 
+## Kahan corelation table
+```{r}
+
+cor(nkahanall)
+
+#before mice 
+ cor.plot(kahanall %>% dplyr::select(-c("age", "gender", "caste", "State", "urban_rural", "religion")))
+
+#after mice
+ cor.plot(nkahanall)
+
+cov(nkahanall)
+
+```
+
+
+
+## Kahan scater plot from EFA scores 
+```{r, echo = FALSE}
+
+nkahanfinal %>%
+  ggplot(aes(MR1, MR2))+
+  geom_count(aes(color = ..n.., size = ..n..))+
+  guides(color = 'legend')+
+  geom_hline(yintercept=0, colour="black", lwd=0.5)+
+  geom_vline(xintercept=0, colour="black", lwd=0.5)+
+  labs(x = "Hierarchy -Egalitarianism", y = "Individualism - Communitarianism")+
+  ylim(-2,3)+
+  xlim(-2,3)+
+  theme_minimal() 
+```
+
+# Kahan alpha test
+
+```{r, echo=FALSE}
+
+KahanallHE <-nkahanall %>%
+  dplyr::select(starts_with(c("K_H", "K_E")))
+
+KahanallHE_alpha <- psych::alpha(KahanallHE, check.keys = TRUE) # alpha = 0.71	
+
+KahanallC <-nkahanall %>%
+  dplyr::select(starts_with(c("K_S")))
+
+KahanallC_alpha <- psych::alpha(KahanallC, check.keys = TRUE) # alpha = 0.73
+
+
+```
 
 
 ## Kahan: factor scores from 1st imputed dataset
@@ -684,7 +839,21 @@ MARecopol %>%
     knitr::kable(row.names=FALSE, align = c("l", "l", "r", "r", "r"), 
         caption = "comparisons between values of responders (Not missing) and 
         non-responders (Missing) on the PRIDENUCLEAR variable.") 
+
+
+
+
+
+
+
 ```
+
+
+
+
+
+
+
 
 
 ## Mifa for new eco-pol value scale : Nuclear energy
@@ -696,6 +865,7 @@ MARecopol %>%
 
 miecopol <- mifa(data= ecopoln,
                 cov_vars  = -c("age", "gender", "caste", "State", "urban_rural", "religion"),
+                m=50,
                 n_pc= 2:4,
                 ci = "fieller", 
                 n_boot=1000,
@@ -718,7 +888,7 @@ print.psych(ecopolfit2, sort= TRUE, cut= 0.4)
 
 ```{r, echo=FALSE}
 
-ecopolallscores <- mice::complete(mice::mice(ecopoln, m = 5, seed = 429, print = FALSE), "broad") 
+ecopolallscores <- mice::complete(mice::mice(ecopoln, m = 50, seed = 429, print = FALSE), "broad") 
             
 ecopolallscores <- ecopolallscores %>%dplyr::select(-(contains(c("age", "urban_rural", "gender","caste","religion", "State"))))
 
@@ -759,13 +929,31 @@ necopol <- ecopolallscores %>%
   
   
 
-necopolfinal <- data.frame(factor.scores(necopol[, 1:24], ecopolfit2)$scores)
+necopolfinal <- data.frame(factor.scores(necopol[, 1:24], ecopolfit2)$scores) 
                 
 
 
 
 ```
 
+
+
+# Eco-pol alpha test
+
+```{r, echo=FALSE}
+
+nPdevelop <-necopol %>%
+  dplyr::select((c(BEAUTYNUCLEAR,  HEALTHNUCLEAR,  POLLUTENUCLEAR, DISPLACENUCLEAR, OWNERPUB, ENVOVERDEV)))
+
+nPdevelop_alpha <- psych::alpha(nPdevelop, check.keys = TRUE) # alpha = 0.79	
+
+nNdevelop <-necopol %>%
+  dplyr::select((c(DEVNUCLEAR, PROSPERNUCLEAR,PRIDENUCLEAR, NPRIDENUCLEAR, JOBSNUCLEAR, ECONOMYGLOBAL,          WEALTHLIM,INDUSTRYLARGE, DECISIONCEN, MECHANISATION )))
+
+nNdevelop_alpha <- psych::alpha(nNdevelop , check.keys = TRUE) # alpha = 0.79
+
+
+```
 
 
 
@@ -827,7 +1015,7 @@ radar4 <- rbind(max_min2, wide_loadings_df2) %>%
       "Anti Large Industries " = "INDUSTRYSMALL",
       "Development over Environment" = "DEVOVERENV",
       "Pro Private ownership " = "OWNERPVT",
-      "Reliance on government(nuclear)" = "RELYNUCLEAR",
+      "Less Reliance on government(nuclear)" = "RELYNUCLEAR",
       "Spoils Natural Beauty(nuclear)" = "BEAUTYNUCLEAR",
       "Health risk(nuclear)" = "HEALTHNUCLEAR",
       "Pollution risk(nuclear) " = "POLLUTENUCLEAR",
@@ -842,7 +1030,7 @@ radar4 <- rbind(max_min2, wide_loadings_df2) %>%
 ```
 
 
-```{r, echo=FALSE, fig.width=15, fig.height=7, out.width='70', out.height='70'}
+```{r, echo=FALSE, fig.width=20, fig.height=18, out.width='70', out.height='70'}
 library(fmsb)
 
 create_beautiful_radarchart <- function(data, color = "#00AFBB", 
@@ -854,9 +1042,9 @@ create_beautiful_radarchart <- function(data, color = "#00AFBB",
     pcol = color, pfcol = scales::alpha(color, 0.7), plwd = 2, plty = 1,
     centerzero=FALSE,
     # Customize the grid
-    cglcol = "black", cglty = 1, cglwd = 2,
+    cglcol = "grey", cglty = 1, cglwd = 2,
     # Customize the axis
-    axislabcol = "black", cexc = 1.5, # Increase label size for axis
+    axislabcol = "black", cexc = 7, # Increase label size for axis
     # Variable labels
     vlcex = vlcex, vlabels = vlabels, vlpos = 0.98,
     seg = 7, caxislabels = caxislabels, title = title, 
@@ -888,11 +1076,7 @@ par(op)
 ```
 
 
-# Pretty table attempt 1 
-
-\blandscape
-# FA on Combined Scale (2 Factor Solution): People Centered Development and Nationalist Development 
-## Nuclear Energy: EFA on Combined Scale (2 Factor Solution)
+# Pretty table: Nuclear EFA
 
 ```{r, echo=FALSE}
 
@@ -921,30 +1105,30 @@ flex <- function(data, title=NULL, col_widths=NULL) {
 
 
 rename_map2 <- c(
-  "Limits on Wealth" = "A limit should be put to how much wealth a person can amass",
-  "Anti Mechanisation of work" = "Rapid mechanization of work is taking away jobs from workers in this country",
-  "Pro Decentralisation" = "Local politicians shouldn't have to ask permission from the central government to implement policies",
-  "Pro Centralisation" = "Laws and policies would be implemented more smoothly if more power lay with the central government",
-  "Pro Large Industries" = "Large scale industries are required for the development of the country that will benefit everyone",
-  "Anti Large Industries" = "Large corporations are destroying the local industries in India and benefiting only a handful of people",
-  "Pro Globaleconomy" = "Foreign companies have led to a range of benefits for the Indian people and society",
-  "Pro Localeconomy" = "India would be better off if foreign companies didn't come to here",
-  "Environment over Development" = "Polluting industries that spoil the environment should be shut down even if it costs people their jobs",
-  "Development over Environment" = "Economic growth and creating jobs should be prioritized over environmental protection",
-  "Pro Private ownership" = "All businesses and industries should be owned privately",
-  "Anti Regulations" = "There is too much red-tape and the government should not interfere with businesses and industries",
-  "Pro Public ownership" = "The government should own most large businesses and industries",
-  "Pro Regulations" = "Regardless of ownership, the government should pass strong regulations and implement them",
-  "Displacement risk(nuclear)" = "Nuclear energy is leading to displacement of people from their land",
-  "Spoils Natural Beauty(nuclear)" = "Nuclear energy spoils the natural beauty of the landscape",
-  "Pollution risk(nuclear)" = "Nuclear energy increases pollution of air/water/land",
-  "Health risk(nuclear)" = "Nuclear energy poses a great risk to the health of people living around it",
-  "Job opportunities(nuclear)" = "Nuclear energy will bring jobs to the local community",
-  "Community pride(nuclear)" = "I would be proud if my community used nuclear energy",
-  "National pride(nuclear)" = "Nuclear energy is a mark of pride for our nation",
-  "National development(nuclear)" = "Nuclear energy pushes forward the country's development",
-  "Local prosperity(nuclear)" = "Nuclear energy brings economic prosperity to the surrounding regions",
-  "Reliance on government(nuclear)" = "I don't like the idea that I have to rely on the government for electricity from nuclear energy"
+  "WEALTHLIM" = "A limit should be put to how much wealth a person can amass",
+  "MECHANISATION" = "Rapid mechanization of work is taking away jobs from workers in this country",
+  "DECISIONDECEN" = "Local politicians shouldn't have to ask permission from the central government to implement policies",
+  "DECISIONCEN" = "Laws and policies would be implemented more smoothly if more power lay with the central government",
+  "INDUSTRYLARGE" = "Large scale industries are required for the development of the country that will benefit everyone",
+  "INDUSTRYSMALL" = "Large corporations are destroying the local industries in India and benefiting only a handful of people",
+  "ECONOMYGLOBAL" = "Foreign companies have led to a range of benefits for the Indian people and society",
+  "ECONOMYLOCAL" = "India would be better off if foreign companies didn't come to here",
+  "ENVOVERDEV" = "Polluting industries that spoil the environment should be shut down even if it costs people their jobs",
+  "DEVOVERENV" = "Economic growth and creating jobs should be prioritized over environmental protection",
+  "OWNERPVT" = "All businesses and industries should be owned privately",
+  "OWNERNOREG" = "There is too much red-tape and the government should not interfere with businesses and industries",
+  "OWNERPUB" = "The government should own most large businesses and industries",
+  "OWNERREG" = "Regardless of ownership, the government should pass strong regulations and implement them",
+  "DISPLACENUCLEAR" = "Nuclear energy is leading to displacement of people from their land",
+  "BEAUTYNUCLEAR" = "Nuclear energy spoils the natural beauty of the landscape",
+  "POLLUTENUCLEAR" = "Nuclear energy increases pollution of air/water/land",
+  "HEALTHNUCLEAR" = "Nuclear energy poses a great risk to the health of people living around it",
+  "JOBSNUCLEAR" = "Nuclear energy will bring jobs to the local community",
+  "PRIDENUCLEAR" = "I would be proud if my community used nuclear energy",
+  "NPRIDENUCLEAR" = "Nuclear energy is a mark of pride for our nation",
+  "DEVNUCLEAR" = "Nuclear energy pushes forward the country's development",
+  "PROSPERNUCLEAR" = "Nuclear energy brings economic prosperity to the surrounding regions",
+  "RELYNUCLEAR" = "I don't like the idea that I have to rely on the government for electricity from nuclear energy"
 )
 
 
@@ -982,7 +1166,34 @@ fa_table <- function(x, cut) {
 
 fa_table(ecopolfit2, .4) %>%
   rename(Ndevelop = MR1, Pdevelop = MR2, Items= item) %>%
-  flex("2 factor solution", col_widths = list(Items = 4.5, code = 1.5))
+  dplyr::mutate(code = case_when(
+    code == "WEALTHLIM" ~ "Limits on Wealth",
+    code == "MECHANISATION" ~ "Anti Mechanisation of work",
+    code == "DECISIONDECEN" ~ "Pro Decentralisation",
+    code == "DECISIONCEN" ~ "Pro Centralisation",
+    code == "INDUSTRYLARGE" ~ "Pro Large Industries",
+    code == "INDUSTRYSMALL" ~ "Anti Large Industries",
+    code == "ECONOMYGLOBAL" ~ "Pro Globaleconomy",
+    code == "ECONOMYLOCAL" ~ "Pro Localeconomy",
+    code == "ENVOVERDEV" ~ "Environment over Development",
+    code == "DEVOVERENV" ~ "Development over Environment",
+    code == "OWNERPVT" ~ "Pro Private ownership",
+    code == "OWNERNOREG" ~ "Anti Regulations",
+    code == "OWNERPUB" ~ "Pro Public ownership",
+    code == "OWNERREG" ~ "Pro Regulations",
+    code == "DISPLACENUCLEAR" ~ "Displacement risk(nuclear)",
+    code == "POLLUTENUCLEAR" ~ "Pollution risk(nuclear)",
+    code == "HEALTHNUCLEAR" ~ "Health risk(nuclear)",
+    code == "JOBSNUCLEAR" ~ "Job opportunities(nuclear)",
+    code == "BEAUTYNUCLEAR" ~ "Spoils Natural Beauty(nuclear)",
+    code == "PROSPERNUCLEAR" ~ "Local prosperity(nuclear)",
+    code == "PRIDENUCLEAR" ~ "Community pride(nuclear)",
+    code == "NPRIDENUCLEAR" ~ "National pride(nuclear)",
+    code == "DEVNUCLEAR" ~ "National development(nuclear)",
+    code == "RELYNUCLEAR" ~ "Less Reliance on government(nuclear)",
+    TRUE ~ code # Default case to keep original value if no match
+  )) %>%
+  flex("Table 3: EFA on Eco-Pol Values Scale", col_widths = list(Items = 4.5, code = 1.5))
 
 
 ```
@@ -993,7 +1204,7 @@ fa_table(ecopolfit2, .4) %>%
 
 
 
-\elandscape
+
 
 
 ```{r, echo = FALSE}
@@ -1002,7 +1213,7 @@ ecopolfit2[["Vaccounted"]] %>%
   rownames_to_column("Property") %>%
   rename(Ndevelop = MR1, Pdevelop = MR2) %>%
     mutate(across(where(is.numeric), round, 3)) %>%
-    flex("Eigenvalues and Variance Explained for Combined Scale (2 Factor Solution)")
+    flex("Table 4: Eigenvalues and Variance Explained Eco-Pol Scale")
 ```
 
 
@@ -1107,7 +1318,7 @@ ecopolnuclear <- fct_scores2 %>%
   rename(Ndevelop = MR1, Pdevelop = MR2)
 
 kahannuclear <- fct_scores%>%
-  rename(Hierarchy_Egalitarian = MR1, Communitarian = MR2)
+  rename(Egalitarian = MR1, Communitarian = MR2)
 
 
 allformice<- cbind(formice1,ecopolnuclear, kahannuclear)
@@ -1144,7 +1355,7 @@ summary(Statenacheck1)
 #pred[, "Age"] <- 0
 #pred[, "Ndevelop"] <- 0
 #pred[, "Pdevelop"] <- 0
-#pred[, "Hierarchy_Egalitarian"] <- 0
+#pred[, "Egalitarian"] <- 0
 #pred[, "Communitarian"] <- 0
 # Identify columns that start with "K_" and set them to 0
 #k_columns <- grep("^K_", colnames(formice1))
@@ -1181,9 +1392,9 @@ summary(nuclear_missing)
 nuclearIVmice <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State, data = allformice)
 
 
-nuclearIVmice2 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Hierarchy_Egalitarian, data = allformice)
+nuclearIVmice2 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Egalitarian, data = allformice)
 
-nuclearIVmice3 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Hierarchy_Egalitarian + Pdevelop + Ndevelop, data = allformice)
+nuclearIVmice3 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Egalitarian + Pdevelop + Ndevelop, data = allformice)
 
 summary(nuclearIVmice)
 summary(nuclearIVmice2)
@@ -1200,7 +1411,7 @@ ecopolnuclear2 <- fct_scorese2 %>%
   rename(Ndevelop = MR1, Pdevelop = MR2)
 
 kahannuclear2 <- fct_scoresk2%>%
-  rename(Hierarchy_Egalitarian = MR1, Communitarian = MR2)
+  rename(Egalitarian = MR1, Communitarian = MR2)
 
 allformice2<- cbind(formice1,ecopolnuclear2, kahannuclear2)
 
@@ -1211,9 +1422,9 @@ allformice2<- cbind(formice1,ecopolnuclear2, kahannuclear2)
 
 nuclearIVmiceimp2 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State, data = allformice2)
 
-nuclearIVmiceimp22 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Hierarchy_Egalitarian, data = allformice2)
+nuclearIVmiceimp22 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Egalitarian, data = allformice2)
 
-nuclearIVmiceimp23 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Hierarchy_Egalitarian + Pdevelop + Ndevelop, data = allformice2)
+nuclearIVmiceimp23 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Egalitarian + Pdevelop + Ndevelop, data = allformice2)
 
 summary(nuclearIVmiceimp2)
 summary(nuclearIVmiceimp22)
@@ -1231,7 +1442,7 @@ ecopolnuclear3 <- fct_scorese3 %>%
   rename(Ndevelop = MR1, Pdevelop = MR2)
 
 kahannuclear3 <- fct_scoresk3%>%
-  rename(Hierarchy_Egalitarian = MR1, Communitarian = MR2)
+  rename(Egalitarian = MR1, Communitarian = MR2)
 
 allformice3<- cbind(formice1,ecopolnuclear3, kahannuclear3)
 
@@ -1242,9 +1453,9 @@ allformice3<- cbind(formice1,ecopolnuclear3, kahannuclear3)
 
 nuclearIVmiceimp3 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State, data = allformice3)
 
-nuclearIVmiceimp32 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Hierarchy_Egalitarian, data = allformice3)
+nuclearIVmiceimp32 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Egalitarian, data = allformice3)
 
-nuclearIVmiceimp33 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Hierarchy_Egalitarian + Pdevelop + Ndevelop, data = allformice3)
+nuclearIVmiceimp33 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Egalitarian + Pdevelop + Ndevelop, data = allformice3)
 
 summary(nuclearIVmiceimp3)
 summary(nuclearIVmiceimp32)
@@ -1260,7 +1471,7 @@ ecopolnuclear4 <- fct_scorese4 %>%
   rename(Ndevelop = MR1, Pdevelop = MR2)
 
 kahannuclear4 <- fct_scoresk4%>%
-  rename(Hierarchy_Egalitarian = MR1, Communitarian = MR2)
+  rename(Egalitarian = MR1, Communitarian = MR2)
 
 allformice4<- cbind(formice1, ecopolnuclear4, kahannuclear4)
 
@@ -1271,9 +1482,9 @@ allformice4<- cbind(formice1, ecopolnuclear4, kahannuclear4)
 
 nuclearIVmiceimp4 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State, data = allformice4)
 
-nuclearIVmiceimp24 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Hierarchy_Egalitarian, data = allformice4)
+nuclearIVmiceimp24 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Egalitarian, data = allformice4)
 
-nuclearIVmiceimp34 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Hierarchy_Egalitarian + Pdevelop + Ndevelop, data = allformice4)
+nuclearIVmiceimp34 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Egalitarian + Pdevelop + Ndevelop, data = allformice4)
 
 summary(nuclearIVmiceimp4)
 summary(nuclearIVmiceimp24)
@@ -1294,7 +1505,7 @@ ecopolnuclearfinal <- necopolfinal %>%
   rename(Ndevelop = MR1, Pdevelop = MR2)
 
 kahannuclearfinal <- nkahanfinal%>%
-  rename(Hierarchy_Egalitarian = MR1, Communitarian = MR2)
+  rename(Egalitarian = MR1, Communitarian = MR2)
 
 
 allformicefinal<- cbind(formice1,ecopolnuclearfinal, kahannuclearfinal)
@@ -1307,45 +1518,76 @@ allformicefinal<- cbind(formice1,ecopolnuclearfinal, kahannuclearfinal)
 ```{r, echo=FALSE}
 
 
+allformicefinal$State <- factor(allformicefinal$State, levels = c("Maharashtra","West Bengal" ,"Rajasthan","Tamil Nadu",  "Uttar Pradesh"))
+
+
 nuclearfinal <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age, data = allformicefinal)
 
 
 nuclearfinal2 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State, data = allformicefinal)
 
 
-nuclearfinal3 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Hierarchy_Egalitarian, data = allformicefinal)
+nuclearfinal3 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Egalitarian, data = allformicefinal)
 
-nuclearfinal4 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Hierarchy_Egalitarian + Pdevelop + Ndevelop, data = allformicefinal)
+nuclearfinal4 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Egalitarian + Pdevelop + Ndevelop, data = allformicefinal)
 
-#summary(nuclearfinal)
-#summary(nuclearfinal2)
-#summary(nuclearfinal3)
-#summary(nuclearfinal4)
+summary(nuclearfinal)
+summary(nuclearfinal2)
+summary(nuclearfinal3)
+summary(nuclearfinal4)
+
+aic_values <- AIC(nuclearfinal, nuclearfinal2, nuclearfinal3, nuclearfinal4)
+
+print(aic_values)
+
+bic_values <- BIC(nuclearfinal, nuclearfinal2, nuclearfinal3, nuclearfinal4)
+
+print(bic_values)
+
 ```
 
 
+# correlation table 
 
+```{r}
+
+nforcor <- allformicefinal %>%
+           dplyr::select(Risky_Nuclear, Communitarian , Egalitarian , Pdevelop , Ndevelop)
+
+cor.plot(nforcor)
+```
+
+# interaction vars
+
+```{r}
+
+nuclearinterac <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian*State + Egalitarian*State + Pdevelop*State + Ndevelop*State , data = allformicefinal)
+
+summary(nuclearinterac)
+
+```
 \newpage
-\blandscape
+
 
 
 ```{r, echo=FALSE, results='asis'}
 library(stargazer)
 
 
-cat("\\begingroup")
-cat("\\setlength{\\tabcolsep}{1pt}")
-cat("\\renewcommand{\\arraystretch}{0.7}")
-stargazer(nuclearfinal, nuclearfinal2, nuclearfinal3, nuclearfinal4,
-          title = "4 linear models: Perceived Risk of Nuclear Energy",
-          type = "latex"
+#cat("\\begingroup")
+#cat("\\setlength{\\tabcolsep}{1pt}")
+#cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(nuclearfinal, nuclearfinal2, nuclearfinal3, nuclearfinal4, nuclearinterac,
+          title = "Table 6: 5 linear models: Perceived Risk of Nuclear Energy",
+          type = "text"
 )
-cat("\\endgroup")
+#cat("\\endgroup")
 
 
 ```
 
-\elandscape
+
+
 
 
 

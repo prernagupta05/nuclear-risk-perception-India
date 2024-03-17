@@ -631,7 +631,7 @@ Kahan_scale <- codedmodule2 %>%
 
 kahan.fa <- fa(Kahan_scale, nfactors = 2, rotate = "varimax")
 
-print.psych(kahan.fa, sort = TRUE)
+print.psych(kahan.fa, sort = TRUE, cut=0.4)
 
 KahanHE<-Kahan_scale %>%
   dplyr::select(starts_with(c("K_H", "K_E")))
