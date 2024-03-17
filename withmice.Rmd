@@ -932,8 +932,6 @@ necopol <- ecopolallscores %>%
 necopolfinal <- data.frame(factor.scores(necopol[, 1:24], ecopolfit2)$scores) 
                 
 
-
-
 ```
 
 
@@ -1570,6 +1568,9 @@ summary(nuclearinterac)
 
 
 
+
+
+
 ```{r, echo=FALSE, results='asis'}
 library(stargazer)
 
@@ -1588,8 +1589,320 @@ stargazer(nuclearfinal, nuclearfinal2, nuclearfinal3, nuclearfinal4, nuclearinte
 
 
 
+# NUCLEAR2 : only charcateristics of tech
 
 
+```{r, echo=FALSE}
+
+ecopoln2 <- formice1 %>%
+  dplyr::select(
+    DISPLACENUCLEAR,  POLLUTENUCLEAR, HEALTHNUCLEAR, JOBSNUCLEAR, BEAUTYNUCLEAR,
+    PRIDENUCLEAR, NPRIDENUCLEAR, DEVNUCLEAR, PROSPERNUCLEAR,
+    RELYNUCLEAR, age, urban_rural, gender, caste, religion, State
+  )
+
+
+str(ecopoln2)
+md.pattern(ecopoln2) #the variables with missing values:  
+
+mcar_test(data=ecopoln2)
+```
+
+
+# Nuclear2 : Mifa for new eco-pol value scale
+
+```{r, echo=FALSE}
+
+
+
+miecopoln2 <- mifa(data= ecopoln2,
+                cov_vars = -c("age", "gender", "caste", "State", "urban_rural", "religion"),
+                m=10,
+                n_pc= 2:4,
+                ci = "fieller", 
+                n_boot=1000,
+                print = FALSE,
+                progress= TRUE, 
+                seed = 528,)
+
+miecopoln2
+
+
+
+ecopolfitn2 <- psych::fa(miecopoln2$cov_combined, nfactors = 2, rotate = "varimax")
+
+print.psych(ecopolfitn2, sort= TRUE, cut= 0.4)
+
+
+```
+
+
+
+
+# Solar : MAR condition and missing data pattern
+
+
+```{r, echo=FALSE}
+
+ecopols <- formice1 %>%
+  dplyr::select(
+    DECISIONDECEN, DECISIONCEN, INDUSTRYSMALL, INDUSTRYLARGE,
+    ECONOMYLOCAL, ECONOMYGLOBAL, ENVOVERDEV,DEVOVERENV, OWNERPVT, OWNERPUB,
+    OWNERREG, OWNERNOREG, WEALTHLIM, MECHANISATION,
+    DISPLACESOLAR,  POLLUTESOLAR, HEALTHSOLAR, JOBSSOLAR, BEAUTYSOLAR,
+    PRIDESOLAR, NPRIDESOLAR, DEVSOLAR, PROSPERSOLAR,
+    RELYSOLAR,age, urban_rural, gender, caste, religion, State
+  )
+
+md.pattern(ecopols) #the variables with missing values:  
+
+mcar_test(data=ecopols)
+```
+
+
+# Solar : Mifa for new eco-pol value scale
+
+```{r, echo=FALSE}
+
+ 
+
+
+miecopols <- mifa(data= ecopols,
+                cov_vars  = -c("age", "gender", "caste", "State", "urban_rural", "religion"),
+                m=5,
+                n_pc= 1:2,
+                ci = "fieller", 
+                n_boot=1000,
+                print = FALSE,
+                progress= TRUE, 
+                seed = 528,)
+
+miecopols
+
+
+
+ecopolfits <- psych::fa(miecopols$cov_combined, nfactors = 2, rotate = "varimax")
+
+print.psych(ecopolfits, sort= TRUE, cut= 0.4)
+
+
+
+```
+
+# Solar 2 : only charcateristics of tech
+
+
+```{r, echo=FALSE}
+
+ecopols2 <- formice1 %>%
+  dplyr::select(
+    DISPLACESOLAR,  POLLUTESOLAR, HEALTHSOLAR, JOBSSOLAR, BEAUTYSOLAR,
+    PRIDESOLAR, NPRIDESOLAR, DEVSOLAR, PROSPERSOLAR,
+    RELYSOLAR, age, urban_rural, gender, caste, religion, State
+  )
+
+
+str(ecopols2)
+md.pattern(ecopols2) #the variables with missing values:  
+
+mcar_test(data=ecopols2)
+```
+
+
+# SOLAR2 : Mifa for new eco-pol value scale
+
+```{r, echo=FALSE}
+
+
+
+miecopols2 <- mifa(data= ecopols2,
+                cov_vars = -c("age", "gender", "caste", "State", "urban_rural", "religion"),
+                m=10,
+                n_pc= 2:4,
+                ci = "fieller", 
+                n_boot=1000,
+                print = FALSE,
+                progress= TRUE, 
+                seed = 528,)
+
+miecopols2
+
+
+
+ecopolfits2 <- psych::fa(miecopols2$cov_combined, nfactors = 2, rotate = "varimax")
+
+print.psych(ecopolfits2, sort= TRUE, cut= 0.4)
+
+
+```
+
+
+
+
+# Solar: Mifa with CFA
+
+```{r}
+
+
+
+
+## CFA on ecopol vars for solar energy 
+
+ecopols_2fa <- '
+  Ndevelop =~ DEVSOLAR + PRIDESOLAR + NPRIDESOLAR + PROSPERSOLAR + JOBSSOLAR 
+  Pdevelop =~ HEALTHSOLAR + BEAUTYSOLAR + DISPLACESOLAR + POLLUTESOLAR + ENVOVERDEV
+'
+
+secopol_cfa <- cfa(ecopols_2fa, data = miecopols$cov_combined, std.lv = TRUE)
+summary(secopol_cfa, fit.measure= TRUE, standardized = TRUE)
+
+
+
+```
+
+
+
+# COAL : MAR condition and missing data pattern
+
+
+```{r, echo=FALSE}
+
+ecopolc <- formice1 %>%
+  dplyr::select(
+    DECISIONDECEN, DECISIONCEN, INDUSTRYSMALL, INDUSTRYLARGE,
+    ECONOMYLOCAL, ECONOMYGLOBAL, ENVOVERDEV,DEVOVERENV, OWNERPVT, OWNERPUB,
+    OWNERREG, OWNERNOREG, WEALTHLIM, MECHANISATION,
+    DISPLACECOAL,  POLLUTECOAL, HEALTHCOAL, JOBSCOAL, BEAUTYCOAL,
+    PRIDECOAL, NPRIDECOAL, DEVCOAL, PROSPERCOAL,
+    RELYCOAL,age, urban_rural, gender, caste, religion, State
+  )
+
+md.pattern(ecopolc) #the variables with missing values:  
+
+mcar_test(data=ecopolc)
+```
+
+
+
+
+
+
+
+# Coal : Mifa for new eco-pol value scale
+
+```{r, echo=FALSE}
+
+ 
+
+
+miecopolc <- mifa(data= ecopolc,
+                cov_vars  = -c("age", "gender", "caste", "State", "urban_rural", "religion"),
+                m=50,
+                n_pc= 2:4,
+                ci = "fieller", 
+                n_boot=1000,
+                print = FALSE,
+                progress= TRUE, 
+                seed = 528,)
+
+miecopolc
+
+
+
+ecopolfitc <- psych::fa(miecopolc$cov_combined, nfactors = 3, rotate = "varimax")
+
+print.psych(ecopolfitc, sort= TRUE, cut= 0.4)
+
+
+```
+
+
+
+# COAL2 : only charcateristics of tech
+
+
+```{r, echo=FALSE}
+
+ecopolc2 <- formice1 %>%
+  dplyr::select(
+    DISPLACECOAL,  POLLUTECOAL, HEALTHCOAL, JOBSCOAL, BEAUTYCOAL,
+    PRIDECOAL, NPRIDECOAL, DEVCOAL, PROSPERCOAL,
+    RELYCOAL,age, urban_rural, gender, caste, religion, State
+  )
+
+md.pattern(ecopolc2) #the variables with missing values:  
+
+mcar_test(data=ecopolc2)
+```
+
+
+# Coal2 : Mifa for new eco-pol value scale
+
+```{r, echo=FALSE}
+
+ 
+
+
+miecopolc2 <- mifa(data= ecopolc2,
+                cov_vars  = -c("age", "gender", "caste", "State", "urban_rural", "religion"),
+                m=5,
+                n_pc= 2:4,
+                ci = "fieller", 
+                n_boot=1000,
+                print = FALSE,
+                progress= TRUE, 
+                seed = 528,)
+
+miecopolc2
+
+
+
+ecopolfitc2 <- psych::fa(miecopolc2$cov_combined, nfactors = 2, rotate = "varimax")
+
+print.psych(ecopolfitc2, sort= TRUE, cut= 0.4)
+
+
+```
+
+
+
+
+
+
+
+```{r}
+
+cor.plot(ecopolc %>% dplyr::select(-c("age", "gender", "caste", "State", "urban_rural", "religion")))
+```
+
+
+
+# Coal: Mifa with CFA
+
+```{r}
+
+
+
+# (DECISIONDECEN, DECISIONCEN, INDUSTRYSMALL, INDUSTRYLARGE,ECONOMYLOCAL, ECONOMYGLOBAL, ENVOVERDEV,DEVOVERENV, OWNERPVT, OWNERPUB,OWNERREG, OWNERNOREG, WEALTHLIM, MECHANISATION,DISPLACECOAL,  POLLUTECOAL, HEALTHCOAL, JOBSCOAL, BEAUTYCOAL,PRIDECOAL, NPRIDECOAL, DEVCOAL, PROSPERCOAL,RELYCOAL)
+
+ 
+
+
+## CFA on ecopol vars for coal 
+
+ecopolc_2fa <- '
+  Pride =~ PRIDECOAL + NPRIDECOAL + DEVOVERENV +  DECISIONCEN + OWNERPVT + DECISIONCEN  + OWNERNOREG + ECONOMYGLOBAL
+  Social Costs =~ BEAUTYCOAL + POLLUTECOAL + HEALTHCOAL
+  Social Costs2 =~ OWNERPUB + ENVOVERDEV + DISPLACECOAL
+  
+'
+
+cecopol_cfa <- cfa(ecopolc_2fa, data = miecopolc$cov_combined, std.lv = TRUE)
+summary(cecopol_cfa, fit.measure= TRUE, standardized = TRUE)
+
+
+
+```
 
 
 ```{r, echo=FALSE}
