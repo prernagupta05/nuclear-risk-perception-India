@@ -1,0 +1,378 @@
+---
+title: "miceEXTRA"
+output: html_document
+---
+
+# EXTRA
+
+
+
+## Kahan: factor scores from 1st imputed dataset
+```{r, echo=FALSE}
+
+
+# extracting factor scores from mifa for 1st imputed dataset 
+
+data_imp <- mice::complete(mice::mice(kahanall, 1, print = FALSE))
+  
+fct_scores <- data.frame(factor.scores(data_imp[, 1:12], fit)$scores)
+
+plot(kahan_imp)
+
+```
+
+## Kahan: factor scores from second imputed dataset
+```{r, echo=FALSE}
+
+
+data_impk2 <- mice::complete(mice::mice(kahanall, 2, print = FALSE))
+  
+fct_scoresk2 <- data.frame(factor.scores(data_impk2[, 1:12], fit)$scores)
+
+
+```
+
+
+## Kahan: factor scores from third imputed dataset
+```{r, echo=FALSE}
+
+
+data_impk3 <- mice::complete(mice::mice(kahanall, 3, print = FALSE))
+  
+fct_scoresk3 <- data.frame(factor.scores(data_impk3[, 1:12], fit)$scores)
+
+
+```
+
+
+## Kahan: factor scores from fourth imputed dataset
+```{r, echo=FALSE}
+
+
+data_impk4 <- mice::complete(mice::mice(kahanall, 4, print = FALSE))
+  
+fct_scoresk4 <- data.frame(factor.scores(data_impk4[, 1:12], fit)$scores)
+
+
+```
+
+
+## Kahan: factor scores from fifth imputed dataset
+```{r, echo=FALSE}
+
+
+data_impk5 <- mice::complete(mice::mice(kahanall, 5, print = FALSE))
+  
+fct_scoresk5 <- data.frame(factor.scores(data_impk5[, 1:12], fit)$scores)
+
+
+```
+ 
+ 
+ 
+ 
+## are imputations plausible: Kahan scale - are values plausible ? 
+
+yes all value are whole numbers between 1 and 5 
+
+```{r, echo=FALSE}
+
+
+summary(mikahan)
+
+str(data_imp)
+names(mikahan)
+
+mikahan$mids
+
+complete_data_first <- complete(mikahan$mids, 1)
+
+summary(complete_data_first)
+
+complete_data_2 <- complete(mikahan$mids, 2)
+
+summary(complete_data_2)
+
+complete_data_3 <- complete(mikahan$mids, 3)
+
+summary(complete_data_3)
+
+complete_data_4 <- complete(mikahan$mids, 4)
+
+summary(complete_data_4)
+
+complete_data_5 <- complete(mikahan$mids, 5)
+
+summary(complete_data_5)
+```
+
+
+```{r, echo=FALSE}
+
+# Extracting factors from first imputed dataset
+
+data_imp2 <- mice::complete(mice::mice(ecopoln, 1, print = FALSE))
+  
+fct_scores2 <- data.frame(factor.scores(data_imp2[, 1:24], ecopolfit2)$scores)
+
+```
+
+##  eco-pol scale : Factor scores from 2nd imputation
+```{r, echo=FALSE}
+
+data_impe2 <- mice::complete(mice::mice(ecopoln, 2, print = FALSE))
+  
+fct_scorese2 <- data.frame(factor.scores(data_impe2[, 1:24], ecopolfit2)$scores)
+
+```
+
+
+
+##  eco-pol scale : Factor scores from 3rd imputation
+```{r, echo=FALSE}
+
+data_impe3 <- mice::complete(mice::mice(ecopoln, 3, print = FALSE))
+  
+fct_scorese3 <- data.frame(factor.scores(data_impe3[, 1:24], ecopolfit2)$scores)
+
+```
+
+
+##  eco-pol scale : Factor scores from 4th imputation
+```{r, echo=FALSE}
+
+data_impe4 <- mice::complete(mice::mice(ecopoln, 4, print = FALSE))
+  
+fct_scorese4 <- data.frame(factor.scores(data_impe4[, 1:24], ecopolfit2)$scores)
+
+```
+
+##  eco-pol scale : Factor scores from 5th imputation
+```{r, echo=FALSE}
+
+data_impe5 <- mice::complete(mice::mice(ecopoln, 5, print = FALSE))
+  
+fct_scorese5 <- data.frame(factor.scores(data_impe5[, 1:24], ecopolfit2)$scores)
+
+```
+
+
+## Are imputations plausible : Eco-pol scale
+
+yes, imputations are pluasible- all natural numbers between 1 and 5 
+
+```{r, echo=FALSE}
+
+
+summary(miecopol)
+names(miecopol)
+
+miecopol$mids
+
+complete_ecopol_first <- complete(miecopol$mids, 1)
+
+summary(complete_ecopol_first)
+
+complete_ecopol_2 <- complete(miecopol$mids, 2)
+
+summary(complete_ecopol_2)
+
+complete_ecopol_3 <- complete(miecopol$mids, 3)
+
+summary(complete_ecopol_3)
+
+complete_ecopol_4 <- complete(miecopol$mids, 4)
+
+summary(complete_ecopol_4)
+
+complete_ecopol_5 <- complete(miecopol$mids, 5)
+
+summary(complete_ecopol_5)
+
+
+
+```
+
+
+# Checking consistency of LM coefficients across 5 imputed datasets 
+coefficients and LMs are fairly consistent
+
+## Binding datasets: 1st imputation 
+
+```{r, echo = FALSE}
+
+# binding the imputed  factor analysis scores for kahan scale and eco-pol value scale to the larger dataset codedmodule2
+
+ecopolnuclear <- fct_scores2 %>%
+  rename(Ndevelop = MR1, Pdevelop = MR2)
+
+kahannuclear <- fct_scores%>%
+  rename(Egalitarian = MR1, Communitarian = MR2)
+
+
+allformice<- cbind(formice1,ecopolnuclear, kahannuclear)
+
+```
+
+
+## LMs with 1st imputed datasets from FAs 
+
+```{r, echo=FALSE}
+
+nuclearIVmice <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State, data = allformice)
+
+
+nuclearIVmice2 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Egalitarian, data = allformice)
+
+nuclearIVmice3 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Egalitarian + Pdevelop + Ndevelop, data = allformice)
+
+summary(nuclearIVmice)
+summary(nuclearIVmice2)
+summary(nuclearIVmice3)
+
+
+```
+
+## binding dataset - 2nd imputation
+
+```{r, echo=FALSE}
+
+ecopolnuclear2 <- fct_scorese2 %>%
+  rename(Ndevelop = MR1, Pdevelop = MR2)
+
+kahannuclear2 <- fct_scoresk2%>%
+  rename(Egalitarian = MR1, Communitarian = MR2)
+
+allformice2<- cbind(formice1,ecopolnuclear2, kahannuclear2)
+
+```
+
+## LMs with second imputation 
+```{r, echo=FALSE}
+
+nuclearIVmiceimp2 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State, data = allformice2)
+
+nuclearIVmiceimp22 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Egalitarian, data = allformice2)
+
+nuclearIVmiceimp23 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Egalitarian + Pdevelop + Ndevelop, data = allformice2)
+
+summary(nuclearIVmiceimp2)
+summary(nuclearIVmiceimp22)
+summary(nuclearIVmiceimp23)
+
+```
+
+
+
+## binding dataset - 3rd imputation
+
+```{r, echo=FALSE}
+
+ecopolnuclear3 <- fct_scorese3 %>%
+  rename(Ndevelop = MR1, Pdevelop = MR2)
+
+kahannuclear3 <- fct_scoresk3%>%
+  rename(Egalitarian = MR1, Communitarian = MR2)
+
+allformice3<- cbind(formice1,ecopolnuclear3, kahannuclear3)
+
+```
+
+## LMs with third imputation 
+```{r, echo=FALSE}
+
+nuclearIVmiceimp3 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State, data = allformice3)
+
+nuclearIVmiceimp32 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Egalitarian, data = allformice3)
+
+nuclearIVmiceimp33 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Egalitarian + Pdevelop + Ndevelop, data = allformice3)
+
+summary(nuclearIVmiceimp3)
+summary(nuclearIVmiceimp32)
+summary(nuclearIVmiceimp33)
+
+```
+
+## binding dataset - 4th imputation
+
+```{r, echo=FALSE}
+
+ecopolnuclear4 <- fct_scorese4 %>%
+  rename(Ndevelop = MR1, Pdevelop = MR2)
+
+kahannuclear4 <- fct_scoresk4%>%
+  rename(Egalitarian = MR1, Communitarian = MR2)
+
+allformice4<- cbind(formice1, ecopolnuclear4, kahannuclear4)
+
+```
+
+## LMs with fourth imputation 
+```{r, echo=FALSE}
+
+nuclearIVmiceimp4 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State, data = allformice4)
+
+nuclearIVmiceimp24 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Egalitarian, data = allformice4)
+
+nuclearIVmiceimp34 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Egalitarian + Pdevelop + Ndevelop, data = allformice4)
+
+summary(nuclearIVmiceimp4)
+summary(nuclearIVmiceimp24)
+summary(nuclearIVmiceimp34)
+
+```
+
+```{r, echo=FALSE}
+
+# Allformice: Do imputations merge ? 
+
+
+# Initialize the mice process to create the predictor matrix
+#ini <- mice(allformice, maxit = 0, pri = FALSE)
+
+# Extract the predictor matrix from the initialized object
+#pred <- ini$predictorMatrix
+
+# Set the columns for "Uppercaste", "Male", "Hindu", and "Age" to 0
+#pred[, "Uppercaste"] <- 0
+#pred[, "Male"] <- 0
+#pred[, "Hindu"] <- 0
+#pred[, "Age"] <- 0
+#pred[, "Ndevelop"] <- 0
+#pred[, "Pdevelop"] <- 0
+#pred[, "Egalitarian"] <- 0
+#pred[, "Communitarian"] <- 0
+# Identify columns that start with "K_" and set them to 0
+#k_columns <- grep("^K_", colnames(formice1))
+#pred[, k_columns] <- 0
+
+# Perform the mice imputation with the updated predictor matrix
+#allformice.imp <- mice(allformice, m = 5, maxit = 10, predictorMatrix = pred, seed = 430, print = TRUE)
+
+#summary(allformice.imp)
+#allformice.imp$chainMean
+
+
+#plot(allformice.imp)
+
+```
+
+```{r, echo=FALSE}
+
+# LM with demographic variables and State 
+# The pool() function from the mice package creates a list containing the results,
+# so we need to access the summary of the model directly.
+
+#pooled_fit4 <- pool(nuclearfit4)
+
+#pooled_summary4 <- summary(pooled_fit4)
+
+#coefficients_df4 <- pooled_summary4
+# To ensure the numeric values are rounded to two decimal places, you can use:
+#coefficients_df4 <- round(coefficients_df4[, -1], 2)  # Skipping the first column as it's factors (term names)
+#coefficients_df4$term <- pooled_summary4$term  # Adding back the unrounded terms
+
+# Print the dataframe
+#data.frame(coefficients_df4) %>%
+ # dplyr::select(term, estimate, std.error, statistic, df, p.value)
+```
