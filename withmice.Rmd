@@ -744,7 +744,7 @@ miecopol <- mifa(data= ecopoln,
 
 ecopolfit2 <- psych::fa(miecopol$cov_combined, nfactors = 2, rotate = "varimax")
 
-#print.psych(ecopolfit2, sort= TRUE, cut= 0.4)
+print.psych(ecopolfit2, sort= TRUE, cut=0.4)
 
 
 ```
@@ -1575,6 +1575,16 @@ cat("\\endgroup")
 ```
 
 
+```{r, echo=FALSE}
+
+
+# covariance matrix fro mifa ecopol solar 
+#miecopols$cov_combined
+
+```
+
+
+
 ### Solar: Mifa with CFA (Pdevelop and Ndevelop)
 
 ```{r, echo = FALSE}
@@ -1585,12 +1595,12 @@ cat("\\endgroup")
 ## CFA on ecopol vars for solar energy 
 
 ecopols_2fa <- '
-  Ndevelop =~ DEVSOLAR + PRIDESOLAR + NPRIDESOLAR + PROSPERSOLAR + JOBSSOLAR 
-  Pdevelop =~ HEALTHSOLAR + BEAUTYSOLAR + DISPLACESOLAR + POLLUTESOLAR + ENVOVERDEV
+  Ndevelop =~ DEVSOLAR + PRIDESOLAR + NPRIDESOLAR + PROSPERSOLAR + JOBSSOLAR
+  Pdevelop =~ HEALTHSOLAR + BEAUTYSOLAR + DISPLACESOLAR + POLLUTESOLAR +ENVOVERDEV
 '
 
-secopol_cfa <- cfa(ecopols_2fa, data = miecopols$cov_combined, std.lv = TRUE)
-#summary(secopol_cfa, fit.measure= TRUE, standardized = TRUE)
+secopol_cfa <- cfa(ecopols_2fa, sample.cov = miecopols$cov_combined, sample.nobs = 1099, std.lv = TRUE) # std.lv = TRUE to do variance standardization method
+summary(secopol_cfa, fit.measure= TRUE, standardized = TRUE)
 
 
 
@@ -1607,25 +1617,25 @@ secopol_cfa <- cfa(ecopols_2fa, data = miecopols$cov_combined, std.lv = TRUE)
 
 # Extract parameter estimates
 sparams <- parameterEstimates(secopol_cfa, standardized = TRUE)%>%
-   slice(1:(n()-13))
+   slice(1:(n()-11))
 
 
 sparams1 <- sparams %>%
   mutate(rhs = case_when(
-  rhs == "DISPLACESOLAR" ~ "Solar energy is leading to displacement of people from their land",
-  rhs == "BEAUTYSOLAR" ~ "Solar energy spoils the natural beauty of the landscape",
-  rhs == "POLLUTESOLAR" ~ "Solar energy increases pollution of air/water/land",
-  rhs == "HEALTHSOLAR" ~ "Solar energy poses a great risk to the health of people living around it",
-  rhs == "JOBSSOLAR" ~ "Solar energy will bring jobs to the local community",
+  rhs == "DEVSOLAR" ~ "Solar energy pushes forward the country's development",
   rhs == "PRIDESOLAR" ~ "I would be proud if my community used Solar energy",
   rhs == "NPRIDESOLAR" ~ "Solar energy is a mark of pride for our nation",
-  rhs == "DEVSOLAR" ~ "Solar energy pushes forward the country's development",
   rhs == "PROSPERSOLAR" ~ "Solar energy brings economic prosperity to the surrounding regions",
+  rhs == "JOBSSOLAR" ~ "Solar energy will bring jobs to the local community",
+  rhs == "POLLUTESOLAR" ~ "Solar energy increases pollution of air/water/land",
+  rhs == "HEALTHSOLAR" ~ "Solar energy poses a great risk to the health of people living around it",
+  rhs == "BEAUTYSOLAR" ~ "Solar energy spoils the natural beauty of the landscape",
+  rhs == "DISPLACESOLAR" ~ "Solar energy is leading to displacement of people from their land",
+  rhs == "ENVOVERDEV" ~ "Polluting industries that spoil the environment should be shut down even if it costs people their jobs",
   rhs == "RELYSOLAR" ~ "I don't like the idea that I have to rely on the government for electricity from Solar energy",
   rhs == "INDUSTRYSMALL" ~ "Large corporations are destroying the local industries in India and benefiting only a handful of people",
   rhs == "OWNERREG" ~ "Regardless of ownership, the government should pass strong regulations and implement them",
   rhs == "MECHANISATION" ~ "Rapid mechanization of work is taking away jobs from workers in this country",
-  rhs == "ENVOVERDEV" ~ "Polluting industries that spoil the environment should be shut down even if it costs people their jobs",
     TRUE ~ as.character(rhs)
   )) %>%
   dplyr::select(!c(lhs,op, std.nox)) %>%
@@ -1638,8 +1648,8 @@ sparams1 <- sparams %>%
    
 
 sparams1$Scale <- NA
-sparams1$Scale[1:5] <- "People Centered Development"
-sparams1$Scale[6:10] <- "Nationalist Development"
+sparams1$Scale[1:4] <- "People Centered Development"
+sparams1$Scale[5:8] <- "Nationalist Development"
 sparams1 <- sparams1[, c("Scale", setdiff(names(sparams1), "Scale"))]
 
 
@@ -1650,6 +1660,43 @@ CFAsolar <- knitr::kable(sparams1, booktabs = TRUE, caption = "Confirmatory Fact
 # Print the table
 CFAsolar %>%
   landscape()
+
+```
+
+
+```{r fit-measures-display, echo = FALSE}
+# Extract fit measures
+fit_measuress <- fitMeasures(secopol_cfa, fit.measures = c("CFI", "TLI", "RMSEA", "rmsea.ci.upper", "rmsea.ci.lower"))
+fit_measuress2 <- fitMeasures(secopol_cfa)
+# Convert to a data frame for presentation
+fit_dfs <- data.frame(Measure = names(fit_measuress), Value = fit_measuress) %>%
+  mutate(Measure = case_when(
+    Measure == "cfi" ~ "Comparative Fit Index (CFI) ",
+    Measure == "tli" ~ "Tucker-Lewis Index (TLI)",
+    Measure == "rmsea" ~ "Root Mean Square Error of Approximation(RMSEA)",
+    Measure == "rmsea.ci.upper" ~ "RMSEA 90 Percent confidence interval - lower",
+    Measure == "rmsea.ci.lower" ~ "RMSEA 90 Percent confidence interval - upper",
+    TRUE ~ as.character(Measure)
+  )) %>%
+  mutate(Value = round(Value, 3)) %>%
+  remove_rownames()
+
+
+#RMSEA - between 0.05 and 0.08 (reasonable fit), less than 0.05 close fit and greater than 0.10 is poor fit 
+#CFI - greater than 0.90 or 0.95 indicates good fit
+#TFI - CFI>TFI >0.90 - indicates good fit
+
+
+```
+
+
+# Confirmatory Factor Analysis(CFA): Solar 
+
+
+```{r, echo =FALSE}
+# Display fit measures using kable
+knitr::kable(fit_dfs, caption = "Fit Measures: CFA Solar energy", booktabs = TRUE) %>%
+  kable_styling(latex_options = c("striped", "hold_position"))
 
 ```
 
@@ -1808,7 +1855,7 @@ miecopolc <- mifa(data= ecopolc,
 # EFA With mifa - all ecopol vars for coal
 ecopolfitc <- psych::fa(miecopolc$cov_combined, nfactors = 3, rotate = "varimax")
 
-#print.psych(ecopolfitc, sort= TRUE, cut= 0.4)
+print.psych(ecopolfitc, sort= TRUE, cut= 0.4)
 
 
 ```
@@ -1853,7 +1900,7 @@ miecopolc2 <- mifa(data= ecopolc2,
 
 ecopolfitc2 <- psych::fa(miecopolc2$cov_combined, nfactors = 2, rotate = "varimax")
 
-#print.psych(ecopolfitc2, sort= TRUE, cut= 0.4)
+print.psych(ecopolfitc2, sort= TRUE, cut= 0.4)
 
 
 ```
@@ -1880,19 +1927,19 @@ ecopolfitc2 <- psych::fa(miecopolc2$cov_combined, nfactors = 2, rotate = "varima
 
 # (DECISIONDECEN, DECISIONCEN, INDUSTRYSMALL, INDUSTRYLARGE,ECONOMYLOCAL, ECONOMYGLOBAL, ENVOVERDEV,DEVOVERENV, OWNERPVT, OWNERPUB,OWNERREG, OWNERNOREG, WEALTHLIM, MECHANISATION,DISPLACECOAL,  POLLUTECOAL, HEALTHCOAL, JOBSCOAL, BEAUTYCOAL,PRIDECOAL, NPRIDECOAL, DEVCOAL, PROSPERCOAL,RELYCOAL)
 
- 
 
 
 ## CFA on ecopol vars for coal 
 
 ecopolc_2fa <- '
-  Ndevelop =~ PRIDECOAL + NPRIDECOAL + DEVOVERENV +  DECISIONCEN + OWNERPVT + DECISIONCEN  + OWNERNOREG + DEVCOAL +PROSPERCOAL
-  Pdevelop =~ BEAUTYCOAL + POLLUTECOAL + HEALTHCOAL + OWNERPUB + ENVOVERDEV + DISPLACECOAL
+  Ndevelop =~ DEVCOAL+ PROSPERCOAL + NPRIDECOAL + PRIDECOAL  + JOBSCOAL + ECONOMYGLOBAL+ WEALTHLIM+ INDUSTRYLARGE+ DECISIONCEN + MECHANISATION + DEVOVERENV
+  Pdevelop =~ BEAUTYCOAL + + HEALTHCOAL + POLLUTECOAL 
+  Pdevelop2 =~  DISPLACECOAL  + ENVOVERDEV +OWNERPUB
   
 '
 
-cecopol_cfa <- cfa(ecopolc_2fa, data = miecopolc$cov_combined, std.lv = TRUE)
-#summary(cecopol_cfa, fit.measure= TRUE, standardized = TRUE)
+cecopol_cfa <- cfa(ecopolc_2fa, sample.cov = miecopolc$cov_combined, sample.nobs = 1099, std.lv = TRUE)
+summary(cecopol_cfa, fit.measure= TRUE, standardized = TRUE)
 
 
 
@@ -1959,22 +2006,7 @@ CFAcoal %>%
 ```
 
 \elandscape
-### Alpha test
 
-```{r, echo=FALSE}
-
-cNdevelop <-ecopolc %>%
-  dplyr::select((c(PRIDECOAL, NPRIDECOAL, DEVOVERENV, DECISIONCEN, OWNERPVT, OWNERNOREG, ECONOMYGLOBAL, DEVCOAL, PROSPERCOAL)))
-
-cNdevelop_alpha <- psych::alpha(cNdevelop, check.keys = TRUE) # alpha = 0.62
-
-cPdevelop <-ecopolc %>%
-  dplyr::select((c(BEAUTYCOAL , POLLUTECOAL , HEALTHCOAL , OWNERPUB , ENVOVERDEV , DISPLACECOAL)))
-
-nPdevelop_alpha <- psych::alpha(nPdevelop , check.keys = TRUE) # alpha = 0.79
-
-
-```
 
 
 ### EFA Scores: only tech characteristics 
@@ -2094,6 +2126,25 @@ cecopol2 <- ecopolallscoresc2 %>%
 ```
 
 
+### Alpha test
+
+```{r, echo=FALSE}
+
+cNdevelop <-cecopol2 %>%
+  dplyr::select((c(PRIDECOAL, NPRIDECOAL, DEVOVERENV, DECISIONCEN, OWNERPVT, OWNERNOREG, ECONOMYGLOBAL, DEVCOAL, PROSPERCOAL)))
+
+
+cNdevelop_alpha <- psych::alpha(cNdevelop, check.keys = TRUE) # alpha = 0.75
+
+cPdevelop <-cecopol2 %>%
+  dplyr::select((c(BEAUTYCOAL , POLLUTECOAL , HEALTHCOAL , OWNERPUB , ENVOVERDEV , DISPLACECOAL)))
+
+nPdevelop_alpha <- psych::alpha(nPdevelop , check.keys = TRUE) # alpha = 0.78
+
+
+```
+
+
 ```{r, echo = FALSE}
 
 coalCFAscores <- predict(cecopol_cfa, newdata = cecopol2)
@@ -2125,6 +2176,8 @@ netcoal3lm <- lm(Netben_Coal ~ Uppercaste + Male + Hindu + urban_rural + Age + S
 
 
 ```
+
+
 
 \blandscape
 \newpage
