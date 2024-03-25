@@ -6,16 +6,18 @@ output:
     toc_depth: 2
     keep_tex: yes
     keep_md: yes
-  header-includes:
+    latex_engine: xelatex
+geometry: "left=0.5cm,right=0.5cm,top=0.5cm,bottom=0.5cm"
+header-includes:
   - \usepackage{dcolumn}
   - \usepackage{array}
   - \usepackage{pdflscape}
   - \newcommand{\blandscape}{\begin{landscape}}
   - \newcommand{\elandscape}{\end{landscape}}
-  html_document:
-    toc: yes
-    toc_depth: '2'
-    df_print: paged
+html_document:
+  toc: yes
+  toc_depth: '2'
+  df_print: paged
 ---
 
 # Abstract

@@ -1,132 +1,83 @@
-% Options for packages loaded elsewhere
-\PassOptionsToPackage{unicode}{hyperref}
-\PassOptionsToPackage{hyphens}{url}
-%
-\documentclass[
-]{article}
-\title{models with mice}
-\author{}
-\date{\vspace{-2.5em}}
+---
+title: "models with mice"
+output:
+  pdf_document:
+    toc: yes
+    toc_depth: 2
+    keep_tex: yes
+    keep_md: yes
+    latex_engine: xelatex
+geometry: "left=0.5cm,right=0.5cm,top=0.5cm,bottom=0.5cm"
+header-includes:
+  - \usepackage{dcolumn}
+  - \usepackage{array}
+  - \usepackage{pdflscape}
+  - \newcommand{\blandscape}{\begin{landscape}}
+  - \newcommand{\elandscape}{\end{landscape}}
+html_document:
+  toc: yes
+  toc_depth: '2'
+  df_print: paged
+---
 
-\usepackage{amsmath,amssymb}
-\usepackage{lmodern}
-\usepackage{iftex}
-\ifPDFTeX
-  \usepackage[T1]{fontenc}
-  \usepackage[utf8]{inputenc}
-  \usepackage{textcomp} % provide euro and other symbols
-\else % if luatex or xetex
-  \usepackage{unicode-math}
-  \defaultfontfeatures{Scale=MatchLowercase}
-  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
-\fi
-% Use upquote if available, for straight quotes in verbatim environments
-\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
-\IfFileExists{microtype.sty}{% use microtype if available
-  \usepackage[]{microtype}
-  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
-}{}
-\makeatletter
-\@ifundefined{KOMAClassName}{% if non-KOMA class
-  \IfFileExists{parskip.sty}{%
-    \usepackage{parskip}
-  }{% else
-    \setlength{\parindent}{0pt}
-    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
-}{% if KOMA class
-  \KOMAoptions{parskip=half}}
-\makeatother
-\usepackage{xcolor}
-\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
-\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
-\hypersetup{
-  pdftitle={models with mice},
-  hidelinks,
-  pdfcreator={LaTeX via pandoc}}
-\urlstyle{same} % disable monospaced font for URLs
-\usepackage[left=0.5cm,right=0.5cm,top=0.5cm,bottom=0.5cm]{geometry}
-\usepackage{graphicx}
-\makeatletter
-\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
-\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
-\makeatother
-% Scale images if necessary, so that they will not overflow the page
-% margins by default, and it is still possible to overwrite the defaults
-% using explicit options in \includegraphics[width, height, ...]{}
-\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
-% Set default figure placement to htbp
-\makeatletter
-\def\fps@figure{htbp}
-\makeatother
-\setlength{\emergencystretch}{3em} % prevent overfull lines
-\providecommand{\tightlist}{%
-  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
-\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
-\usepackage{dcolumn}
-\usepackage{array}
-\usepackage{pdflscape}
-\newcommand{\blandscape}{\begin{landscape}}
-\newcommand{\elandscape}{\end{landscape}}
-\usepackage{booktabs}
-\usepackage{longtable}
-\usepackage{array}
-\usepackage{multirow}
-\usepackage{wrapfig}
-\usepackage{float}
-\usepackage{colortbl}
-\usepackage{pdflscape}
-\usepackage{tabu}
-\usepackage{threeparttable}
-\usepackage{threeparttablex}
-\usepackage[normalem]{ulem}
-\usepackage{makecell}
-\usepackage{xcolor}
-\usepackage{fontspec}
-\usepackage{multicol}
-\usepackage{hhline}
-\newlength\Oldarrayrulewidth
-\newlength\Oldtabcolsep
-\usepackage{hyperref}
-\ifLuaTeX
-  \usepackage{selnolig}  % disable illegal ligatures
-\fi
 
-\begin{document}
-\maketitle
 
-{
-\setcounter{tocdepth}{2}
-\tableofcontents
-}
-\hypertarget{bar-plot-state-x-pdevelop}{%
-\section{Bar plot: STATE X PDEVELOP}\label{bar-plot-state-x-pdevelop}}
 
-\hypertarget{barplot-of-demographics}{%
-\section{barplot of demographics}\label{barplot-of-demographics}}
 
-\hypertarget{can-do-something-with-accept-reject-and-reluctantly-accept.}{%
-\section{Can do something with accept, reject and reluctantly
-accept.}\label{can-do-something-with-accept-reject-and-reluctantly-accept.}}
 
-\hypertarget{formice-dataset}{%
-\section{FORMICE DATASET}\label{formice-dataset}}
 
-\hypertarget{kahan-scale}{%
-\section{Kahan scale}\label{kahan-scale}}
 
-\hypertarget{mar-condition-and-missing-data-pattern}{%
-\subsection{MAR condition and missing data
-pattern}\label{mar-condition-and-missing-data-pattern}}
 
-\hypertarget{mifa}{%
-\subsection{Mifa}\label{mifa}}
 
-\begin{landscape}
+# Bar plot: STATE X PDEVELOP
+
+
+
+
+# barplot of demographics 
+
+
+
+
+
+
+
+
+
+# Can do something with accept, reject and reluctantly accept. 
+
+
+
+# FORMICE DATASET
+
+
+
+
+
+
+
+# Kahan scale
+
+## MAR condition and missing data pattern 
+
+
+
+
+
+## Mifa
+
+
+
+
+
+
+\blandscape
 \newpage
 
-\hypertarget{efa-pretty-table}{%
-\subsection{EFA Pretty Table}\label{efa-pretty-table}}
+## EFA Pretty Table
 
+
+```{=latex}
 \global\setlength{\Oldarrayrulewidth}{\arrayrulewidth}
 
 \global\setlength{\Oldtabcolsep}{\tabcolsep}
@@ -240,7 +191,14 @@ pattern}\label{mar-condition-and-missing-data-pattern}}
 \global\setlength{\tabcolsep}{\Oldtabcolsep}
 
 \renewcommand*{\arraystretch}{1}
+```
 
+
+
+
+
+
+```{=latex}
 \global\setlength{\Oldarrayrulewidth}{\arrayrulewidth}
 
 \global\setlength{\Oldtabcolsep}{\tabcolsep}
@@ -312,56 +270,78 @@ pattern}\label{mar-condition-and-missing-data-pattern}}
 \global\setlength{\tabcolsep}{\Oldtabcolsep}
 
 \renewcommand*{\arraystretch}{1}
+```
 
-\end{landscape}
+\elandscape
 
-\hypertarget{merging-of-imputation}{%
-\subsection{merging of imputation}\label{merging-of-imputation}}
 
-\hypertarget{kahan-factor-scores-mean-across-all-imputations}{%
-\subsection{Kahan Factor scores (mean across all
-imputations)}\label{kahan-factor-scores-mean-across-all-imputations}}
 
-\hypertarget{corelation-table}{%
-\subsection{corelation table}\label{corelation-table}}
 
-\hypertarget{kahan-scater-plot-from-efa-scores}{%
-\subsection{Kahan scater plot from EFA
-scores}\label{kahan-scater-plot-from-efa-scores}}
 
-\hypertarget{alpha-test}{%
-\subsection{Alpha test}\label{alpha-test}}
+## merging of imputation
 
-\hypertarget{nuclear-eco-pol-scale}{%
-\section{Nuclear: Eco-pol scale}\label{nuclear-eco-pol-scale}}
 
-\hypertarget{mar-condition-and-missing-data-pattern-1}{%
-\subsection{MAR condition and missing data
-pattern}\label{mar-condition-and-missing-data-pattern-1}}
 
-\hypertarget{mifa-1}{%
-\subsection{Mifa}\label{mifa-1}}
+## Kahan Factor scores (mean across all imputations)
 
-\hypertarget{factor-scores-mean-across-all-imputations}{%
-\subsection{Factor Scores (mean across all
-imputations)}\label{factor-scores-mean-across-all-imputations}}
 
-\hypertarget{alpha-test-1}{%
-\subsection{Alpha test}\label{alpha-test-1}}
+
+## corelation table
+
+
+
+
+## Kahan scater plot from EFA scores 
+
+
+## Alpha test
+
+
+
+
+
+
+ 
+
+
+# Nuclear: Eco-pol scale
+
+## MAR condition and missing data pattern
+
+
+
+
+
+## Mifa
+
+
+
+## Factor Scores (mean across all imputations)
+
+
+
+
+
+## Alpha test
+
+
 
 \newpage
+## Radar map
 
-\hypertarget{radar-map}{%
-\subsection{Radar map}\label{radar-map}}
 
-\includegraphics[width=1\linewidth,height=1\textheight]{withmice_files/figure-latex/unnamed-chunk-21-1}
 
-\begin{landscape}
+
+
+\includegraphics[width=1\linewidth,height=1\textheight]{withmice_files/figure-latex/unnamed-chunk-21-1} 
+
+\blandscape
 \newpage
 
-\hypertarget{pretty-table-nuclear-efa}{%
-\subsection{Pretty table: Nuclear EFA}\label{pretty-table-nuclear-efa}}
+## Pretty table: Nuclear EFA
 
+
+```{=latex}
 \global\setlength{\Oldarrayrulewidth}{\arrayrulewidth}
 
 \global\setlength{\Oldtabcolsep}{\tabcolsep}
@@ -547,9 +527,19 @@ imputations)}\label{factor-scores-mean-across-all-imputations}}
 \global\setlength{\tabcolsep}{\Oldtabcolsep}
 
 \renewcommand*{\arraystretch}{1}
+```
 
-\end{landscape}
+\elandscape
 
+
+
+
+
+
+
+
+
+```{=latex}
 \global\setlength{\Oldarrayrulewidth}{\arrayrulewidth}
 
 \global\setlength{\Oldtabcolsep}{\tabcolsep}
@@ -621,42 +611,55 @@ imputations)}\label{factor-scores-mean-across-all-imputations}}
 \global\setlength{\tabcolsep}{\Oldtabcolsep}
 
 \renewcommand*{\arraystretch}{1}
+```
 
-\hypertarget{state-ns-before-mifa}{%
-\section{State Ns before MIFA}\label{state-ns-before-mifa}}
 
-\hypertarget{state-ns-after-mifa}{%
-\section{State Ns after MIFA}\label{state-ns-after-mifa}}
 
-\hypertarget{nuclear-ecopol-mean-across-imputations}{%
-\subsection{Nuclear: Ecopol (Mean across
-imputations)}\label{nuclear-ecopol-mean-across-imputations}}
 
-\hypertarget{binding-datasets}{%
-\subsection{Binding datasets}\label{binding-datasets}}
+# State Ns before MIFA
 
-\hypertarget{lms-final-imputed-datasets}{%
-\section{LMs : final imputed
-datasets}\label{lms-final-imputed-datasets}}
 
-\hypertarget{correlation-table}{%
-\section{correlation table}\label{correlation-table}}
 
-\hypertarget{interaction-vars-tablle}{%
-\section{interaction vars tablle}\label{interaction-vars-tablle}}
+
+
+
+
+# State Ns after MIFA
+
+
+
+
+
+
+## Nuclear: Ecopol (Mean across imputations)
+
+## Binding datasets 
+
+
+
+
+# LMs : final imputed datasets
+
+
+
+
+# correlation table 
+
+
+
+# interaction vars tablle
+
+
+
+
 
 \newpage
-\begin{landscape}
-
-\hypertarget{stargazer-all-lms}{%
-\section{Stargazer : all LMs}\label{stargazer-all-lms}}
+\blandscape
+# Stargazer : all LMs
 
 \begingroup\setlength{\tabcolsep}{1pt}\renewcommand{\arraystretch}{0.7}
-
-\% Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy
-Institute. E-mail: marek.hlavac at gmail.com \% Date and time: Sun, Mar
-24, 2024 - 13:31:28
-
+% Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
+% Date and time: Sun, Mar 24, 2024 - 13:31:28
 \begin{table}[!htbp] \centering 
   \caption{Table 6: 5 linear models: Perceived Risk of Nuclear Energy} 
   \label{} 
@@ -771,23 +774,25 @@ F Statistic & 3.175$^{***}$ (df = 5; 833) & 22.052$^{***}$ (df = 9; 829) & 19.10
 \end{table} 
 \endgroup
 
-\end{landscape}
+\elandscape
 
-\hypertarget{paper-2}{%
-\section{Paper 2}\label{paper-2}}
 
-\hypertarget{nuclear}{%
-\subsection{NUCLEAR}\label{nuclear}}
+# Paper 2
 
-\hypertarget{only-charcateristics-of-tech}{%
-\subsubsection{only charcateristics of
-tech}\label{only-charcateristics-of-tech}}
+## NUCLEAR 
 
-\hypertarget{mifa-only-charcateristics-of-tech}{%
-\subsection{Mifa: only charcateristics of
-tech}\label{mifa-only-charcateristics-of-tech}}
+### only charcateristics of tech
 
-\begin{verbatim}
+
+
+
+
+
+
+## Mifa: only charcateristics of tech
+
+
+```
 ## Factor Analysis using method =  minres
 ## Call: psych::fa(r = miecopol2$cov_combined, nfactors = 2, rotate = "varimax")
 ## Standardized loadings (pattern matrix) based upon correlation matrix
@@ -825,30 +830,28 @@ tech}\label{mifa-only-charcateristics-of-tech}}
 ## Correlation of (regression) scores with factors   0.91 0.91
 ## Multiple R square of scores with factors          0.84 0.84
 ## Minimum correlation of possible factor scores     0.67 0.67
-\end{verbatim}
+```
 
-\hypertarget{factor-scores-mean-across-all-imputations-1}{%
-\subsubsection{Factor Scores (mean across all
-imputations)}\label{factor-scores-mean-across-all-imputations-1}}
 
-\hypertarget{lms-characteristics-of-tech}{%
-\subsubsection{LMs : characteristics of
-tech}\label{lms-characteristics-of-tech}}
+
+### Factor Scores (mean across all imputations)
+
+
+
+
+### LMs : characteristics of tech 
+
+
+
+
 
 \newpage
 
-\hypertarget{stargazer-characteristics-of-tech}{%
-\subsubsection{Stargazer : characteristics of
-tech}\label{stargazer-characteristics-of-tech}}
+### Stargazer : characteristics of tech
 
-\begingroup\setlength{\tabcolsep}{1pt}
-
-\renewcommand{\arraystretch}{0.7}
-
-\% Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy
-Institute. E-mail: marek.hlavac at gmail.com \% Date and time: Sun, Mar
-24, 2024 - 13:41:01
-
+\begingroup\setlength{\tabcolsep}{1pt}\renewcommand{\arraystretch}{0.7}
+% Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
+% Date and time: Sun, Mar 24, 2024 - 13:41:01
 \begin{table}[!htbp] \centering 
   \caption{} 
   \label{} 
@@ -915,51 +918,54 @@ F Statistic & 17.375$^{***}$ (df = 13; 825) & 22.266$^{***}$ (df = 13; 884) & 19
 \end{table} 
 \endgroup
 
-\hypertarget{lms-nuclear-all-eco-pol}{%
-\subsubsection{LMs : Nuclear all
-eco-pol}\label{lms-nuclear-all-eco-pol}}
 
-\hypertarget{solar}{%
-\subsection{Solar}\label{solar}}
 
-\hypertarget{solar-mar-condition-and-missing-data-pattern}{%
-\subsubsection{Solar : MAR condition and missing data
-pattern}\label{solar-mar-condition-and-missing-data-pattern}}
 
-\hypertarget{solar-efa-mifa-all-eco-pol}{%
-\subsubsection{Solar : EFA Mifa all
-eco-pol}\label{solar-efa-mifa-all-eco-pol}}
+###  LMs : Nuclear all eco-pol 
 
-\hypertarget{solar-2-efa-dataset-only-charcateristics-of-tech}{%
-\subsubsection{Solar 2 : EFA dataset : only charcateristics of
-tech}\label{solar-2-efa-dataset-only-charcateristics-of-tech}}
 
-\hypertarget{solar2-efa-mifa-chaaracteristics-of-tech}{%
-\subsubsection{SOLAR2 : EFA Mifa : chaaracteristics of
-tech}\label{solar2-efa-mifa-chaaracteristics-of-tech}}
 
-\hypertarget{only-tech-characters-factor-scores-mean-across-all-imputations}{%
-\subsubsection{only tech characters : Factor Scores (mean across all
-imputations)}\label{only-tech-characters-factor-scores-mean-across-all-imputations}}
 
-\hypertarget{lms-only-characteristics-of-technology}{%
-\subsubsection{LMs : only characteristics of
-technology}\label{lms-only-characteristics-of-technology}}
 
-\newpage
 
-\hypertarget{stargazer-efa-characteristics-of-technology}{%
-\subsubsection{Stargazer : EFA characteristics of
-technology}\label{stargazer-efa-characteristics-of-technology}}
+## Solar
 
-\begingroup\setlength{\tabcolsep}{1pt}
+### Solar : MAR condition and missing data pattern
 
-\renewcommand{\arraystretch}{0.7}
 
-\% Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy
-Institute. E-mail: marek.hlavac at gmail.com \% Date and time: Sun, Mar
-24, 2024 - 13:48:52
 
+
+
+### Solar : EFA Mifa all eco-pol 
+
+
+
+### Solar 2 : EFA dataset : only charcateristics of tech
+
+
+
+
+
+### SOLAR2 : EFA Mifa : chaaracteristics of tech 
+
+
+
+### only tech characters : Factor Scores (mean across all imputations)
+
+
+
+
+### LMs : only characteristics of technology 
+
+
+
+
+\newpage 
+### Stargazer : EFA characteristics of technology 
+
+\begingroup\setlength{\tabcolsep}{1pt}\renewcommand{\arraystretch}{0.7}
+% Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
+% Date and time: Sun, Mar 24, 2024 - 13:48:52
 \begin{table}[!htbp] \centering 
   \caption{} 
   \label{} 
@@ -1026,15 +1032,17 @@ F Statistic & 48.811$^{***}$ (df = 13; 1026) & 13.625$^{***}$ (df = 13; 1053) & 
 \end{table} 
 \endgroup
 
-\hypertarget{solar-mifa-with-cfa-pdevelop-and-ndevelop}{%
-\subsubsection{Solar: Mifa with CFA (Pdevelop and
-Ndevelop)}\label{solar-mifa-with-cfa-pdevelop-and-ndevelop}}
 
-\begin{landscape}
+### Solar: Mifa with CFA (Pdevelop and Ndevelop)
+
+
+
+
+\blandscape
 \newpage
 
-\hypertarget{pretty-table-cfa-solar}{%
-\subsubsection{Pretty Table: CFA solar}\label{pretty-table-cfa-solar}}
+### Pretty Table: CFA solar 
+
 
 \begin{landscape}\begin{table}[!h]
 
@@ -1061,28 +1069,29 @@ Nationalist Development & Polluting industries that spoil the environment should
 \end{table}
 \end{landscape}
 
-\end{landscape}
 
-\hypertarget{cfa-scores-mean-across-all-imputations}{%
-\subsubsection{CFA SCORES (mean across all
-imputations)}\label{cfa-scores-mean-across-all-imputations}}
 
-\hypertarget{cfa-lms-risk-ben-net-ben-x-pdevelop-ndevelop}{%
-\subsubsection{CFA LMs: Risk, Ben, Net Ben X Pdevelop
-Ndevelop}\label{cfa-lms-risk-ben-net-ben-x-pdevelop-ndevelop}}
+\elandscape
+### CFA SCORES (mean across all imputations)
 
-\hypertarget{stargazer-cfa-pdevelop-ndevelop}{%
-\subsubsection{Stargazer : CFA Pdevelop
-Ndevelop}\label{stargazer-cfa-pdevelop-ndevelop}}
 
-\begingroup\setlength{\tabcolsep}{1pt}
 
-\renewcommand{\arraystretch}{0.7}
 
-\% Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy
-Institute. E-mail: marek.hlavac at gmail.com \% Date and time: Sun, Mar
-24, 2024 - 13:55:06
 
+
+
+###  CFA LMs: Risk, Ben, Net Ben X Pdevelop Ndevelop
+
+
+
+
+
+
+### Stargazer : CFA Pdevelop Ndevelop
+
+\begingroup\setlength{\tabcolsep}{1pt}\renewcommand{\arraystretch}{0.7}
+% Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
+% Date and time: Sun, Mar 24, 2024 - 13:55:06
 \begin{table}[!htbp] \centering 
   \caption{} 
   \label{} 
@@ -1149,34 +1158,58 @@ F Statistic & 50.430$^{***}$ (df = 13; 1026) & 18.305$^{***}$ (df = 13; 1053) & 
 \end{table} 
 \endgroup
 
-\hypertarget{coal}{%
-\subsection{COAL}\label{coal}}
 
-\hypertarget{coalmar-condition-and-missing-data-pattern}{%
-\subsubsection{Coal:MAR condition and missing data
-pattern}\label{coalmar-condition-and-missing-data-pattern}}
 
-\hypertarget{mifa-efa-all-ecopol}{%
-\subsubsection{Mifa: EFA all ecopol}\label{mifa-efa-all-ecopol}}
 
-\hypertarget{dataset-only-tech-characters}{%
-\subsubsection{Dataset: only tech
-characters}\label{dataset-only-tech-characters}}
+## COAL
+ 
+ 
+### Coal:MAR condition and missing data pattern
 
-\hypertarget{efa-mifa-only-tech-characters}{%
-\subsubsection{EFA Mifa: only tech
-characters}\label{efa-mifa-only-tech-characters}}
 
-\hypertarget{cfa-mifa-pdevelop-n-ndevelop}{%
-\subsubsection{CFA Mifa: Pdevelop n
-Ndevelop}\label{cfa-mifa-pdevelop-n-ndevelop}}
 
-\begin{landscape}
+
+
+
+
+
+###  Mifa: EFA all ecopol
+
+
+
+
+
+### Dataset: only tech characters 
+
+
+
+
+
+### EFA Mifa: only tech characters
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### CFA Mifa: Pdevelop n Ndevelop
+
+
+
+\blandscape
 
 \newpage
+### Pretty Table
+ 
 
-\hypertarget{pretty-table}{%
-\subsubsection{Pretty Table}\label{pretty-table}}
 
 \begin{landscape}\begin{table}[!h]
 
@@ -1208,42 +1241,41 @@ Nationalist Development & Coal powered plants is leading to displacement of peop
 \end{table}
 \end{landscape}
 
-\end{landscape}
+\elandscape
+### Alpha test
 
-\hypertarget{alpha-test-2}{%
-\subsubsection{Alpha test}\label{alpha-test-2}}
 
-\hypertarget{efa-scores-only-tech-characteristics}{%
-\subsubsection{EFA Scores: only tech
-characteristics}\label{efa-scores-only-tech-characteristics}}
 
-\hypertarget{lms-efa-only-tech-characs}{%
-\subsubsection{LMs : EFA only tech
-characs}\label{lms-efa-only-tech-characs}}
 
-\hypertarget{cfa-scores-mean-across-all-imputations-1}{%
-\subsubsection{CFA SCORES (mean across all
-imputations)}\label{cfa-scores-mean-across-all-imputations-1}}
+### EFA Scores: only tech characteristics 
 
-\hypertarget{cfa-lms-pdevelop-ndevelop}{%
-\subsubsection{CFA LMs : Pdevelop
-Ndevelop}\label{cfa-lms-pdevelop-ndevelop}}
 
-\begin{landscape}
+
+
+### LMs : EFA only tech characs 
+
+
+
+
+### CFA SCORES (mean across all imputations)
+
+
+
+
+
+
+###  CFA LMs : Pdevelop Ndevelop 
+
+
+
+\blandscape
 \newpage
 
-\hypertarget{stargazer-risk-and-benefit-x-all-ecopol}{%
-\subsection{Stargazer : risk and benefit X all
-ecopol}\label{stargazer-risk-and-benefit-x-all-ecopol}}
+## Stargazer : risk and benefit X all ecopol
 
-\begingroup\small\setlength{\tabcolsep}{1pt}
-
-\renewcommand{\arraystretch}{0.7}
-
-\% Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy
-Institute. E-mail: marek.hlavac at gmail.com \% Date and time: Sun, Mar
-24, 2024 - 14:24:49
-
+\begingroup\small\setlength{\tabcolsep}{1pt}\renewcommand{\arraystretch}{0.7}
+% Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
+% Date and time: Sun, Mar 24, 2024 - 14:24:49
 \begin{table}[!htbp] \centering 
   \caption{ Perceived risk and Perceived benefit(Nuclear, Solar, Coal)} 
   \label{} 
@@ -1309,22 +1341,14 @@ F Statistic & 17.150$^{***}$ (df = 13; 825) & 50.430$^{***}$ (df = 13; 1026) & 1
 \end{tabular} 
 \end{table} 
 \endgroup
-\end{landscape}
+\elandscape
 
 \newpage
+## Stargazer : benefit X all ecopol
 
-\hypertarget{stargazer-benefit-x-all-ecopol}{%
-\subsection{Stargazer : benefit X all
-ecopol}\label{stargazer-benefit-x-all-ecopol}}
-
-\begingroup\setlength{\tabcolsep}{1pt}
-
-\renewcommand{\arraystretch}{0.7}
-
-\% Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy
-Institute. E-mail: marek.hlavac at gmail.com \% Date and time: Sun, Mar
-24, 2024 - 14:24:49
-
+\begingroup\setlength{\tabcolsep}{1pt}\renewcommand{\arraystretch}{0.7}
+% Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
+% Date and time: Sun, Mar 24, 2024 - 14:24:49
 \begin{table}[!htbp] \centering 
   \caption{} 
   \label{} 
@@ -1391,20 +1415,14 @@ F Statistic & 19.122$^{***}$ (df = 13; 884) & 18.305$^{***}$ (df = 13; 1053) & 2
 \end{table} 
 \endgroup
 
+
 \newpage
 
-\hypertarget{stargazer-net-benefit-x-all-ecopol}{%
-\subsection{Stargazer : net benefit X all
-ecopol}\label{stargazer-net-benefit-x-all-ecopol}}
+## Stargazer : net benefit X all ecopol
 
-\begingroup\setlength{\tabcolsep}{1pt}
-
-\renewcommand{\arraystretch}{0.7}
-
-\% Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy
-Institute. E-mail: marek.hlavac at gmail.com \% Date and time: Sun, Mar
-24, 2024 - 14:24:50
-
+\begingroup\setlength{\tabcolsep}{1pt}\renewcommand{\arraystretch}{0.7}
+% Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
+% Date and time: Sun, Mar 24, 2024 - 14:24:50
 \begin{table}[!htbp] \centering 
   \caption{} 
   \label{} 
@@ -1472,20 +1490,13 @@ F Statistic & 19.066$^{***}$ (df = 13; 776) & 53.912$^{***}$ (df = 13; 1014) & 1
 \endgroup
 
 \newpage
-\begin{landscape}
+\blandscape
 
-\hypertarget{stargazer-risk-x-characteristics-of-tech}{%
-\subsection{Stargazer : risk X characteristics of
-tech}\label{stargazer-risk-x-characteristics-of-tech}}
+## Stargazer : risk  X characteristics of tech 
 
-\begingroup\small\setlength{\tabcolsep}{1pt}
-
-\renewcommand{\arraystretch}{0.7}
-
-\% Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy
-Institute. E-mail: marek.hlavac at gmail.com \% Date and time: Sun, Mar
-24, 2024 - 14:24:50
-
+\begingroup\small\setlength{\tabcolsep}{1pt}\renewcommand{\arraystretch}{0.7}
+% Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
+% Date and time: Sun, Mar 24, 2024 - 14:24:50
 \begin{table}[!htbp] \centering 
   \caption{} 
   \label{} 
@@ -1552,22 +1563,14 @@ F Statistic & 17.375$^{***}$ (df = 13; 825) & 48.811$^{***}$ (df = 13; 1026) & 1
 \end{table} 
 \endgroup
 
-\end{landscape}
+\elandscape
 
 \newpage
+## Stargazer : ben  X characteristics of tech 
 
-\hypertarget{stargazer-ben-x-characteristics-of-tech}{%
-\subsection{Stargazer : ben X characteristics of
-tech}\label{stargazer-ben-x-characteristics-of-tech}}
-
-\begingroup\setlength{\tabcolsep}{1pt}
-
-\renewcommand{\arraystretch}{0.7}
-
-\% Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy
-Institute. E-mail: marek.hlavac at gmail.com \% Date and time: Sun, Mar
-24, 2024 - 14:24:50
-
+\begingroup\setlength{\tabcolsep}{1pt}\renewcommand{\arraystretch}{0.7}
+% Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
+% Date and time: Sun, Mar 24, 2024 - 14:24:50
 \begin{table}[!htbp] \centering 
   \caption{} 
   \label{} 
@@ -1634,20 +1637,13 @@ F Statistic & 22.266$^{***}$ (df = 13; 884) & 13.625$^{***}$ (df = 13; 1053) & 2
 \end{table} 
 \endgroup
 
+
 \newpage
+## Stargazer : netben  X characteristics of tech 
 
-\hypertarget{stargazer-netben-x-characteristics-of-tech}{%
-\subsection{Stargazer : netben X characteristics of
-tech}\label{stargazer-netben-x-characteristics-of-tech}}
-
-\begingroup\setlength{\tabcolsep}{1pt}
-
-\renewcommand{\arraystretch}{0.7}
-
-\% Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy
-Institute. E-mail: marek.hlavac at gmail.com \% Date and time: Sun, Mar
-24, 2024 - 14:24:51
-
+\begingroup\setlength{\tabcolsep}{1pt}\renewcommand{\arraystretch}{0.7}
+% Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
+% Date and time: Sun, Mar 24, 2024 - 14:24:51
 \begin{table}[!htbp] \centering 
   \caption{} 
   \label{} 
@@ -1714,4 +1710,8 @@ F Statistic & 19.691$^{***}$ (df = 13; 776) & 50.661$^{***}$ (df = 13; 1014) & 1
 \end{table} 
 \endgroup
 
-\end{document}
+
+
+
+
+

@@ -5,11 +5,19 @@ output:
     toc: yes
     toc_depth: 2
     keep_tex: yes
-  header-includes:
+    keep_md: yes
+    latex_engine: xelatex
+geometry: "left=0.5cm,right=0.5cm,top=0.5cm,bottom=0.5cm"
+header-includes:
   - \usepackage{dcolumn}
   - \usepackage{array}
-  - "\\usepackage{placeins}"
-  keep_md: yes
+  - \usepackage{pdflscape}
+  - \newcommand{\blandscape}{\begin{landscape}}
+  - \newcommand{\elandscape}{\end{landscape}}
+html_document:
+  toc: yes
+  toc_depth: '2'
+  df_print: paged
 ---
 
 
@@ -32,6 +40,9 @@ suppressPackageStartupMessages(library(Hmisc))
 suppressPackageStartupMessages(library(reshape2))
 suppressPackageStartupMessages(library(naniar))
 suppressPackageStartupMessages(library(mice))
+library(officer)
+library(magrittr)
+library(kableExtra)
 
 
 ```
@@ -113,7 +124,7 @@ mutate_at(vars(SYSTEMDEMO,SYSTEMRELIGION,SYSTEMTECHNO,SYSTEMTOTAL,WEALTHLIM,MECH
   mutate_all(~ifelse(. == "UP", "Uttar Pradesh", .))
   
 
-
+#sum(is.na(codedmodule2)) # 13 % of the data is missing. 
 
 ```
 
@@ -121,7 +132,7 @@ mutate_at(vars(SYSTEMDEMO,SYSTEMRELIGION,SYSTEMTECHNO,SYSTEMTOTAL,WEALTHLIM,MECH
 
 # Bar plot: STATE X PDEVELOP
 
-```{r}
+```{r, echo = FALSE}
 
 # Load necessary libraries
 library(dplyr)
@@ -189,23 +200,23 @@ WBques_summary <- WBques_long %>%
 colorsequence <- c("#8C4646","#D9695F","#F2A679","#F2D091","#FFF2CC","#808080")
 
 # Plot the graph with facets for each Question
-ggplot(WBques_summary, aes(x = State, y = Proportion, fill = factor(Response, levels = rev(levels_defined)))) +
-  geom_bar(stat = "identity", position = "fill") +
-  scale_fill_manual(values = rev(colorsequence), name = NULL) +
-  facet_wrap(~ Question, scales = "free_y", ncol = 1) +
-  coord_flip() +
-  labs(x = "State", y = "Proportion", title = "Proportion of Responses by State for Nuclear energy related questions") +
-  theme_minimal() +
-  theme(
+#ggplot(WBques_summary, aes(x = State, y = Proportion, fill = factor(Response, levels = rev(levels_defined)))) +
+  #geom_bar(stat = "identity", position = "fill") +
+  #scale_fill_manual(values = rev(colorsequence), name = NULL) +
+  #facet_wrap(~ Question, scales = "free_y", ncol = 1) +
+  #coord_flip() +
+  #labs(x = "State", y = "Proportion", title = "Proportion of Responses by State for Nuclear energy related questions") +
+  #theme_minimal() +
+  #theme(
     # Increase the size of the main title
-    plot.title = element_text(size = 16, face = "bold"),
+    #plot.title = element_text(size = 16, face = "bold"),
     # Increase the size of the axis titles
-    axis.title = element_text(size = 14),
+    #axis.title = element_text(size = 14),
     # Increase the size of the facet strip text
-    strip.text.x = element_text(size = 12),
+    #strip.text.x = element_text(size = 12),
     # Adjust text angle for State labels if necessary
-    axis.text.y = element_text(angle = 0)
-  )
+    #axis.text.y = element_text(angle = 0)
+  #)
 
 ```
 
@@ -291,8 +302,8 @@ plot_religion <- create_bar_plot(df_barplot, "religion", "Set2")
 combined_plot <- gridExtra::arrangeGrob(plot_state, plot_language, plot_age, plot_urban_rural, plot_gender, plot_caste, plot_religion, ncol = 1, heights = c(1, 1, 1, 1, 1, 1, 1))
 
 # Print the combined plot
-grid::grid.newpage()
-grid::grid.draw(combined_plot)
+#grid::grid.newpage()
+#grid::grid.draw(combined_plot)
 
 ```
 
@@ -305,10 +316,10 @@ grid::grid.draw(combined_plot)
 
 ## Can do something with accept, reject and reluctantly accept. 
 
-n_acceptreject<- module2 %>%
-                dplyr::select("N_accept", "N_reluctantlyaccept", "N_reject")
+#n_acceptreject<- module2 %>%
+                #dplyr::select("N_accept", "N_reluctantlyaccept", "N_reject")
 
-summary(n_acceptreject)
+#summary(n_acceptreject)
 ```
 
 # FORMICE DATASET
@@ -344,18 +355,16 @@ formice <- formice1 %>%
   mutate(across(State, ~factor(.x, ordered = FALSE)))
 
 #str(formice)
-summary(formice)
+#summary(formice)
 
 # litte's MCAR test 
 
-sum(is.na(formice))
+#sum(is.na(formice))
 
 #mcar_test(data= codedmodule2)
 # p value = 1, which means MAR condition is met. 
 
 ```
-
-
 
 
 
@@ -372,11 +381,11 @@ kahanall <- codedmodule2 %>%
           mutate(across(age, ~factor(.x, ordered = TRUE)))
           
   
-str(kahanall)
+#str(kahanall)
 
-md.pattern(kahanall) #the variables with missing values: K_SHARM K_IPROTECT K_IPRIVACY K_SPROTECT K_SLIMCHOI K_IINTRFER K_HEQUAL K_HREVDIS1 
+#md.pattern(kahanall) #the variables with missing values: K_SHARM K_IPROTECT K_IPRIVACY K_SPROTECT K_SLIMCHOI K_IINTRFER K_HEQUAL K_HREVDIS1 
 
-mcar_test(data=kahanall) # p values is less than 0.05 - the condition for MCAR is not met 
+#mcar_test(data=kahanall) # p values is less than 0.05 - the condition for MCAR is not met 
 
 # dataset with missing variables to compare and test group comaprisons 
 
@@ -397,39 +406,11 @@ library(finalfit)
 # "K_SHARM" = "(C)Sometimes the government needs to make laws that keep people from hurting themselves.",
 explanatory = c("age", "gender", "caste", "State", "urban_rural", "religion")
 dependent = "K_SHARM_MAR"
-MARkahan %>% 
-  missing_compare(dependent, explanatory) %>% 
-    knitr::kable(row.names=FALSE, align = c("l", "l", "r", "r", "r"), 
-        caption = "comparisons between values of responders (Not missing) and 
-        non-responders (Missing) on the K_SHARM variable.") 
-
-#   "K_IPROTECT" = "(I)It’s not the government’s business to try to protect people from themselves."
-explanatory = c("age", "gender", "caste", "State", "urban_rural", "religion")
-dependent = "K_IPROTECT_MAR"
-MARkahan %>% 
-  missing_compare(dependent, explanatory) %>% 
-    knitr::kable(row.names=FALSE, align = c("l", "l", "r", "r", "r"), 
-        caption = "comparisons between values of responders (Not missing) and 
-        non-responders (Missing) on the K_IPROTECT variable.") 
-
-#  "K_SPROTECT" = "(C)The government should do more to advance society’s goals, even if that means limiting the freedom and choices of individuals.",
-explanatory = c("age", "gender", "caste", "State", "urban_rural", "religion")
-dependent = "K_SPROTECT_MAR"
-MARkahan %>% 
-  missing_compare(dependent, explanatory) %>% 
-    knitr::kable(row.names=FALSE, align = c("l", "l", "r", "r", "r"), 
-        caption = "comparisons between values of responders (Not missing) and 
-        non-responders (Missing) on the K_SPROTECT variable.") 
-
-
-#  "K_SLIMCHOI" = "(C)The government should put limits on the choices individuals can make so they don’t get in the way of what’s good for society.",
-explanatory = c("age", "gender", "caste", "State", "urban_rural", "religion")
-dependent = "K_SLIMCHOI_MAR"
-MARkahan %>% 
-  missing_compare(dependent, explanatory) %>% 
-    knitr::kable(row.names=FALSE, align = c("l", "l", "r", "r", "r"), 
-        caption = "comparisons between values of responders (Not missing) and 
-        non-responders (Missing) on the K_SPROTECT variable.") 
+#MARkahan %>% 
+  #missing_compare(dependent, explanatory) %>% 
+    #knitr::kable(row.names=FALSE, align = c("l", "l", "r", "r", "r"), 
+        #caption = "comparisons between values of responders (Not missing) and 
+        #non-responders (Missing) on the K_SHARM variable.") 
 
 ```
 
@@ -456,18 +437,16 @@ mikahan <- mifa(data= kahanall,
                 seed = 427,)
 
 
-mikahan
-
 library(psych)
 
 fit <- psych::fa(mikahan$cov_combined, nfactors = 2, rotate = "varimax")
 
-print.psych(fit, sort= TRUE, cut= 0.4)
+#print.psych(fit, sort= TRUE, cut= 0.4)
 
 
 kahanfit4 <- psych::fa(mikahan$cov_combined, nfactors = 3, rotate = "varimax")
 
-print.psych(kahanfit4, sort= TRUE, cut= 0.4)
+#print.psych(kahanfit4, sort= TRUE, cut= 0.4)
 
 ```
 
@@ -475,8 +454,8 @@ print.psych(kahanfit4, sort= TRUE, cut= 0.4)
 
 
 
-
-
+\blandscape
+\newpage
 
 ## EFA Pretty Table
 
@@ -576,7 +555,7 @@ fit[["Vaccounted"]] %>%
     flex("Table 2: Eigenvalues and Variance Explained for Cultural Cognition Scale")
 ```
 
-
+\elandscape
 
 
 
@@ -586,10 +565,9 @@ fit[["Vaccounted"]] %>%
 
 ```{r, echo=FALSE}
 
-kahan_imp <- mice(kahanall, m =5, maxit =30,  seed = 427, print = FALSE)
+#kahan_imp <- mice(kahanall, m =5, maxit =30,  seed = 427, print = FALSE)
 
-kahan_imp$chainMean
-
+#kahan_imp$chainMean
 
 
 ```
@@ -598,11 +576,11 @@ kahan_imp$chainMean
 
 ```{r, echo=FALSE}
 
-kahanallscores <- mice::complete(mice::mice(kahanall, m = 5, seed = 427, print = FALSE), "broad") 
+kahanallscores <- mice::complete(mice::mice(kahanall, m = 50, seed = 427, print = FALSE), "broad") 
             
 kahanallscores <- kahanallscores %>%dplyr::select(-(contains(c("age", "urban_rural", "gender","caste","religion", "State"))))
 
-str(kahanallscores)
+#str(kahanallscores)
 
 nkahanall <- kahanallscores %>%
   rowwise() %>%
@@ -632,17 +610,18 @@ nkahanfinal <- data.frame(factor.scores(nkahanall[, 1:12], fit)$scores)
 ```
 
 ## corelation table
-```{r}
+```{r, echo = FALSE}
 
-cor(nkahanall)
+#cor(nkahanall)
 
 #before mice 
- cor.plot(kahanall %>% dplyr::select(-c("age", "gender", "caste", "State", "urban_rural", "religion")))
+#cor.plot(kahanall %>% dplyr::select(-c("age", "gender", "caste", "State", "urban_rural", "religion")))
 
 #after mice
- cor.plot(nkahanall)
+ 
+#cor.plot(nkahanall)
 
-cov(nkahanall)
+#cov(nkahanall)
 
 ```
 
@@ -651,16 +630,16 @@ cov(nkahanall)
 ## Kahan scater plot from EFA scores 
 ```{r, echo = FALSE}
 
-nkahanfinal %>%
-  ggplot(aes(MR1, MR2))+
-  geom_count(aes(color = ..n.., size = ..n..))+
-  guides(color = 'legend')+
-  geom_hline(yintercept=0, colour="black", lwd=0.5)+
-  geom_vline(xintercept=0, colour="black", lwd=0.5)+
-  labs(x = "Hierarchy -Egalitarianism", y = "Individualism - Communitarianism")+
-  ylim(-2,3)+
-  xlim(-2,3)+
-  theme_minimal() 
+#nkahanfinal %>%
+  #ggplot(aes(MR1, MR2))+
+  #geom_count(aes(color = ..n.., size = ..n..))+
+  #guides(color = 'legend')+
+  #geom_hline(yintercept=0, colour="black", lwd=0.5)+
+  #geom_vline(xintercept=0, colour="black", lwd=0.5)+
+  #labs(x = "Hierarchy -Egalitarianism", y = "Individualism - Communitarianism")+
+  #ylim(-2,3)+
+  #xlim(-2,3)+
+  #theme_minimal() 
 ```
 
 ## Alpha test
@@ -702,9 +681,9 @@ ecopoln <- formice1 %>%
     RELYNUCLEAR,age, urban_rural, gender, caste, religion, State
   )
 
-md.pattern(ecopoln) #the variables with missing values: PRIDENUCLEAR PROSPERNUCLEAR JOBSNUCLEAR HEALTHNUCLEAR BEAUTYNUCLEAR POLLUTENUCLEAR DISPLACENUCLEAR RELYNUCLEAR  
+#md.pattern(ecopoln) #the variables with missing values: PRIDENUCLEAR PROSPERNUCLEAR JOBSNUCLEAR HEALTHNUCLEAR BEAUTYNUCLEAR POLLUTENUCLEAR DISPLACENUCLEAR RELYNUCLEAR  
 
-mcar_test(data=ecopoln) # p values is less than 0.76 - the condition for MCAR is met 
+#mcar_test(data=ecopoln) # p values is less than 0.76 - the condition for MCAR is met 
 
 # dataset with missing variables to compare and test group comaprisons 
 
@@ -726,20 +705,13 @@ library(finalfit)
 # JOBSNUCLEAR
 explanatory = c("age", "gender", "caste", "State", "urban_rural", "religion")
 dependent = "JOBSNUCLEAR_MAR"
-MARecopol %>% 
-  missing_compare(dependent, explanatory) %>% 
-    knitr::kable(row.names=FALSE, align = c("l", "l", "r", "r", "r"), 
-        caption = "comparisons between values of responders (Not missing) and 
-        non-responders (Missing) on the JOBSNUCLEAR variable.") 
+#MARecopol %>% 
+  #missing_compare(dependent, explanatory) %>% 
+    #knitr::kable(row.names=FALSE, align = c("l", "l", "r", "r", "r"), 
+        #caption = "comparisons between values of responders (Not missing) and 
+        #non-responders (Missing) on the JOBSNUCLEAR variable.") 
 
-# PRIDENUCLEAR
-explanatory = c("age", "gender", "caste", "State", "urban_rural", "religion")
-dependent = "PRIDENUCLEAR_MAR"
-MARecopol %>% 
-  missing_compare(dependent, explanatory) %>% 
-    knitr::kable(row.names=FALSE, align = c("l", "l", "r", "r", "r"), 
-        caption = "comparisons between values of responders (Not missing) and 
-        non-responders (Missing) on the PRIDENUCLEAR variable.") 
+
 
 
 
@@ -768,13 +740,11 @@ miecopol <- mifa(data= ecopoln,
                 progress= TRUE, 
                 seed = 429,)
 
-miecopol
-
 
 
 ecopolfit2 <- psych::fa(miecopol$cov_combined, nfactors = 2, rotate = "varimax")
 
-print.psych(ecopolfit2, sort= TRUE, cut= 0.4)
+#print.psych(ecopolfit2, sort= TRUE, cut= 0.4)
 
 
 ```
@@ -848,15 +818,14 @@ nNdevelop_alpha <- psych::alpha(nNdevelop , check.keys = TRUE) # alpha = 0.79
 
 ```
 
-
-
+\newpage
 ## Radar map
 
 ```{r, echo=FALSE}
 library(ggplot2)
 library(fmsb)
 
-nrow(ecopolfit2$loadings)
+#nrow(ecopolfit2$loadings)
 
 # Extract the loadings
 loadings_matrix4 <- ecopolfit2$loadings[1:24, ]
@@ -923,7 +892,7 @@ radar4 <- rbind(max_min2, wide_loadings_df2) %>%
 ```
 
 
-```{r, echo=FALSE, fig.width=20, fig.height=18, out.width='70', out.height='70'}
+```{r, echo=FALSE, fig.width=8, fig.height=6, out.width='100%', out.height='100%'}
 library(fmsb)
 
 create_beautiful_radarchart <- function(data, color = "#00AFBB", 
@@ -968,6 +937,8 @@ par(op)
 
 ```
 
+\blandscape
+\newpage
 
 ## Pretty table: Nuclear EFA
 
@@ -1091,7 +1062,7 @@ fa_table(ecopolfit2, .4) %>%
 
 ```
 
-
+\elandscape
 
 
 
@@ -1115,11 +1086,12 @@ ecopolfit2[["Vaccounted"]] %>%
 # State Ns before MIFA
 
 ```{r, echo=FALSE}
-Statenacheck1 <- allformice%>%
-  na.omit()%>%
-  dplyr::select(State)
 
-summary(Statenacheck1)
+#Statenacheck1 <- allformice %>%
+  #na.omit()%>%
+  #dplyr::select(State)
+
+#summary(Statenacheck1)
 ```
 
 
@@ -1130,10 +1102,10 @@ summary(Statenacheck1)
 
 ```{r, echo=FALSE}
 
-nuclear_missing <- allformice %>% dplyr::select(Risky_Nuclear,Uppercaste, Male, Hindu, urban_rural, Age, State)%>%
-  na.omit()
+#nuclear_missing <- allformice %>% dplyr::select(Risky_Nuclear,Uppercaste, Male, Hindu, urban_rural, Age, State)%>%
+ #na.omit()
 
-summary(nuclear_missing)
+#summary(nuclear_missing)
 
 ```
 
@@ -1178,69 +1150,70 @@ nuclearfinal3 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Ag
 
 nuclearfinal4 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Egalitarian + Pdevelop + Ndevelop, data = allformicefinal)
 
-summary(nuclearfinal)
-summary(nuclearfinal2)
-summary(nuclearfinal3)
-summary(nuclearfinal4)
+#summary(nuclearfinal)
+#summary(nuclearfinal2)
+#summary(nuclearfinal3)
+#summary(nuclearfinal4)
 
 aic_values <- AIC(nuclearfinal, nuclearfinal2, nuclearfinal3, nuclearfinal4)
 
-print(aic_values)
+#print(aic_values)
 
 bic_values <- BIC(nuclearfinal, nuclearfinal2, nuclearfinal3, nuclearfinal4)
 
-print(bic_values)
+#print(bic_values)
 
 ```
 
 
 # correlation table 
 
-```{r}
+```{r, echo = FALSE}
 
 nforcor <- allformicefinal %>%
            dplyr::select(Risky_Nuclear, Communitarian , Egalitarian , Pdevelop , Ndevelop)
 
-cor.plot(nforcor)
+#cor.plot(nforcor)
 ```
 
 # interaction vars tablle
 
-```{r}
+```{r, echo = FALSE}
 
 nuclearinterac <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian*State + Egalitarian*State + Pdevelop*State + Ndevelop*State , data = allformicefinal)
 
-summary(nuclearinterac)
-
-```
-
-
-
-
-# Stargazer : all LMs
-
-```{r, echo=FALSE, results='asis'}
-library(stargazer)
-
-
-#cat("\\begingroup")
-#cat("\\setlength{\\tabcolsep}{1pt}")
-#cat("\\renewcommand{\\arraystretch}{0.7}")
-stargazer(nuclearfinal, nuclearfinal2, nuclearfinal3, nuclearfinal4, nuclearinterac,
-          title = "Table 6: 5 linear models: Perceived Risk of Nuclear Energy",
-          type = "text"
-)
-#cat("\\endgroup")
-
+#summary(nuclearinterac)
 
 ```
 
 
 
 \newpage
+\blandscape
+# Stargazer : all LMs
+
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
+
+
+cat("\\begingroup")
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(nuclearfinal, nuclearfinal2, nuclearfinal3, nuclearfinal4, nuclearinterac,
+          title = "Table 6: 5 linear models: Perceived Risk of Nuclear Energy",
+          type = "latex"
+)
+cat("\\endgroup")
+
+
+```
+
+\elandscape
+
+
 # Paper 2
 
-## NUCLEAR2 
+## NUCLEAR 
 
 ### only charcateristics of tech
 
@@ -1248,45 +1221,50 @@ stargazer(nuclearfinal, nuclearfinal2, nuclearfinal3, nuclearfinal4, nuclearinte
 ```{r, echo=FALSE}
 
 ecopoln2 <- formice1 %>%
-  dplyr::select(
+  dplyr::select(DECISIONDECEN, DECISIONCEN, INDUSTRYSMALL, INDUSTRYLARGE,
+    ECONOMYLOCAL, ECONOMYGLOBAL, ENVOVERDEV,DEVOVERENV, OWNERPVT, OWNERPUB,
+    OWNERREG, OWNERNOREG, WEALTHLIM, MECHANISATION,
     DISPLACENUCLEAR,  POLLUTENUCLEAR, HEALTHNUCLEAR, JOBSNUCLEAR, BEAUTYNUCLEAR,
     PRIDENUCLEAR, NPRIDENUCLEAR, DEVNUCLEAR, PROSPERNUCLEAR,
     RELYNUCLEAR, age, urban_rural, gender, caste, religion, State
   )
 
-str(ecopoln2)
-md.pattern(ecopoln2) #the variables with missing values:  
+#str(ecopoln2)
+#md.pattern(ecopoln2) #the variables with missing values:  
 
-mcar_test(data=ecopoln2)
+#mcar_test(data=ecopoln2)
 ```
 
 
-### Nuclear2 : Mifa 
+
+
+## Mifa: only charcateristics of tech
 
 ```{r, echo=FALSE}
 
-library(mifa)
+ 
 
-miecopoln2 <- mifa(data= ecopoln2,
-                cov_vars = -c("age", "gender", "caste", "State", "urban_rural", "religion"),
+
+miecopol2 <- mifa(data= ecopoln,
+                cov_vars  = -c("age", "gender", "caste", "State", "urban_rural", "religion", DECISIONDECEN, DECISIONCEN, INDUSTRYSMALL, INDUSTRYLARGE,
+    ECONOMYLOCAL, ECONOMYGLOBAL, ENVOVERDEV,DEVOVERENV, OWNERPVT, OWNERPUB,
+    OWNERREG, OWNERNOREG, WEALTHLIM, MECHANISATION),
                 m=50,
                 n_pc= 2:4,
                 ci = "fieller", 
                 n_boot=1000,
                 print = FALSE,
                 progress= TRUE, 
-                seed = 528,)
-
-miecopoln2
+                seed = 429,)
 
 
 
-ecopolfitn2 <- psych::fa(miecopoln2$cov_combined, nfactors = 2, rotate = "varimax")
-
+ecopolfitn2 <- psych::fa(miecopol2$cov_combined, nfactors = 2, rotate = "varimax")
 print.psych(ecopolfitn2, sort= TRUE, cut= 0.4)
 
 
 ```
+
 
 
 ### Factor Scores (mean across all imputations)
@@ -1295,7 +1273,7 @@ print.psych(ecopolfitn2, sort= TRUE, cut= 0.4)
 
 ecopoln2scores <- mice::complete(mice::mice(ecopoln2, m = 50, seed = 429, print = FALSE), "broad") 
             
-ecopoln2scores <- ecopoln2scores %>%dplyr::select(-(contains(c("age", "urban_rural", "gender","caste","religion", "State"))))
+ecopoln2scores <- ecopoln2scores %>%dplyr::select(-(contains(c("age", "urban_rural", "gender","caste","religion", "State",    "DECISIONDECEN", "DECISIONCEN", "INDUSTRYSMALL", "INDUSTRYLARGE","ECONOMYLOCAL", "ECONOMYGLOBAL", "ENVOVERDEV","DEVOVERENV", "OWNERPVT", "OWNERPUB","OWNERREG", "OWNERNOREG", "WEALTHLIM", "MECHANISATION"))))
 
 #str(ecopolallscores)
 
@@ -1318,17 +1296,15 @@ ecopoln2means <- ecopoln2scores %>%
    rename_with(~ gsub("_mean$", "", .x))
 
   
-  
-
 necopol2final <- data.frame(factor.scores(ecopoln2means[, 1:10], ecopolfitn2)$scores) 
                 
 
 ```
 
 
-### LM : Nuclear 2 and Kahan
+### LMs : characteristics of tech 
 
-```{r}
+```{r, echo = FALSE}
 
 ecopoln2final <- necopol2final %>%
   rename(DevPride = MR1, SocialCosts = MR2)
@@ -1342,21 +1318,74 @@ n2allfinal <- cbind(formice1,ecopoln2final, kahannuclearfinal)%>%
          Netben_Solar = Ben_Solar - Risky_Solar,
          Netben_Coal = Ben_Coal - Risky_Coal)
 
-nuclear2lm <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu +Age + State + DevPride + SocialCosts + Egalitarian + Communitarian, data = n2allfinal)
+nuclear2lm <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu +Age + urban_rural+ State + DevPride + SocialCosts + Egalitarian + Communitarian, data = n2allfinal)
 
-summary(nuclear2lm)
+#summary(nuclear2lm)
 
-netnuclear2lm <- lm(Netben_Nuclear ~ Uppercaste + Male + Hindu +Age + State + DevPride + SocialCosts + Egalitarian + Communitarian, data = n2allfinal)
+netnuclear2lm <- lm(Netben_Nuclear ~ Uppercaste + Male + Hindu +Age + urban_rural+ State + DevPride + SocialCosts + Egalitarian + Communitarian, data = n2allfinal)
 
-summary(netnuclear2lm)
+#summary(netnuclear2lm)
 
 
-bennuclear2lm <- lm(Ben_Nuclear ~ Uppercaste + Male + Hindu +Age + State + DevPride + SocialCosts + Egalitarian + Communitarian, data = n2allfinal)
+bennuclear2lm <- lm(Ben_Nuclear ~ Uppercaste + Male + Hindu +Age+ urban_rural + State + DevPride + SocialCosts + Egalitarian + Communitarian, data = n2allfinal)
 
-summary(bennuclear2lm)
+#summary(bennuclear2lm)
 
 
 ```
+
+
+
+\newpage
+
+### Stargazer : characteristics of tech
+
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
+
+
+cat("\\begingroup")
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(nuclear2lm,  bennuclear2lm, netnuclear2lm,
+          title = "",
+          type = "latex"
+)
+cat("\\endgroup")
+
+
+```
+
+
+
+
+###  LMs : Nuclear all eco-pol 
+
+```{r, echo = FALSE}
+
+
+
+allformicefinal2 <- allformicefinal%>%mutate(Netben_Nuclear = Ben_Nuclear - Risky_Nuclear,
+         Netben_Solar = Ben_Solar - Risky_Solar,
+         Netben_Coal = Ben_Coal - Risky_Coal)
+
+
+nuclearfinal4 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Egalitarian + Pdevelop + Ndevelop, data = allformicefinal2)
+
+bennuclear3lm <- lm(Ben_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Egalitarian + Pdevelop + Ndevelop, data = allformicefinal2)
+
+#summary(bennuclear3lm)
+
+
+netnuclear3lm <- lm(Netben_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Egalitarian + Pdevelop + Ndevelop, data = allformicefinal2)
+
+#summary(netnuclear3lm)
+
+
+```
+
+
+
 
 ## Solar
 
@@ -1375,13 +1404,13 @@ ecopols <- formice1 %>%
     RELYSOLAR,age, urban_rural, gender, caste, religion, State
   )
 
-md.pattern(ecopols) #the variables with missing values:  
+#md.pattern(ecopols) #the variables with missing values:  
 
-mcar_test(data=ecopols)
+#mcar_test(data=ecopols)
 ```
 
 
-### Solar : Mifa for new eco-pol value scale
+### Solar : EFA Mifa all eco-pol 
 
 ```{r, echo=FALSE}
 
@@ -1390,7 +1419,7 @@ mcar_test(data=ecopols)
 
 miecopols <- mifa(data= ecopols,
                 cov_vars  = -c("age", "gender", "caste", "State", "urban_rural", "religion"),
-                m=5,
+                m=50,
                 n_pc= 1:2,
                 ci = "fieller", 
                 n_boot=1000,
@@ -1398,19 +1427,19 @@ miecopols <- mifa(data= ecopols,
                 progress= TRUE, 
                 seed = 528,)
 
-miecopols
 
 
+# EFA with mifa
 
 ecopolfits <- psych::fa(miecopols$cov_combined, nfactors = 2, rotate = "varimax")
 
-print.psych(ecopolfits, sort= TRUE, cut= 0.4)
+#print.psych(ecopolfits, sort= TRUE, cut= 0.4)
 
 
 
 ```
 
-### Solar 2 : only charcateristics of tech
+### Solar 2 : EFA dataset : only charcateristics of tech
 
 
 ```{r, echo=FALSE}
@@ -1423,14 +1452,14 @@ ecopols2 <- formice1 %>%
   )
 
 
-str(ecopols2)
-md.pattern(ecopols2) #the variables with missing values:  
+#str(ecopols2)
+#md.pattern(ecopols2) #the variables with missing values:  
 
-mcar_test(data=ecopols2)
+#mcar_test(data=ecopols2)
 ```
 
 
-### SOLAR2 : Mifa for new eco-pol value scale
+### SOLAR2 : EFA Mifa : chaaracteristics of tech 
 
 ```{r, echo=FALSE}
 
@@ -1446,18 +1475,17 @@ miecopols2 <- mifa(data= ecopols2,
                 progress= TRUE, 
                 seed = 528,)
 
-miecopols2
 
 
 
 ecopolfits2 <- psych::fa(miecopols2$cov_combined, nfactors = 2, rotate = "varimax")
 
-print.psych(ecopolfits2, sort= TRUE, cut= 0.4)
+#print.psych(ecopolfits2, sort= TRUE, cut= 0.4)
 
 
 ```
 
-### Factor Scores (mean across all imputations)
+### only tech characters : Factor Scores (mean across all imputations)
 
 ```{r, echo=FALSE}
 
@@ -1487,15 +1515,16 @@ ecopols2means <- ecopols2scores %>%
 
   
   
-
+# factor scores : characteristics of technology 
 secopol2final <- data.frame(factor.scores(ecopols2means[, 1:10], ecopolfits2)$scores) 
                 
 
 ```
 
 
-### Solar LMs
-```{r}
+### LMs : only characteristics of technology 
+
+```{r, echo = FALSE}
 
 ecopols2final <- secopol2final %>%
   rename(DevPride = MR1, SocialCosts = MR2)
@@ -1509,28 +1538,49 @@ s2allfinal <- cbind(formice1,ecopols2final, kahannuclearfinal)%>%
          Netben_Solar = Ben_Solar - Risky_Solar,
          Netben_Coal = Ben_Coal - Risky_Coal)
 
-solar2lm <- lm(Risky_Solar ~ Uppercaste + Male + Hindu +Age + State + DevPride + SocialCosts + Egalitarian + Communitarian , data = n2allfinal)
+solar2lm <- lm(Risky_Solar ~ Uppercaste + Male + Hindu +Age+ urban_rural + State + DevPride + SocialCosts + Egalitarian + Communitarian , data = n2allfinal)
 
-summary(solar2lm)
+#summary(solar2lm)
 
-netsolar2lm <- lm(Netben_Solar ~ Uppercaste + Male + Hindu +Age + State + DevPride + SocialCosts + Egalitarian + Communitarian, data = n2allfinal)
+netsolar2lm <- lm(Netben_Solar ~ Uppercaste + Male + Hindu +Age + urban_rural+ State + DevPride + SocialCosts + Egalitarian + Communitarian, data = n2allfinal)
 
-summary(netsolar2lm)
+#summary(netsolar2lm)
 
 
-bensolar2lm <- lm(Ben_Solar ~ Uppercaste + Male + Hindu +Age + State + DevPride + SocialCosts + Egalitarian + Communitarian, data = n2allfinal)
+bensolar2lm <- lm(Ben_Solar ~ Uppercaste + Male + Hindu +Age + urban_rural+ State + DevPride + SocialCosts + Egalitarian + Communitarian, data = n2allfinal)
 
-summary(bensolar2lm)
+#summary(bensolar2lm)
 
 
 ```
 
-### Solar: Mifa with CFA
 
-```{r}
+\newpage 
+### Stargazer : EFA characteristics of technology 
+
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
 
 
+cat("\\begingroup")
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(solar2lm,  bensolar2lm, netsolar2lm,
+          title = "",
+          type = "latex"
+)
+cat("\\endgroup")
 
+
+```
+
+
+### Solar: Mifa with CFA (Pdevelop and Ndevelop)
+
+```{r, echo = FALSE}
+
+# dataset with all eco-pol vars 
+#miecopols
 
 ## CFA on ecopol vars for solar energy 
 
@@ -1540,17 +1590,179 @@ ecopols_2fa <- '
 '
 
 secopol_cfa <- cfa(ecopols_2fa, data = miecopols$cov_combined, std.lv = TRUE)
-summary(secopol_cfa, fit.measure= TRUE, standardized = TRUE)
+#summary(secopol_cfa, fit.measure= TRUE, standardized = TRUE)
 
 
 
 ```
 
 
+\blandscape
+\newpage
 
-# COAL : MAR condition and missing data pattern
+### Pretty Table: CFA solar 
+
+```{r, echo=FALSE}
 
 
+# Extract parameter estimates
+sparams <- parameterEstimates(secopol_cfa, standardized = TRUE)%>%
+   slice(1:(n()-13))
+
+
+sparams1 <- sparams %>%
+  mutate(rhs = case_when(
+  rhs == "DISPLACESOLAR" ~ "Solar energy is leading to displacement of people from their land",
+  rhs == "BEAUTYSOLAR" ~ "Solar energy spoils the natural beauty of the landscape",
+  rhs == "POLLUTESOLAR" ~ "Solar energy increases pollution of air/water/land",
+  rhs == "HEALTHSOLAR" ~ "Solar energy poses a great risk to the health of people living around it",
+  rhs == "JOBSSOLAR" ~ "Solar energy will bring jobs to the local community",
+  rhs == "PRIDESOLAR" ~ "I would be proud if my community used Solar energy",
+  rhs == "NPRIDESOLAR" ~ "Solar energy is a mark of pride for our nation",
+  rhs == "DEVSOLAR" ~ "Solar energy pushes forward the country's development",
+  rhs == "PROSPERSOLAR" ~ "Solar energy brings economic prosperity to the surrounding regions",
+  rhs == "RELYSOLAR" ~ "I don't like the idea that I have to rely on the government for electricity from Solar energy",
+  rhs == "INDUSTRYSMALL" ~ "Large corporations are destroying the local industries in India and benefiting only a handful of people",
+  rhs == "OWNERREG" ~ "Regardless of ownership, the government should pass strong regulations and implement them",
+  rhs == "MECHANISATION" ~ "Rapid mechanization of work is taking away jobs from workers in this country",
+  rhs == "ENVOVERDEV" ~ "Polluting industries that spoil the environment should be shut down even if it costs people their jobs",
+    TRUE ~ as.character(rhs)
+  )) %>%
+  dplyr::select(!c(lhs,op, std.nox)) %>%
+    rename(
+    "Items" = rhs,
+    "Loadings" = est,
+    "Standard Error" = se,
+    "zvalue" = z) %>%
+  mutate(across(c("Loadings", "Standard Error", "zvalue"), round, 3))
+   
+
+sparams1$Scale <- NA
+sparams1$Scale[1:5] <- "People Centered Development"
+sparams1$Scale[6:10] <- "Nationalist Development"
+sparams1 <- sparams1[, c("Scale", setdiff(names(sparams1), "Scale"))]
+
+
+CFAsolar <- knitr::kable(sparams1, booktabs = TRUE, caption = "Confirmatory Factor Analysis(CFA) on eco-pol scale (Solar Energy)") %>%
+  kable_styling(latex_options = c("striped","scale_down", "hold_position", "repeat_header"))%>%
+  column_spec(column = 2, width = "4cm")
+
+# Print the table
+CFAsolar %>%
+  landscape()
+
+```
+
+
+
+\elandscape
+### CFA SCORES (mean across all imputations)
+
+
+```{r, echo=FALSE}
+
+ecopolallscoress2 <- mice::complete(mice::mice(ecopols, m = 50, seed = 429, print = FALSE), "broad") 
+            
+ecopolallscoress2 <- ecopolallscoress2 %>%dplyr::select(-(contains(c("age", "urban_rural", "gender","caste","religion", "State"))))
+
+#str(ecopolallscores)
+
+
+secopol2 <- ecopolallscoress2 %>%
+  rowwise() %>%
+  mutate(DEVSOLAR_mean = mean(c_across(starts_with("DEVSOLAR"))),
+         PROSPERSOLAR_mean = mean(c_across(starts_with("PROSPERSOLAR"))),
+         NPRIDESOLAR_mean = mean(c_across(starts_with("NPRIDESOLAR"))),
+         PRIDESOLAR_mean = mean(c_across(starts_with("PRIDESOLAR"))),
+         JOBSSOLAR_mean = mean(c_across(starts_with("JOBSSOLAR"))),
+         ECONOMYGLOBAL_mean = mean(c_across(starts_with("ECONOMYGLOBAL"))),
+         WEALTHLIM_mean = mean(c_across(starts_with("WEALTHLIM"))),
+         INDUSTRYLARGE_mean = mean(c_across(starts_with("INDUSTRYLARGE"))),
+         DECISIONCEN_mean = mean(c_across(starts_with("DECISIONCEN"))),
+         MECHANISATION_mean = mean(c_across(starts_with("MECHANISATION"))),
+         OWNERNOREG_mean = mean(c_across(starts_with("OWNERNOREG"))),
+         INDUSTRYSMALL_mean = mean(c_across(starts_with("INDUSTRYSMALL"))),
+         DEVOVERENV_mean = mean(c_across(starts_with("DEVOVERENV"))),
+         OWNERPVT_mean = mean(c_across(starts_with("OWNERPVT"))),
+         RELYSOLAR_mean = mean(c_across(starts_with("RELYSOLAR"))),
+         BEAUTYSOLAR_mean = mean(c_across(starts_with("BEAUTYSOLAR"))),
+         HEALTHSOLAR_mean = mean(c_across(starts_with("HEALTHSOLAR"))),
+         POLLUTESOLAR_mean = mean(c_across(starts_with("POLLUTESOLAR"))),
+         DISPLACESOLAR_mean = mean(c_across(starts_with("DISPLACESOLAR"))),
+         ENVOVERDEV_mean = mean(c_across(starts_with("ENVOVERDEV"))),
+         OWNERPUB_mean = mean(c_across(starts_with("OWNERPUB"))),
+         OWNERREG_mean = mean(c_across(starts_with("OWNERREG"))),
+         DECISIONDECEN_mean = mean(c_across(starts_with("DECISIONDECEN"))),
+         ECONOMYLOCAL_mean = mean(c_across(starts_with("ECONOMYLOCAL")))
+  ) %>%
+  ungroup()%>%
+  dplyr::select(contains("_mean")) %>%
+   rename_with(~ gsub("_mean$", "", .x))
+
+  
+```
+
+
+```{r, echo = FALSE}
+
+solarCFAscores <- predict(secopol_cfa, newdata = secopol2)
+
+cfasolarscoresfinal  <- cbind(formice1, solarCFAscores, nkahanfinal) %>%
+      rename(Egalitarian = MR1, Communitarian = MR2)%>%mutate(Netben_Nuclear = Ben_Nuclear - Risky_Nuclear,
+         Netben_Solar = Ben_Solar - Risky_Solar,
+         Netben_Coal = Ben_Coal - Risky_Coal)
+
+```
+
+###  CFA LMs: Risk, Ben, Net Ben X Pdevelop Ndevelop
+
+```{r, echo = FALSE}
+
+
+solarfinal4 <- lm(Risky_Solar ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Egalitarian + Pdevelop + Ndevelop, data = cfasolarscoresfinal)
+
+#summary(solarfinal4)
+
+bensolar3lm <- lm(Ben_Solar ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Egalitarian + Pdevelop + Ndevelop, data = cfasolarscoresfinal)
+
+#summary(bensolar3lm)
+
+
+netsolar3lm <- lm(Netben_Solar ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Egalitarian + Pdevelop + Ndevelop, data = cfasolarscoresfinal)
+
+#summary(netsolar3lm)
+
+
+```
+
+
+
+
+### Stargazer : CFA Pdevelop Ndevelop
+
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
+
+
+cat("\\begingroup")
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(solarfinal4,  bensolar3lm, netsolar3lm,
+          title = "",
+          type = "latex"
+)
+cat("\\endgroup")
+
+
+```
+
+
+
+
+## COAL
+ 
+ 
+### Coal:MAR condition and missing data pattern
 ```{r, echo=FALSE}
 
 ecopolc <- formice1 %>%
@@ -1563,9 +1775,9 @@ ecopolc <- formice1 %>%
     RELYCOAL,age, urban_rural, gender, caste, religion, State
   )
 
-md.pattern(ecopolc) #the variables with missing values:  
+#md.pattern(ecopolc) #the variables with missing values:  
 
-mcar_test(data=ecopolc)
+#mcar_test(data=ecopolc)
 ```
 
 
@@ -1574,7 +1786,7 @@ mcar_test(data=ecopolc)
 
 
 
-# Coal : Mifa for new eco-pol value scale
+###  Mifa: EFA all ecopol
 
 ```{r, echo=FALSE}
 
@@ -1591,20 +1803,19 @@ miecopolc <- mifa(data= ecopolc,
                 progress= TRUE, 
                 seed = 528,)
 
-miecopolc
 
 
-
+# EFA With mifa - all ecopol vars for coal
 ecopolfitc <- psych::fa(miecopolc$cov_combined, nfactors = 3, rotate = "varimax")
 
-print.psych(ecopolfitc, sort= TRUE, cut= 0.4)
+#print.psych(ecopolfitc, sort= TRUE, cut= 0.4)
 
 
 ```
 
 
 
-# COAL2 : only charcateristics of tech
+### Dataset: only tech characters 
 
 
 ```{r, echo=FALSE}
@@ -1616,22 +1827,21 @@ ecopolc2 <- formice1 %>%
     RELYCOAL,age, urban_rural, gender, caste, religion, State
   )
 
-md.pattern(ecopolc2) #the variables with missing values:  
+#md.pattern(ecopolc2) #the variables with missing values:  
 
-mcar_test(data=ecopolc2)
+#mcar_test(data=ecopolc2)
 ```
 
 
-# Coal2 : Mifa for new eco-pol value scale
+### EFA Mifa: only tech characters
 
 ```{r, echo=FALSE}
 
- 
 
 
 miecopolc2 <- mifa(data= ecopolc2,
                 cov_vars  = -c("age", "gender", "caste", "State", "urban_rural", "religion"),
-                m=5,
+                m=50,
                 n_pc= 2:4,
                 ci = "fieller", 
                 n_boot=1000,
@@ -1639,13 +1849,11 @@ miecopolc2 <- mifa(data= ecopolc2,
                 progress= TRUE, 
                 seed = 528,)
 
-miecopolc2
-
 
 
 ecopolfitc2 <- psych::fa(miecopolc2$cov_combined, nfactors = 2, rotate = "varimax")
 
-print.psych(ecopolfitc2, sort= TRUE, cut= 0.4)
+#print.psych(ecopolfitc2, sort= TRUE, cut= 0.4)
 
 
 ```
@@ -1655,17 +1863,18 @@ print.psych(ecopolfitc2, sort= TRUE, cut= 0.4)
 
 
 
+```{r, echo = FALSE}
 
-```{r}
-
-cor.plot(ecopolc %>% dplyr::select(-c("age", "gender", "caste", "State", "urban_rural", "religion")))
+#cor.plot(ecopolc %>% dplyr::select(-c("age", "gender", "caste", "State", "urban_rural", "religion")))
 ```
 
 
 
-# Coal: Mifa with CFA
 
-```{r}
+
+### CFA Mifa: Pdevelop n Ndevelop
+
+```{r, echo = FALSE}
 
 
 
@@ -1677,390 +1886,373 @@ cor.plot(ecopolc %>% dplyr::select(-c("age", "gender", "caste", "State", "urban_
 ## CFA on ecopol vars for coal 
 
 ecopolc_2fa <- '
-  Pride =~ PRIDECOAL + NPRIDECOAL + DEVOVERENV +  DECISIONCEN + OWNERPVT + DECISIONCEN  + OWNERNOREG + ECONOMYGLOBAL
-  Social Costs =~ BEAUTYCOAL + POLLUTECOAL + HEALTHCOAL
-  Social Costs2 =~ OWNERPUB + ENVOVERDEV + DISPLACECOAL
+  Ndevelop =~ PRIDECOAL + NPRIDECOAL + DEVOVERENV +  DECISIONCEN + OWNERPVT + DECISIONCEN  + OWNERNOREG + DEVCOAL +PROSPERCOAL
+  Pdevelop =~ BEAUTYCOAL + POLLUTECOAL + HEALTHCOAL + OWNERPUB + ENVOVERDEV + DISPLACECOAL
   
 '
 
 cecopol_cfa <- cfa(ecopolc_2fa, data = miecopolc$cov_combined, std.lv = TRUE)
-summary(cecopol_cfa, fit.measure= TRUE, standardized = TRUE)
+#summary(cecopol_cfa, fit.measure= TRUE, standardized = TRUE)
 
 
 
 ```
 
-# EXTRA
+\blandscape
 
-
-
-## Kahan: factor scores from 1st imputed dataset
-```{r, echo=FALSE}
-
-
-# extracting factor scores from mifa for 1st imputed dataset 
-
-data_imp <- mice::complete(mice::mice(kahanall, 1, print = FALSE))
-  
-fct_scores <- data.frame(factor.scores(data_imp[, 1:12], fit)$scores)
-
-plot(kahan_imp)
-
-```
-
-## Kahan: factor scores from second imputed dataset
-```{r, echo=FALSE}
-
-
-data_impk2 <- mice::complete(mice::mice(kahanall, 2, print = FALSE))
-  
-fct_scoresk2 <- data.frame(factor.scores(data_impk2[, 1:12], fit)$scores)
-
-
-```
-
-
-## Kahan: factor scores from third imputed dataset
-```{r, echo=FALSE}
-
-
-data_impk3 <- mice::complete(mice::mice(kahanall, 3, print = FALSE))
-  
-fct_scoresk3 <- data.frame(factor.scores(data_impk3[, 1:12], fit)$scores)
-
-
-```
-
-
-## Kahan: factor scores from fourth imputed dataset
-```{r, echo=FALSE}
-
-
-data_impk4 <- mice::complete(mice::mice(kahanall, 4, print = FALSE))
-  
-fct_scoresk4 <- data.frame(factor.scores(data_impk4[, 1:12], fit)$scores)
-
-
-```
-
-
-## Kahan: factor scores from fifth imputed dataset
-```{r, echo=FALSE}
-
-
-data_impk5 <- mice::complete(mice::mice(kahanall, 5, print = FALSE))
-  
-fct_scoresk5 <- data.frame(factor.scores(data_impk5[, 1:12], fit)$scores)
-
-
-```
+\newpage
+### Pretty Table
  
- 
- 
- 
-## are imputations plausible: Kahan scale - are values plausible ? 
-
-yes all value are whole numbers between 1 and 5 
 
 ```{r, echo=FALSE}
 
 
-summary(mikahan)
+# Extract parameter estimates
+cparams <- parameterEstimates(cecopol_cfa, standardized = TRUE)%>%
+   slice(1:(n()-17))
 
-str(data_imp)
-names(mikahan)
 
-mikahan$mids
+cparams1 <- cparams %>%
+  mutate(rhs = case_when(
+  rhs == "DISPLACECOAL" ~ "Coal powered plants is leading to displacement of people from their land",
+  rhs == "BEAUTYCOAL" ~ "Coal powered plants spoils the natural beauty of the landscape",
+  rhs == "POLLUTECOAL" ~ "Coal powered plants increases pollution of air/water/land",
+  rhs == "HEALTHCOAL" ~ "Coal powered plants poses a great risk to the health of people living around it",
+  rhs == "JOBSCOAL" ~ "Coal powered plants will bring jobs to the local community",
+  rhs == "PRIDECOAL" ~ "I would be proud if my community used Coal powered plants",
+  rhs == "NPRIDECOAL" ~ "Coal powered plants is a mark of pride for our nation",
+  rhs == "DEVCOAL" ~ "Coal powered plants pushes forward the country's development",
+  rhs == "PROSPERCOAL" ~ "Coal powered plants brings economic prosperity to the surrounding regions",
+  rhs == "RELYCOAL" ~ "I don't like the idea that I have to rely on the government for electricity from Coal powered plants",
+  rhs == "INDUSTRYSMALL" ~ "Large corporations are destroying the local industries in India and benefiting only a handful of people",
+  rhs == "OWNERREG" ~ "Regardless of ownership, the government should pass strong regulations and implement them",
+  rhs == "MECHANISATION" ~ "Rapid mechanization of work is taking away jobs from workers in this country",
+  rhs == "OWNERNOREG" ~ "There is too much red-tape and the government should not interfere with businesses and industries",
+  rhs == "DECISIONCEN" ~ "Laws and policies would be implemented more smoothly if more power lay with the central government",
+  rhs == "OWNERPVT" ~ "All businesses and industries should be owned privately",
+  rhs == "DEVOVERENV" ~ "Economic growth and creating jobs should be prioritized over environmental protection",
+  rhs == "OWNERPUB" ~ "The government should own most large businesses and industries",
+  rhs =="ENVOVERDEV" ~ "Polluting industries that spoil the environment should be shut down even if it costs people their jobs",
+    TRUE ~ as.character(rhs)
+  )) %>%
+  dplyr::select(!c(lhs,op, std.nox)) %>%
+    rename(
+    "Items" = rhs,
+    "Loadings" = est,
+    "Standard Error" = se,
+    "zvalue" = z) %>%
+  mutate(across(c("Loadings", "Standard Error", "zvalue"), round, 3))
+   
 
-complete_data_first <- complete(mikahan$mids, 1)
+cparams1$Scale <- NA
+cparams1$Scale[1:8] <- "People Centered Development"
+cparams1$Scale[9:14] <- "Nationalist Development"
+cparams1 <- cparams1[, c("Scale", setdiff(names(sparams1), "Scale"))]
+CFAcoal <- knitr::kable(cparams1, booktabs = TRUE, caption = "Confirmatory Factor Analysis(CFA) on eco-pol scale (Coal)") %>%
+  kable_styling(latex_options = c("striped","scale_down", "hold_position", "repeat_header"))%>%
+  column_spec(column = 2, width = "4cm")
 
-summary(complete_data_first)
+# Print the table
+CFAcoal %>%
+  landscape()
 
-complete_data_2 <- complete(mikahan$mids, 2)
+```
 
-summary(complete_data_2)
+\elandscape
+### Alpha test
 
-complete_data_3 <- complete(mikahan$mids, 3)
+```{r, echo=FALSE}
 
-summary(complete_data_3)
+cNdevelop <-ecopolc %>%
+  dplyr::select((c(PRIDECOAL, NPRIDECOAL, DEVOVERENV, DECISIONCEN, OWNERPVT, OWNERNOREG, ECONOMYGLOBAL, DEVCOAL, PROSPERCOAL)))
 
-complete_data_4 <- complete(mikahan$mids, 4)
+cNdevelop_alpha <- psych::alpha(cNdevelop, check.keys = TRUE) # alpha = 0.62
 
-summary(complete_data_4)
+cPdevelop <-ecopolc %>%
+  dplyr::select((c(BEAUTYCOAL , POLLUTECOAL , HEALTHCOAL , OWNERPUB , ENVOVERDEV , DISPLACECOAL)))
 
-complete_data_5 <- complete(mikahan$mids, 5)
+nPdevelop_alpha <- psych::alpha(nPdevelop , check.keys = TRUE) # alpha = 0.79
 
-summary(complete_data_5)
+
 ```
 
 
+### EFA Scores: only tech characteristics 
+
 ```{r, echo=FALSE}
 
-# Extracting factors from first imputed dataset
 
-data_imp2 <- mice::complete(mice::mice(ecopoln, 1, print = FALSE))
+
+ecopolc2scores <- mice::complete(mice::mice(ecopolc2, m = 50, seed = 429, print = FALSE), "broad") 
+            
+ecopolc2scores <- ecopolc2scores %>%dplyr::select(-(contains(c("age", "urban_rural", "gender","caste","religion", "State"))))
+
+#str(ecopolallscores)
+
+
+ecopolc2means <- ecopolc2scores %>%
+  rowwise() %>%
+  mutate(DEVCOAL_mean = mean(c_across(starts_with("DEVCOAL"))),
+         PROSPERCOAL_mean = mean(c_across(starts_with("PROSPERCOAL"))),
+         NPRIDECOAL_mean = mean(c_across(starts_with("NPRIDECOAL"))),
+         PRIDECOAL_mean = mean(c_across(starts_with("PRIDECOAL"))),
+         JOBSCOAL_mean = mean(c_across(starts_with("JOBSCOAL"))),
+         RELYCOAL_mean = mean(c_across(starts_with("RELYCOAL"))),
+         BEAUTYCOAL_mean = mean(c_across(starts_with("BEAUTYCOAL"))),
+         HEALTHCOAL_mean = mean(c_across(starts_with("HEALTHCOAL"))),
+         POLLUTECOAL_mean = mean(c_across(starts_with("POLLUTECOAL"))),
+         DISPLACECOAL_mean = mean(c_across(starts_with("DISPLACECOAL"))),
+  ) %>%
+  ungroup()%>%
+  dplyr::select(contains("_mean")) %>%
+   rename_with(~ gsub("_mean$", "", .x))
+
   
-fct_scores2 <- data.frame(factor.scores(data_imp2[, 1:24], ecopolfit2)$scores)
-
-```
-
-##  eco-pol scale : Factor scores from 2nd imputation
-```{r, echo=FALSE}
-
-data_impe2 <- mice::complete(mice::mice(ecopoln, 2, print = FALSE))
-  
-fct_scorese2 <- data.frame(factor.scores(data_impe2[, 1:24], ecopolfit2)$scores)
+# factor scores - EFA 
+cecopol2final <- data.frame(factor.scores(ecopolc2means[, 1:10], ecopolfitc2)$scores) 
+                
 
 ```
 
 
-
-##  eco-pol scale : Factor scores from 3rd imputation
-```{r, echo=FALSE}
-
-data_impe3 <- mice::complete(mice::mice(ecopoln, 3, print = FALSE))
-  
-fct_scorese3 <- data.frame(factor.scores(data_impe3[, 1:24], ecopolfit2)$scores)
-
-```
-
-
-##  eco-pol scale : Factor scores from 4th imputation
-```{r, echo=FALSE}
-
-data_impe4 <- mice::complete(mice::mice(ecopoln, 4, print = FALSE))
-  
-fct_scorese4 <- data.frame(factor.scores(data_impe4[, 1:24], ecopolfit2)$scores)
-
-```
-
-##  eco-pol scale : Factor scores from 5th imputation
-```{r, echo=FALSE}
-
-data_impe5 <- mice::complete(mice::mice(ecopoln, 5, print = FALSE))
-  
-fct_scorese5 <- data.frame(factor.scores(data_impe5[, 1:24], ecopolfit2)$scores)
-
-```
-
-
-## Are imputations plausible : Eco-pol scale
-
-yes, imputations are pluasible- all natural numbers between 1 and 5 
-
-```{r, echo=FALSE}
-
-
-summary(miecopol)
-names(miecopol)
-
-miecopol$mids
-
-complete_ecopol_first <- complete(miecopol$mids, 1)
-
-summary(complete_ecopol_first)
-
-complete_ecopol_2 <- complete(miecopol$mids, 2)
-
-summary(complete_ecopol_2)
-
-complete_ecopol_3 <- complete(miecopol$mids, 3)
-
-summary(complete_ecopol_3)
-
-complete_ecopol_4 <- complete(miecopol$mids, 4)
-
-summary(complete_ecopol_4)
-
-complete_ecopol_5 <- complete(miecopol$mids, 5)
-
-summary(complete_ecopol_5)
-
-
-
-```
-
-
-# Checking consistency of LM coefficients across 5 imputed datasets 
-coefficients and LMs are fairly consistent
-
-## Binding datasets: 1st imputation 
+### LMs : EFA only tech characs 
 
 ```{r, echo = FALSE}
 
-# binding the imputed  factor analysis scores for kahan scale and eco-pol value scale to the larger dataset codedmodule2
+ecopolc2final <- cecopol2final %>%
+  rename(DevPride = MR1, SocialCosts = MR2)
 
-ecopolnuclear <- fct_scores2 %>%
-  rename(Ndevelop = MR1, Pdevelop = MR2)
-
-kahannuclear <- fct_scores%>%
+kahannuclearfinal <- nkahanfinal%>%
   rename(Egalitarian = MR1, Communitarian = MR2)
 
 
-allformice<- cbind(formice1,ecopolnuclear, kahannuclear)
+c2allfinal <- cbind(formice1, ecopolc2final, kahannuclearfinal)%>%
+   mutate(Netben_Nuclear = Ben_Nuclear - Risky_Nuclear,
+         Netben_Solar = Ben_Solar - Risky_Solar,
+         Netben_Coal = Ben_Coal - Risky_Coal)
+
+coal2lm <- lm(Risky_Coal ~ Uppercaste + Male + Hindu +Age+ urban_rural + State + DevPride + SocialCosts + Egalitarian + Communitarian , data = c2allfinal)
+
+#summary(coal2lm)
+
+netcoal2lm <- lm(Netben_Coal ~ Uppercaste + Male + Hindu +Age+ urban_rural + State + DevPride + SocialCosts + Egalitarian + Communitarian, data = c2allfinal)
+
+#summary(netcoal2lm)
+
+
+bencoal2lm <- lm(Ben_Coal ~ Uppercaste + Male + Hindu +Age + urban_rural+ State + DevPride + SocialCosts + Egalitarian + Communitarian, data = c2allfinal)
+
+#summary(bencoal2lm)
+
 
 ```
 
 
-## LMs with 1st imputed datasets from FAs 
+### CFA SCORES (mean across all imputations)
 
 ```{r, echo=FALSE}
 
-nuclearIVmice <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State, data = allformice)
+ecopolallscoresc2 <- mice::complete(mice::mice(ecopolc, m = 50, seed = 429, print = FALSE), "broad") 
+            
+ecopolallscoresc2 <- ecopolallscoresc2 %>%dplyr::select(-(contains(c("age", "urban_rural", "gender","caste","religion", "State"))))
+
+#str(ecopolallscores)
 
 
-nuclearIVmice2 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Egalitarian, data = allformice)
+cecopol2 <- ecopolallscoresc2 %>%
+  rowwise() %>%
+  mutate(DEVCOAL_mean = mean(c_across(starts_with("DEVCOAL"))),
+         PROSPERCOAL_mean = mean(c_across(starts_with("PROSPERCOAL"))),
+         NPRIDECOAL_mean = mean(c_across(starts_with("NPRIDECOAL"))),
+         PRIDECOAL_mean = mean(c_across(starts_with("PRIDECOAL"))),
+         JOBSCOAL_mean = mean(c_across(starts_with("JOBSCOAL"))),
+         ECONOMYGLOBAL_mean = mean(c_across(starts_with("ECONOMYGLOBAL"))),
+         WEALTHLIM_mean = mean(c_across(starts_with("WEALTHLIM"))),
+         INDUSTRYLARGE_mean = mean(c_across(starts_with("INDUSTRYLARGE"))),
+         DECISIONCEN_mean = mean(c_across(starts_with("DECISIONCEN"))),
+         MECHANISATION_mean = mean(c_across(starts_with("MECHANISATION"))),
+         OWNERNOREG_mean = mean(c_across(starts_with("OWNERNOREG"))),
+         INDUSTRYSMALL_mean = mean(c_across(starts_with("INDUSTRYSMALL"))),
+         DEVOVERENV_mean = mean(c_across(starts_with("DEVOVERENV"))),
+         OWNERPVT_mean = mean(c_across(starts_with("OWNERPVT"))),
+         RELYCOAL_mean = mean(c_across(starts_with("RELYCOAL"))),
+         BEAUTYCOAL_mean = mean(c_across(starts_with("BEAUTYCOAL"))),
+         HEALTHCOAL_mean = mean(c_across(starts_with("HEALTHCOAL"))),
+         POLLUTECOAL_mean = mean(c_across(starts_with("POLLUTECOAL"))),
+         DISPLACECOAL_mean = mean(c_across(starts_with("DISPLACECOAL"))),
+         ENVOVERDEV_mean = mean(c_across(starts_with("ENVOVERDEV"))),
+         OWNERPUB_mean = mean(c_across(starts_with("OWNERPUB"))),
+         OWNERREG_mean = mean(c_across(starts_with("OWNERREG"))),
+         DECISIONDECEN_mean = mean(c_across(starts_with("DECISIONDECEN"))),
+         ECONOMYLOCAL_mean = mean(c_across(starts_with("ECONOMYLOCAL")))
+  ) %>%
+  ungroup()%>%
+  dplyr::select(contains("_mean")) %>%
+   rename_with(~ gsub("_mean$", "", .x))
 
-nuclearIVmice3 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Egalitarian + Pdevelop + Ndevelop, data = allformice)
+  
+```
 
-summary(nuclearIVmice)
-summary(nuclearIVmice2)
-summary(nuclearIVmice3)
+
+```{r, echo = FALSE}
+
+coalCFAscores <- predict(cecopol_cfa, newdata = cecopol2)
+
+cfacoalscoresfinal  <- cbind(formice1, coalCFAscores, nkahanfinal) %>%
+      rename(Egalitarian = MR1, Communitarian = MR2)%>%mutate(Netben_Nuclear = Ben_Nuclear - Risky_Nuclear,
+         Netben_Solar = Ben_Solar - Risky_Solar,
+         Netben_Coal = Ben_Coal - Risky_Coal)
+
+```
+
+###  CFA LMs : Pdevelop Ndevelop 
+
+```{r, echo = FALSE}
+
+
+coalfinal4 <- lm(Risky_Coal ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Egalitarian + Ndevelop + Pdevelop, data = cfacoalscoresfinal)
+
+#summary(coalfinal4)
+
+bencoal3lm <- lm(Ben_Coal ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Egalitarian + Ndevelop + Pdevelop, data = cfacoalscoresfinal)
+
+#summary(bencoal3lm)
+
+
+netcoal3lm <- lm(Netben_Coal ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Egalitarian + Ndevelop + Pdevelop, data = cfacoalscoresfinal)
+
+#summary(netcoal3lm)
 
 
 ```
 
-## binding dataset - 2nd imputation
+\blandscape
+\newpage
 
-```{r, echo=FALSE}
+## Stargazer : risk and benefit X all ecopol
 
-ecopolnuclear2 <- fct_scorese2 %>%
-  rename(Ndevelop = MR1, Pdevelop = MR2)
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
 
-kahannuclear2 <- fct_scoresk2%>%
-  rename(Egalitarian = MR1, Communitarian = MR2)
 
-allformice2<- cbind(formice1,ecopolnuclear2, kahannuclear2)
+cat("\\begingroup")
+cat("\\small")  # Adjusts the font size
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(nuclearfinal4, solarfinal4, coalfinal4, bennuclear3lm, bensolar3lm, bencoal3lm,
+          title = " Perceived risk and Perceived benefit(Nuclear, Solar, Coal)",
+          type = "latex"
+)
+cat("\\endgroup")
+
+
+```
+\elandscape
+
+\newpage
+## Stargazer : benefit X all ecopol
+
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
+
+
+cat("\\begingroup")
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer( bennuclear3lm, bensolar3lm, bencoal3lm,
+          title = "",
+          type = "latex"
+)
+cat("\\endgroup")
+
 
 ```
 
-## LMs with second imputation 
-```{r, echo=FALSE}
 
-nuclearIVmiceimp2 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State, data = allformice2)
+\newpage
 
-nuclearIVmiceimp22 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Egalitarian, data = allformice2)
+## Stargazer : net benefit X all ecopol
 
-nuclearIVmiceimp23 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Egalitarian + Pdevelop + Ndevelop, data = allformice2)
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
 
-summary(nuclearIVmiceimp2)
-summary(nuclearIVmiceimp22)
-summary(nuclearIVmiceimp23)
+
+cat("\\begingroup")
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(netnuclear3lm,  netsolar3lm, netcoal3lm,
+          title = "",
+          type = "latex"
+)
+cat("\\endgroup")
+
+
+```
+
+\newpage
+\blandscape
+
+## Stargazer : risk  X characteristics of tech 
+
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
+
+
+cat("\\begingroup")
+cat("\\small")  # Adjusts the font size
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(nuclear2lm, solar2lm, coal2lm,bennuclear2lm, bensolar2lm, bencoal2lm,
+          title = "",
+          type = "latex"
+)
+cat("\\endgroup")
+
+```
+
+\elandscape
+
+\newpage
+## Stargazer : ben  X characteristics of tech 
+
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
+
+
+cat("\\begingroup")
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(bennuclear2lm, bensolar2lm, bencoal2lm, 
+          title = "",
+          type = "latex"
+)
+cat("\\endgroup")
+
+
+```
+
+
+\newpage
+## Stargazer : netben  X characteristics of tech 
+
+```{r, echo=FALSE, results='asis'}
+library(stargazer)
+
+
+cat("\\begingroup")
+cat("\\setlength{\\tabcolsep}{1pt}")
+cat("\\renewcommand{\\arraystretch}{0.7}")
+stargazer(netnuclear2lm, netsolar2lm, netcoal2lm, 
+          title = "",
+          type = "latex"
+)
+cat("\\endgroup")
+
 
 ```
 
 
 
-## binding dataset - 3rd imputation
-
-```{r, echo=FALSE}
-
-ecopolnuclear3 <- fct_scorese3 %>%
-  rename(Ndevelop = MR1, Pdevelop = MR2)
-
-kahannuclear3 <- fct_scoresk3%>%
-  rename(Egalitarian = MR1, Communitarian = MR2)
-
-allformice3<- cbind(formice1,ecopolnuclear3, kahannuclear3)
-
-```
-
-## LMs with third imputation 
-```{r, echo=FALSE}
-
-nuclearIVmiceimp3 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State, data = allformice3)
-
-nuclearIVmiceimp32 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Egalitarian, data = allformice3)
-
-nuclearIVmiceimp33 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Egalitarian + Pdevelop + Ndevelop, data = allformice3)
-
-summary(nuclearIVmiceimp3)
-summary(nuclearIVmiceimp32)
-summary(nuclearIVmiceimp33)
-
-```
-
-## binding dataset - 4th imputation
-
-```{r, echo=FALSE}
-
-ecopolnuclear4 <- fct_scorese4 %>%
-  rename(Ndevelop = MR1, Pdevelop = MR2)
-
-kahannuclear4 <- fct_scoresk4%>%
-  rename(Egalitarian = MR1, Communitarian = MR2)
-
-allformice4<- cbind(formice1, ecopolnuclear4, kahannuclear4)
-
-```
-
-## LMs with fourth imputation 
-```{r, echo=FALSE}
-
-nuclearIVmiceimp4 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State, data = allformice4)
-
-nuclearIVmiceimp24 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Egalitarian, data = allformice4)
-
-nuclearIVmiceimp34 <- lm(Risky_Nuclear ~ Uppercaste + Male + Hindu + urban_rural + Age + State + Communitarian + Egalitarian + Pdevelop + Ndevelop, data = allformice4)
-
-summary(nuclearIVmiceimp4)
-summary(nuclearIVmiceimp24)
-summary(nuclearIVmiceimp34)
-
-```
-
-```{r, echo=FALSE}
-
-# Allformice: Do imputations merge ? 
 
 
-# Initialize the mice process to create the predictor matrix
-#ini <- mice(allformice, maxit = 0, pri = FALSE)
-
-# Extract the predictor matrix from the initialized object
-#pred <- ini$predictorMatrix
-
-# Set the columns for "Uppercaste", "Male", "Hindu", and "Age" to 0
-#pred[, "Uppercaste"] <- 0
-#pred[, "Male"] <- 0
-#pred[, "Hindu"] <- 0
-#pred[, "Age"] <- 0
-#pred[, "Ndevelop"] <- 0
-#pred[, "Pdevelop"] <- 0
-#pred[, "Egalitarian"] <- 0
-#pred[, "Communitarian"] <- 0
-# Identify columns that start with "K_" and set them to 0
-#k_columns <- grep("^K_", colnames(formice1))
-#pred[, k_columns] <- 0
-
-# Perform the mice imputation with the updated predictor matrix
-#allformice.imp <- mice(allformice, m = 5, maxit = 10, predictorMatrix = pred, seed = 430, print = TRUE)
-
-#summary(allformice.imp)
-#allformice.imp$chainMean
-
-
-#plot(allformice.imp)
-
-```
-
-```{r, echo=FALSE}
-
-# LM with demographic variables and State 
-# The pool() function from the mice package creates a list containing the results,
-# so we need to access the summary of the model directly.
-
-#pooled_fit4 <- pool(nuclearfit4)
-
-#pooled_summary4 <- summary(pooled_fit4)
-
-#coefficients_df4 <- pooled_summary4
-# To ensure the numeric values are rounded to two decimal places, you can use:
-#coefficients_df4 <- round(coefficients_df4[, -1], 2)  # Skipping the first column as it's factors (term names)
-#coefficients_df4$term <- pooled_summary4$term  # Adding back the unrounded terms
-
-# Print the dataframe
-#data.frame(coefficients_df4) %>%
- # dplyr::select(term, estimate, std.error, statistic, df, p.value)
-```
 
