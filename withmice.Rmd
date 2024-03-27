@@ -1429,11 +1429,12 @@ miecopols <- mifa(data= ecopols,
 
 
 
-# EFA with mifa
 
-ecopolfits <- psych::fa(miecopols$cov_combined, nfactors = 2, rotate = "varimax")
+# EFA with mifamiecopols$cov_combined
 
-#print.psych(ecopolfits, sort= TRUE, cut= 0.4)
+ecopolfits <- psych::fa(miecopols$cov_combined, nfactors = 3, rotate = "varimax")
+
+print.psych(ecopolfits, sort= TRUE, cut= 0.4)
 
 
 
@@ -1596,7 +1597,7 @@ cat("\\endgroup")
 
 ecopols_2fa <- '
   Ndevelop =~ DEVSOLAR + PRIDESOLAR + NPRIDESOLAR + PROSPERSOLAR + JOBSSOLAR
-  Pdevelop =~ HEALTHSOLAR + BEAUTYSOLAR + DISPLACESOLAR + POLLUTESOLAR +ENVOVERDEV
+  Pdevelop =~ HEALTHSOLAR + BEAUTYSOLAR + DISPLACESOLAR + POLLUTESOLAR 
 '
 
 secopol_cfa <- cfa(ecopols_2fa, sample.cov = miecopols$cov_combined, sample.nobs = 1099, std.lv = TRUE) # std.lv = TRUE to do variance standardization method
@@ -1690,7 +1691,7 @@ fit_dfs <- data.frame(Measure = names(fit_measuress), Value = fit_measuress) %>%
 ```
 
 
-# Confirmatory Factor Analysis(CFA): Solar 
+### Confirmatory Factor Analysis(CFA): Solar 
 
 
 ```{r, echo =FALSE}
@@ -1853,7 +1854,7 @@ miecopolc <- mifa(data= ecopolc,
 
 
 # EFA With mifa - all ecopol vars for coal
-ecopolfitc <- psych::fa(miecopolc$cov_combined, nfactors = 3, rotate = "varimax")
+ecopolfitc <- psych::fa(miecopolc$cov_combined, nfactors = 2, rotate = "varimax")
 
 print.psych(ecopolfitc, sort= TRUE, cut= 0.4)
 
@@ -1900,7 +1901,7 @@ miecopolc2 <- mifa(data= ecopolc2,
 
 ecopolfitc2 <- psych::fa(miecopolc2$cov_combined, nfactors = 2, rotate = "varimax")
 
-print.psych(ecopolfitc2, sort= TRUE, cut= 0.4)
+#print.psych(ecopolfitc2, sort= TRUE, cut= 0.4)
 
 
 ```
@@ -1926,15 +1927,15 @@ print.psych(ecopolfitc2, sort= TRUE, cut= 0.4)
 
 
 # (DECISIONDECEN, DECISIONCEN, INDUSTRYSMALL, INDUSTRYLARGE,ECONOMYLOCAL, ECONOMYGLOBAL, ENVOVERDEV,DEVOVERENV, OWNERPVT, OWNERPUB,OWNERREG, OWNERNOREG, WEALTHLIM, MECHANISATION,DISPLACECOAL,  POLLUTECOAL, HEALTHCOAL, JOBSCOAL, BEAUTYCOAL,PRIDECOAL, NPRIDECOAL, DEVCOAL, PROSPERCOAL,RELYCOAL)
-
-
+#+ DECISIONCEN + MECHANISATION + DEVOVERENV+ JOBSCOAL 
+# + ENVOVERDEV + OWNERPUB
 
 ## CFA on ecopol vars for coal 
 
 ecopolc_2fa <- '
-  Ndevelop =~ DEVCOAL+ PROSPERCOAL + NPRIDECOAL + PRIDECOAL  + JOBSCOAL + ECONOMYGLOBAL+ WEALTHLIM+ INDUSTRYLARGE+ DECISIONCEN + MECHANISATION + DEVOVERENV
-  Pdevelop =~ BEAUTYCOAL + + HEALTHCOAL + POLLUTECOAL 
-  Pdevelop2 =~  DISPLACECOAL  + ENVOVERDEV +OWNERPUB
+  Ndevelop =~ NPRIDECOAL + PRIDECOAL + DEVOVERENV + DEVCOAL
+  Pdevelop1 =~ BEAUTYCOAL + HEALTHCOAL + POLLUTECOAL 
+  Pdevelop2 =~ DISPLACECOAL + ENVOVERDEV + OWNERPUB 
   
 '
 
@@ -1992,8 +1993,9 @@ cparams1 <- cparams %>%
    
 
 cparams1$Scale <- NA
-cparams1$Scale[1:8] <- "People Centered Development"
-cparams1$Scale[9:14] <- "Nationalist Development"
+cparams1$Scale[1:5] <- "Nationalist Development"
+cparams1$Scale[6:14] <- "People Centered Development (1)"
+cparams1$Scale[9:14] <- "People Centered Development (2)"
 cparams1 <- cparams1[, c("Scale", setdiff(names(sparams1), "Scale"))]
 CFAcoal <- knitr::kable(cparams1, booktabs = TRUE, caption = "Confirmatory Factor Analysis(CFA) on eco-pol scale (Coal)") %>%
   kable_styling(latex_options = c("striped","scale_down", "hold_position", "repeat_header"))%>%
@@ -2140,6 +2142,7 @@ cPdevelop <-cecopol2 %>%
   dplyr::select((c(BEAUTYCOAL , POLLUTECOAL , HEALTHCOAL , OWNERPUB , ENVOVERDEV , DISPLACECOAL)))
 
 nPdevelop_alpha <- psych::alpha(nPdevelop , check.keys = TRUE) # alpha = 0.78
+
 
 
 ```

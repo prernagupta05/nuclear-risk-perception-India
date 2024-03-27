@@ -303,21 +303,20 @@ correlation_matrix <- cor(risky_data, ben_data)
 
 correlation_df <- as.data.frame(correlation_matrix)
 
-#kable_table <- kable(correlation_df, caption = "Correlation Table between Perceived Risk and Perceived Benefit Variables", format = "html", #digits = 2) %>%
-  #kable_styling(full_width = F) %>%
-  #column_spec(1, background = "white") %>%
-  #add_header_above(c(" " = 1, "Perceived Benefits" = ncol(correlation_df)))#%>%
-  #pack_rows("Perceived Risks", 1, nrow(correlation_df))
+kable_table <- kable(correlation_df, caption = " Table 8 : Correlation Table between Perceived Risk and Perceived Benefit Variables", format = "html", digits = 2) %>%
+  kable_styling(full_width = F) %>%
+  column_spec(1, background = "white") %>%
+  add_header_above(c(" " = 1, "Perceived Benefits" = ncol(correlation_df)))%>%
+  pack_rows("Perceived Risks", 1, nrow(correlation_df))
 
 # Apply alternating background colors for columns
-#for (i in seq(2, ncol(correlation_df), by = 2)) {
-  #kable_table <- kable_table %>% 
-    
-#row_spec(i, background = "#F0F0F0")
-#}
+for (i in seq(2, ncol(correlation_df), by = 2)) {
+  kable_table <- kable_table %>% 
+row_spec(i, background = "#F0F0F0")
+}
 
 # Print the kable table
-#print(kable_table)
+print(kable_table)
 ```
 
 
